@@ -1,0 +1,16 @@
+{"module":"riegel","cas":[
+  {"nom":"tempsRiegel de 1191 s sur 5 km vers 10 km","fn":"tempsRiegel","entree":[1191,5,10],"sortie":2483.153442323551},
+  {"nom":"tempsRiegel de 1191 s sur 5 km vers 21.0975 km","fn":"tempsRiegel","entree":[1191,5,21.0975],"sortie":5478.837405908594},
+  {"nom":"tempsRiegel de 1191 s sur 5 km vers 42.195 km","fn":"tempsRiegel","entree":[1191,5,42.195],"sortie":11423.000809750596},
+  {"nom":"tempsRiegel de 1191 s sur 5 km vers 5 km","fn":"tempsRiegel","entree":[1191,5,5],"sortie":1191},
+  {"nom":"tempsRiegel de 1200 s sur 5 km vers 10 km","fn":"tempsRiegel","entree":[1200,5,10],"sortie":2501.9178260186914},
+  {"nom":"tempsRiegel de 1200 s sur 5 km vers 1 km","fn":"tempsRiegel","entree":[1200,5,1],"sortie":217.90793315243522},
+  {"nom":"tempsRiegel de 2464 s sur 10 km vers 5 km","fn":"tempsRiegel","entree":[2464,10,5],"sortie":1181.8133950087256},
+  {"nom":"tempsRiegel de 2464 s sur 10 km vers 42.195 km","fn":"tempsRiegel","entree":[2464,10,42.195],"sortie":11334.891157144228},
+  {"nom":"tempsRiegel de 5502 s sur 21.0975 km vers 10 km","fn":"tempsRiegel","entree":[5502,21.0975,10],"sortie":2493.6513401420175},
+  {"nom":"tempsRiegel de 0 s sur 5 km vers 10 km","fn":"tempsRiegel","entree":[0,5,10],"sortie":0},
+  {"nom":"tempsRiegel de 1191 s sur 5 km vers 0 km","fn":"tempsRiegel","entree":[1191,5,0],"sortie":0},
+  {"nom":"tempsRiegel de 1500 s sur 5 km vers 21.0975 km","fn":"tempsRiegel","entree":[1500,5,21.0975],"sortie":6900.298999884879},
+  {"nom":"tempsRiegel de 1080 s sur 3 km vers 5 km","fn":"tempsRiegel","entree":[1080,3,5],"sortie":1856.023326287895},
+  {"nom":"tempsRiegel de 600 s sur 2 km vers 5 km","fn":"tempsRiegel","entree":[600,2,5],"sortie":1584.775175282488}
+]}
