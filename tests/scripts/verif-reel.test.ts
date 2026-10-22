@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { archiveSynthetique, NOM_SECRET } from '../fixtures/archive-synthetique';
+import { FORMAT_VUE, REGLES_VERSION } from '../../src/core/constantes';
 import { verifierReel } from '../../scripts/verif-reel';
 
 const J = '2026-10-21';
@@ -42,7 +43,7 @@ describe('rapport sur données réelles (tâche 6.1)', () => {
   beforeAll(async () => {
     dossierTemp = await mkdtemp(join(tmpdir(), 'fjord-verif-'));
     zipChemin = join(dossierTemp, 'archive-synthetique.zip');
-    await writeFile(zipChemin, archiveSynthetique());
+    await writeFile(zipChemin, archiveSynthetique(60, { picsFc: true }));
     debut = Date.now();
     const resultat = await verifierReel({
       env: { JOG_EXPORT: zipChemin, JOG_J: J },
@@ -66,9 +67,9 @@ describe('rapport sur données réelles (tâche 6.1)', () => {
   });
 
   it('avec le snapshot, écrit la Vue complète versionnée par REGLES_VERSION', async () => {
-    expect(cheminSnapshot).toBe(join(SORTIE_TEST, 'vue-1.0.0.json'));
+    expect(cheminSnapshot).toBe(join(SORTIE_TEST, `vue-${REGLES_VERSION}.json`));
     const vue = JSON.parse(await readFile(cheminSnapshot ?? '', 'utf8')) as { formatVersion: number; J: string };
-    expect(vue.formatVersion).toBe(4);
+    expect(vue.formatVersion).toBe(FORMAT_VUE);
     expect(vue.J).toBe(J);
   });
 
@@ -80,6 +81,17 @@ describe('rapport sur données réelles (tâche 6.1)', () => {
     for (const reference of ['Classification', 'D-001', 'D-002', 'D-003', 'D-004', 'D-005', 'D-006', 'D-007', 'D-008', 'D-009', 'D-010', 'D-013', 'D-014', 'ADR 0012']) {
       expect(rapport, reference).toContain(reference);
     }
+  });
+
+  it('contient la section FC max observée (D-019) avec les valeurs de la fixture', () => {
+    expect(rapport).toContain('## FC max observée (D-019, ADR 0013) : pic le 2026-10-19');
+    // Pic soutenu de la fixture : 194 bpm le 2026-10-19 (J−2), au-dessus du réglage par défaut de 188 bpm.
+    expect(rapport).toContain('Pic retenu : 194 bpm, le 2026-10-19. Écart au réglage en vigueur (188 bpm à J−1) : +6 bpm.');
+    expect(rapport).toContain('Proposition : 194 bpm à partir du 2026-10-19.');
+    // Une seule pointe de début (J−4, 205 bpm dans la première minute) ; la séance du pic soutenu n'en est pas une.
+    expect(rapport).toMatch(
+      /Séances avec FC \(toutes les activités importées, pas seulement les 365 derniers jours\) : \d+\. Dont le maximum brut de FC se situe dans les 5 premières minutes : 1 \(\S+\s% des séances avec FC\)\./,
+    );
   });
 
   it('ne contient aucun nom d\'activité, ni le chemin de l\'archive (ADR 0010)', () => {

@@ -77,6 +77,7 @@ export interface SeanceIntrinseque {            // étape ②a, mémorisée (ADR
   segmentsMp: { debut_s: number; fin_s: number }[];
   repetitions: Repetition[]; format: string | null; recup_s: number | null;
   ef: number | null;                              // m/min ÷ bpm, séance entière
+  fcPic: number | null;                           // pic soutenu (D-019), bpm brut, null sans fenêtre valide
   decouplage: { valeur: number | null; retenu_min: number; total_min: number; avecMp: boolean } | null;
   lignesDroites: boolean;
   distanceRef_km: number | null; temps_s: number | null;   // course / test
@@ -91,9 +92,22 @@ export type CleSignal = "progressivite" | "fraicheur" | "reponse" | "horsSousSeu
 export interface Signal { cle: CleSignal; nom: string; etat: EtatSignal; valeur: number | null; valeurTexte: string; explication: string }
 export type Verdict = "augmenter" | "maintenir" | "alleger" | "aucun";
 
+/** FC max observée (D-019, ADR 0013) : le pic soutenu le plus haut de l'année, à proposer comme hrMax. */
+export interface SuggestionHrMax {
+  /** Pic de la séance, arrondi au bpm (D-015). */
+  bpm: number;
+  date: DateCivile;
+  cleSource: string;
+  nom: string | null;
+  /** Distance de la séance, arrondie au dixième de km comme à l'affichage. */
+  km: number;
+  /** Vrai quand le pic dépasse hrMax(J−1) de plus de ECART_SUSPECT_HRMAX_BPM. */
+  ecartSuspect: boolean;
+}
+
 // ── Vue (ADR 0009) : ce que l'interface affiche ─────────────────
 export interface Vue {
-  formatVersion: 4;                              // = FORMAT_VUE (constantes.ts)
+  formatVersion: 5;                              // = FORMAT_VUE (constantes.ts)
   reglesVersion: string;
   J: DateCivile;
   derniereSynchro: string | null;               // ISO, dernier import réussi
@@ -106,6 +120,8 @@ export interface Vue {
     suggestionPaceHrK: number | null;
     /** Raison de l'absence de suggestion (06), null quand une valeur est suggérée. */
     raisonAbsenceSuggestion: string | null;
+    /** FC max observée à proposer (D-019, ADR 0013), null sans pic au-dessus du seuil. */
+    suggestionHrMax: SuggestionHrMax | null;
   };
   seances: SeanceVue[];                          // ordre (date, debutUtc, cleSource)
   /** Jours en tableaux parallèles (ADR 0009, budget de taille) : l'entrée i de chaque tableau décrit `date[i]`. */

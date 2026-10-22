@@ -92,7 +92,21 @@ Découpage en lots. Chaque lot est une tranche utilisable de bout en bout, qui p
 |---|---|---|
 | 6.1 Rapport réel | `npm run verif:reel` (0011) : un rapport par point de `09`, plus les mesures de performance | le script tourne sur l'export ; il n'écrit que dans `tests/local/out/` |
 | 6.2 Performance | budgets de 0012 : Vue en cache au démarrage, `Float64Array` transférées, rendu de l'onglet actif seulement | mesures dans le rapport ; taille du paquet |
+| 7 · FC max observée | terminé, relu, corrigé | 2026-10-22 : 2 101 tests unitaires (2 022 avant) ; `npm run test:e2e` : 17 scénarios Chromium (mode `FJORD_SANS_SOCKET=1`) ; lint et typecheck verts ; section « FC max observée » de `verif:reel` sur l'export réel |
 | 6.3 Accessibilité et responsive | `08` (focus visible, contrastes, `prefers-reduced-motion`), seuils à 980 et 640 px, défilement horizontal limité aux tableaux larges | tests ARIA ; contrôle manuel |
+
+## Lot 7 · FC max observée (D-019, ADR 0013)
+
+**But** : après un import, l'athlète voit dans Paramètres la FC max tenue la plus haute de l'année si elle dépasse son réglage, et l'applique en un clic ou l'ignore.
+
+| Tâche | Contenu | Tests attendus |
+|---|---|---|
+| 7.1 Pic soutenu | `src/core/seance/` : `fcPic` dans `SeanceIntrinseque` (ADR 0013 : minimum glissant sur 15 s de `fc_bpm`, maximum des fenêtres sans NaN commençant à `t ≥ 300 s`, `null` sinon), en O(n) ; constantes `DUREE_PIC_FC_S`, `DEBUT_PIC_FC_S` ; `FORMAT_SEANCE = 2`, `REGLES_VERSION = "1.1.0"` ; types et `contrats.md` | pointe de 5 s à 210 bpm ignorée ; plateau de 20 s à 195 → 195 ; plateau de 14 s ignoré ; pic dans les 5 premières minutes ignoré ; FC à 1 s et à 5 s → même pic (D-013) ; trou de FC dans la fenêtre ; séance sans FC → `null` ; gel des constantes |
+| 7.2 Suggestion | `calculerVue` : `parametresEnVigueur.suggestionHrMax` (ADR 0013) ; constantes `MARGE_HRMAX_BPM`, `ECART_SUSPECT_HRMAX_BPM` ; `FORMAT_VUE = 5` (cache de Vue invalidé) | à `hrMax + 2` → null ; à `hrMax + 3` → proposée ; arrondi à mi-chemin ; séance à J−366 ignorée, à J−365 retenue ; séance antérieure à la dernière modification de `hrMax` ignorée, celle du même jour retenue ; égalité → la plus récente ; `ecartSuspect` à +15 faux, à +16 vrai ; doublon ignoré exclu |
+| 7.3 Encart | `src/ui/composants/` : encart du groupe « Données » (textes exacts de D-019, dates par `core/format`), « Utiliser » envoie `enregistrerParams` avec les paramètres enregistrés plus une modification `hrMax` datée, « Ignorer » via `localStorage` `fjord-hrmax-ignoree` sous `try/catch` | textes exacts avec et sans nom, avec et sans phrase d'écart ; le message envoyé contient les modifications existantes et une seule nouvelle, à la date de la séance ; la saisie en cours du formulaire n'y entre pas ; « Ignorer » masque et survit au rendu suivant ; un autre pic réapparaît ; `localStorage` qui lève → l'encart s'affiche quand même |
+| 7.4 Vérification | `scripts/verif-reel.ts` : section « FC max observée » (pic retenu, séance, nombre de séances dont le maximum brut se situe dans les 5 premières minutes) ; un scénario e2e (import, encart, « Utiliser », annonce) | le rapport tourne sur l'export ; `npm run test:e2e` passe |
+
+**Critères d'acceptation** (D-019) : aucune modification de `hrMax` sans clic ; après « Utiliser », la FC max en vigueur à J−1 vaut le pic, l'historique montre la modification datée, et l'encart disparaît.
 
 ---
 
@@ -105,6 +119,8 @@ Découpage en lots. Chaque lot est une tranche utilisable de bout en bout, qui p
 - **Tours d'échauffement et de retour au calme** (constat sur l'export réel, 2026-10-21) : dans 74 des 114 séances sous-seuil, le premier tour manuel était l'échauffement d'une séance programmée sur la montre, et il était compté comme répétition. Règle implémentée : le tour qui contient le premier échantillon n'est jamais un tour de travail, ni le dernier tour (hors tours `fin`) qui va jusqu'au dernier échantillon. Précision de `07`, règle 2, **à confirmer**.
 - **Contraste de `--ink-3`** : `#7c8b97` sur `#f4f7f9` ne donne que 3,25:1, sous le niveau AA (4,5:1) que `08` exige. En attendant une décision, les textes courants passent en `--ink-2`, et `--ink-3` reste réservé aux axes. Proposition : assombrir `--ink-3` en thème clair (par exemple `#66757f`, environ 4,6:1).
 - **Arrondi** : D-015 ne s'applique qu'aux seuils du verdict (`05`). Le classement des minutes et la détection se font sur les valeurs brutes (ADR 0006, précisée).
+- **FC max observée** · précisions de D-019 / ADR 0013 (2026-10-22) : (a) une fenêtre de 15 s est écartée si deux mesures consécutives y sont espacées de plus d'un pas de la grille (le mode des écarts entre mesures, 1 s pour un flux à 1 Hz, 10 s au plus, D-013), c'est-à-dire par une pause ou un trou ; elle est aussi écartée si le flux s'arrête avant sa fin à plus d'un pas près. Conséquence : une pause de 5 s (écart de 6 s entre mesures) ou une seconde manquante coupe la fenêtre. Écart avec le texte initial : le seuil de 10 s seul ne coupait pas une pause de 5 à 9 s, d'où le pas de la grille. (b) Comportement connu de la grille à 5 s : un plateau de 11 à 14 s en fin de flux, ou au milieu d'un flux à 5 s, est compté, le prolongement de 10 s de D-013 couvrant l'intervalle. **À confirmer.**
+- **FC max observée, encart** (lot 7.3) : (a) la date de la séance s'écrit avec l'année, « 10 oct. 26 » (`formatDateAnnee`), dans la phrase et dans le bouton « Utiliser ». La fenêtre couvre 365 jours, et « Utiliser » déclenche un recalcul rétroactif : sans l'année, deux séances de même date sur deux saisons seraient indiscernables. D-019 ne dit que « {date} ». (b) Le focus n'est pas prévu par D-019 : « Ignorer » le pose sur le titre « Données », « Utiliser » réussi sur le titre « Modifications datées ». (c) Pas d'état « occupé » : le formulaire n'en a pas, et « Utiliser » suit le même chemin. **À confirmer.**
 
 ---
 

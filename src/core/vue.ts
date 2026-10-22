@@ -9,6 +9,7 @@ import { indexerParametres, trierModifs } from './parametres';
 import { suggestionPaceHrK } from './progression/paceHrK';
 import { calculerSeanceIntrinseque, classerSeances } from './seance';
 import { compteurs, palier, semaines, serieCharge, serieRatio } from './series';
+import { suggestionHrMax } from './suggestionHrMax';
 import type { ActivitePivot, DateCivile, Flux, JoursVue, ParamsDates, Parametres, Seance, SeanceIntrinseque, SeanceVue, SerieRatioVue, Vue } from './types';
 
 /** Une activité sans son flux : ce que le Worker lit dans la base, sans les échantillons. */
@@ -169,6 +170,7 @@ export function calculerVueBrute({ intrinseques, parametres, J, derniereSynchro 
       // Remplis par `avecSuggestion`, à partir de la Vue elle-même.
       suggestionPaceHrK: null,
       raisonAbsenceSuggestion: null,
+      suggestionHrMax: null,
     },
     premierJour,
     seances: seances.map(sansSegmentsMp),
@@ -180,7 +182,7 @@ export function calculerVueBrute({ intrinseques, parametres, J, derniereSynchro 
     compteurs: compteursVue,
     decision,
   };
-  return avecSuggestion(vue);
+  return avecSuggestion(vue, vue);
 }
 
 /**
@@ -204,15 +206,21 @@ export function calculerVue(entree: EntreeVue): Vue {
     palier: arrondirProfond(brute.palier),
     compteurs: arrondirProfond(brute.compteurs),
   };
-  // La suggestion paceHrK se calcule sur la Vue finale, celle que l'interface reçoit (D-004).
-  return avecSuggestion(finale);
+  // La suggestion paceHrK se calcule sur la Vue finale, celle que l'interface reçoit (D-004). La FC max, elle, sur la
+  // Vue brute : voir `avecSuggestion`.
+  return avecSuggestion(finale, brute);
 }
 
 /** Raison affichée quand paceHrK ne peut pas être suggéré (06). */
 const RAISON_SANS_SUGGESTION = 'pas assez de données pour suggérer une valeur';
 
-/** Ajoute à la Vue la suggestion paceHrK (D-004) et, à défaut, sa raison (06), calculées sur cette Vue à J−1. */
-function avecSuggestion(vue: Vue): Vue {
+/**
+ * Ajoute à la Vue la suggestion paceHrK (D-004) et, à défaut, sa raison (06), puis la FC max observée (D-019).
+ * paceHrK se calcule sur `vue`, la Vue telle que l'interface la reçoit, à J−1. La FC max se calcule sur `brute`, la
+ * même Vue aux valeurs non arrondies : arrondir le pic à 4 décimales puis au bpm ferait passer 190,49996 à 191
+ * (double arrondi, D-015). `brute` et `vue` ont les mêmes J, paramètres et dates : seuls les pics diffèrent.
+ */
+function avecSuggestion(vue: Vue, brute: Vue): Vue {
   const valeur = suggestionPaceHrK(vue);
   return {
     ...vue,
@@ -220,6 +228,7 @@ function avecSuggestion(vue: Vue): Vue {
       ...vue.parametresEnVigueur,
       suggestionPaceHrK: valeur,
       raisonAbsenceSuggestion: valeur === null ? RAISON_SANS_SUGGESTION : null,
+      suggestionHrMax: suggestionHrMax(brute),
     },
   };
 }

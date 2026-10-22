@@ -184,7 +184,7 @@ export async function monterApplication(
       panneau.append(el('h2', {}, ['Paramètres']));
       const conteneur = el('div', { class: 'parametres' });
       panneau.append(conteneur);
-      rendreParametres(conteneur, vue, J, { client, annonce: statut, champImport });
+      rendreParametres(conteneur, vue, J, { client, annonce: statut, champImport, stockage });
       return;
     }
     if (id === 'apercu') {

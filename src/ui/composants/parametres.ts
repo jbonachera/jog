@@ -2,13 +2,15 @@
 // et globaux ; tableau des zones en bpm pendant la saisie ; valeur suggérée de paceHrK ; enregistrement et recalcul ;
 // réinitialisation ; liste des modifications datées ; groupe « Données ». Le rendu reconstruit l'onglet à chaque Vue
 // (ADR 0009) : l'application conserve le focus et la position de défilement autour du rendu.
-import { formatDate, formatNombre } from '../../core/format';
+import { formatDate, formatDateAnnee, formatNombre } from '../../core/format';
 import { historiqueModifications, parametresAuJour, parametresDefaut } from '../../core/parametres';
-import type { DateCivile, Vue } from '../../core/types';
+import type { DateCivile, SuggestionHrMax, Vue } from '../../core/types';
 import type { ClientFjord, ResultatParametres } from '../client';
+import type { StockageFjord } from '../app';
 import { dateCivileAppareil, fuseauAppareil } from '../../worker/horloge';
 import { el, messageErreur } from '../dom';
 import { fermerInfobulle } from '../infobulle';
+import { kmTexte } from './commun';
 import {
   estDatee,
   GROUPES,
@@ -19,7 +21,13 @@ import {
   type DefChamp,
   type DefGroupe,
 } from './parametres-champs';
-import { construireProposition, type ReferenceParametres, type SaisieParametres } from './parametres-proposition';
+import {
+  construireProposition,
+  construirePropositionHrMax,
+  type ReferenceParametres,
+  type ResultatProposition,
+  type SaisieParametres,
+} from './parametres-proposition';
 
 /** Ce dont l'onglet a besoin de l'application (02, ADR 0009). */
 export interface ControleParametres {
@@ -28,7 +36,13 @@ export interface ControleParametres {
   annonce: HTMLElement;
   /** Le champ d'import d'archive (D-018), rendu par l'application, qui en réapplique l'état d'import. */
   champImport: () => HTMLElement;
+  /** Le stockage de l'application, où « Ignorer » mémorise la FC max écartée (D-019). Null sans localStorage. */
+  stockage: StockageFjord | null;
 }
+
+/** Clé de `localStorage` : la suggestion de FC max écartée sur cet appareil (D-019). */
+const CLE_HRMAX_IGNOREE = 'fjord-hrmax-ignoree';
+const TEXTE_ECART_HRMAX = 'Écart important : vérifiez qu’il ne s’agit pas d’un artefact du capteur.';
 
 export const MESSAGE_ENREGISTRE = 'Enregistré. Tableau de bord recalculé.';
 export const MESSAGE_RECALCUL = 'Le recalcul a échoué : les paramètres précédents sont conservés.';
@@ -38,20 +52,58 @@ export const MESSAGE_SAUVEGARDE_TELECHARGEE = 'Sauvegarde téléchargée.';
 export const QUESTION_IMPORT_SAUVEGARDE = 'Remplacer les paramètres et le journal par ceux de la sauvegarde ?';
 export const RAISON_SANS_SUGGESTION = 'pas assez de données pour suggérer une valeur';
 
+/** La référence de l'onglet, plus la suggestion de paceHrK, sa raison d'absence et la suggestion de FC max (D-019). */
+interface ReferenceVue extends ReferenceParametres {
+  suggestion: number | null;
+  raison: string;
+  suggestionHrMax: SuggestionHrMax | null;
+}
+
 /** Ce que la Vue apporte à l'onglet, ou les défauts de 06 quand aucune Vue n'existe encore. */
-function referenceDe(vue: Vue | null, J: DateCivile): ReferenceParametres & { suggestion: number | null; raison: string } {
+function referenceDe(vue: Vue | null, J: DateCivile): ReferenceVue {
   if (vue !== null) {
-    const { globaux, datesAJm1, modifs, suggestionPaceHrK, raisonAbsenceSuggestion } = vue.parametresEnVigueur;
+    const { globaux, datesAJm1, modifs, suggestionPaceHrK, raisonAbsenceSuggestion, suggestionHrMax } = vue.parametresEnVigueur;
     return {
       globaux,
       datesAJm1,
       modifs,
       suggestion: suggestionPaceHrK,
       raison: raisonAbsenceSuggestion ?? RAISON_SANS_SUGGESTION,
+      suggestionHrMax,
     };
   }
   const defauts = parametresDefaut();
-  return { globaux: defauts.globaux, datesAJm1: parametresAuJour(defauts, J), modifs: [], suggestion: null, raison: RAISON_SANS_SUGGESTION };
+  return {
+    globaux: defauts.globaux,
+    datesAJm1: parametresAuJour(defauts, J),
+    modifs: [],
+    suggestion: null,
+    raison: RAISON_SANS_SUGGESTION,
+    suggestionHrMax: null,
+  };
+}
+
+/** La clé d'une suggestion : sa séance et sa valeur. Un autre pic a une autre clé (D-019). */
+function cleSuggestion(suggestion: SuggestionHrMax): string {
+  return `${suggestion.cleSource}:${suggestion.bpm}`;
+}
+
+/** Vrai si l'athlète a écarté cette suggestion sur cet appareil. Une lecture qui lève compte comme non écartée. */
+function estEcartee(stockage: StockageFjord | null, suggestion: SuggestionHrMax): boolean {
+  try {
+    return stockage !== null && stockage.getItem(CLE_HRMAX_IGNOREE) === cleSuggestion(suggestion);
+  } catch {
+    return false;
+  }
+}
+
+/** Mémorise l'écart. Une écriture qui lève ne bloque rien : l'encart est alors masqué pour le rendu courant seulement. */
+function memoriserEcartee(stockage: StockageFjord | null, suggestion: SuggestionHrMax): void {
+  try {
+    stockage?.setItem(CLE_HRMAX_IGNOREE, cleSuggestion(suggestion));
+  } catch {
+    // Stockage bloqué (navigation privée, par exemple) : rien à mémoriser.
+  }
 }
 
 /**
@@ -66,7 +118,13 @@ export function rendreParametres(conteneur: HTMLElement, vue: Vue | null, J: Dat
   const champs = new Map<string, HTMLInputElement>();
   const numeriques = new Map<string, HTMLInputElement>();
 
-  const dateEffet = el('input', { type: 'date', id: 'champ-dateEffet', name: 'dateEffet', value: jour, 'aria-describedby': 'aide-dateEffet' });
+  const dateEffet = el('input', {
+    type: 'date',
+    id: 'champ-dateEffet',
+    name: 'dateEffet',
+    value: jour,
+    'aria-describedby': 'aide-dateEffet',
+  });
   champs.set('dateEffet', dateEffet);
 
   const corpsZones = el('tbody');
@@ -135,11 +193,21 @@ export function rendreParametres(conteneur: HTMLElement, vue: Vue | null, J: Dat
       sousEnsembles.push(ensemble('Mesures datées', def.zones === true ? [...datees, tableauZones] : datees));
     }
     if (globaux.length > 0) sousEnsembles.push(ensemble('Repères globaux', globaux));
-    return el('fieldset', { class: 'fset' }, [el('legend', { class: 'titre-groupe' }, [def.titre]), el('p', { class: 'aide' }, [def.aide]), ...sousEnsembles]);
+    return el('fieldset', { class: 'fset' }, [
+      el('legend', { class: 'titre-groupe' }, [def.titre]),
+      el('p', { class: 'aide' }, [def.aide]),
+      ...sousEnsembles,
+    ]);
   };
 
-  const enregistrerBouton = el('button', { type: 'submit', id: 'params-enregistrer', class: 'btn primaire' }, ['Enregistrer et recalculer']);
-  const defautsBouton = el('button', { type: 'button', id: 'params-defauts', class: 'btn' }, ['Revenir aux valeurs par défaut']);
+  const enregistrerBouton = el(
+    'button',
+    { type: 'submit', id: 'params-enregistrer', class: 'btn primaire' },
+    ['Enregistrer et recalculer'],
+  );
+  const defautsBouton = el('button', { type: 'button', id: 'params-defauts', class: 'btn' }, [
+    'Revenir aux valeurs par défaut',
+  ]);
   const formulaire = el('form', { class: 'parametres-formulaire', novalidate: '', 'aria-label': 'Paramètres de l’athlète' }, [
     el('div', { class: 'champ champ-date' }, [
       el('label', { for: 'champ-dateEffet' }, ['À partir du']),
@@ -194,8 +262,11 @@ export function rendreParametres(conteneur: HTMLElement, vue: Vue | null, J: Dat
     if (champ !== undefined) champs.get(champ)?.focus();
   };
 
-  /** Le résultat d'un changement de paramètres : succès, recalcul en échec, ou refus avec son champ (06, D-010). */
-  const issue = (resultat: ResultatParametres, succes: string): void => {
+  /**
+   * Le résultat d'un changement de paramètres : succès, recalcul en échec, ou refus avec son champ (06, D-010). Un refus
+   * pose le focus par `surRefus` (le champ fautif par défaut).
+   */
+  const issue = (resultat: ResultatParametres, succes: string, surRefus: (champ?: string) => void = focaliser): void => {
     if (resultat.ok) {
       fermerInfobulle();
       annoncer(succes);
@@ -206,7 +277,7 @@ export function rendreParametres(conteneur: HTMLElement, vue: Vue | null, J: Dat
       return;
     }
     annoncer(resultat.message);
-    focaliser(resultat.champ);
+    surRefus(resultat.champ);
   };
 
   const lireSaisie = (): SaisieParametres => {
@@ -220,17 +291,80 @@ export function rendreParametres(conteneur: HTMLElement, vue: Vue | null, J: Dat
     annoncer('');
     // Le jour courant est relu à chaque enregistrement, avec l'horloge de l'appareil (06, ADR 0007).
     const aujourdhui = dateCivileAppareil(Date.now(), fuseauAppareil());
-    const resultat = construireProposition(lireSaisie(), reference, aujourdhui, new Date().toISOString(), nouvelIdentifiant);
+    await soumettre(construireProposition(lireSaisie(), reference, aujourdhui, new Date().toISOString(), nouvelIdentifiant));
+  }
+
+  /**
+   * Envoie une proposition au Worker (06, D-010). Un refus de validation, ou un refus du Worker, annonce son message et
+   * pose le focus par `surRefus` (le champ fautif par défaut) ; un envoi réussi appelle `apresSucces`. Le formulaire et
+   * « Utiliser » passent par ici.
+   */
+  async function soumettre(
+    resultat: ResultatProposition,
+    apresSucces?: () => void,
+    surRefus: (champ?: string) => void = focaliser,
+  ): Promise<void> {
     if (!resultat.ok) {
       annoncer(resultat.message);
-      focaliser(resultat.champ);
+      surRefus(resultat.champ);
       return;
     }
     try {
-      issue(await controle.client.enregistrerParams(resultat.proposes), MESSAGE_ENREGISTRE);
+      const reponse = await controle.client.enregistrerParams(resultat.proposes);
+      issue(reponse, MESSAGE_ENREGISTRE, surRefus);
+      if (reponse.ok) apresSucces?.();
     } catch (erreur) {
       annoncer(messageErreur(erreur));
     }
+  }
+
+  /**
+   * L'encart « FC max observée » (D-019) : Fjord propose, l'athlète décide. Absent sans suggestion, ou quand l'athlète l'a
+   * écartée sur cet appareil. « Utiliser » enregistre une seule modification datée, avec les paramètres enregistrés.
+   */
+  function encartFcMaxObservee(): HTMLElement | null {
+    const suggestion = reference.suggestionHrMax;
+    if (suggestion === null || estEcartee(controle.stockage, suggestion)) return null;
+
+    // Une seule date, celle de la phrase et du bouton : avec l'année, la fenêtre couvrant 365 jours (D-019, lots 7.3).
+    const dateSeance = formatDateAnnee(suggestion.date);
+    const lieu = suggestion.nom === null ? `(${kmTexte(suggestion.km)})` : `(« ${suggestion.nom} », ${kmTexte(suggestion.km)})`;
+    const reglage = formatNombre(reference.datesAJm1.hrMax);
+    const phrase = el('p', { id: 'fcmax-phrase', class: 'aide' }, [
+      `${formatNombre(suggestion.bpm)} bpm tenus 15 s le ${dateSeance} ${lieu}, au-dessus de votre réglage de ${reglage} bpm.`,
+    ]);
+    const enfants: Node[] = [el('h4', { id: 'fcmax-titre' }, ['FC max observée']), phrase];
+    if (suggestion.ecartSuspect) enfants.push(el('p', { id: 'fcmax-ecart', class: 'aide' }, [TEXTE_ECART_HRMAX]));
+
+    const utiliser = el('button', { type: 'button', id: 'fcmax-utiliser', class: 'btn primaire' }, [
+      `Utiliser ${formatNombre(suggestion.bpm)} bpm à partir du ${dateSeance}`,
+    ]);
+    utiliser.addEventListener('click', () => {
+      annoncer('');
+      // Le jour courant est relu à chaque envoi, comme pour le formulaire (06, ADR 0007).
+      const aujourdhui = dateCivileAppareil(Date.now(), fuseauAppareil());
+      const resultat = construirePropositionHrMax(suggestion, reference, aujourdhui, new Date().toISOString(), nouvelIdentifiant);
+      // Après un succès, l'encart disparaît avec la suggestion : le focus va au titre de la liste des modifications.
+      // Après un refus, il reste sur « Utiliser », qui est toujours là : pas de saut vers le champ FC max du formulaire.
+      void soumettre(
+        resultat,
+        () => document.getElementById('modifications-titre')?.focus(),
+        () => utiliser.focus(),
+      );
+    });
+
+    const ignorer = el('button', { type: 'button', id: 'fcmax-ignorer', class: 'btn' }, ['Ignorer']);
+    const section = el('section', { class: 'encart encart-fcmax', 'aria-labelledby': 'fcmax-titre' }, [
+      ...enfants,
+      el('div', { class: 'actions' }, [utiliser, ignorer]),
+    ]);
+    ignorer.addEventListener('click', () => {
+      memoriserEcartee(controle.stockage, suggestion);
+      section.remove();
+      // Le bouton disparaît : le focus va au titre du groupe « Données ».
+      document.getElementById('donnees-titre')?.focus();
+    });
+    return section;
   }
 
   async function reinitialiser(): Promise<void> {
@@ -242,7 +376,11 @@ export function rendreParametres(conteneur: HTMLElement, vue: Vue | null, J: Dat
     }
   }
 
-  conteneur.replaceChildren(formulaire, listeModifications(reference, issue, controle.client, annoncer), groupeDonnees(controle, annoncer));
+  conteneur.replaceChildren(
+    formulaire,
+    listeModifications(reference, issue, controle.client, annoncer),
+    groupeDonnees(controle, annoncer, encartFcMaxObservee()),
+  );
 }
 
 /** Identifiant d'une modification nouvelle. `randomUUID` n'existe que dans les contextes sécurisés : sinon, un repli unique. */
@@ -310,8 +448,11 @@ function listeModifications(
   return section;
 }
 
-/** Le groupe « Données » (D-012, D-018) : import d'archive, export et import de la sauvegarde. */
-function groupeDonnees(controle: ControleParametres, annoncer: (texte: string) => void): HTMLElement {
+/**
+ * Le groupe « Données » (D-012, D-018) : import d'archive, puis l'encart « FC max observée » (D-019) s'il y en a un,
+ * export et import de la sauvegarde.
+ */
+function groupeDonnees(controle: ControleParametres, annoncer: (texte: string) => void, encart: HTMLElement | null): HTMLElement {
   const exporterBouton = el('button', { type: 'button', id: 'exporter-donnees', class: 'btn' }, ['Exporter mes données']);
   exporterBouton.addEventListener('click', () => {
     annoncer('');
@@ -338,9 +479,10 @@ function groupeDonnees(controle: ControleParametres, annoncer: (texte: string) =
   });
 
   return el('section', { class: 'donnees', 'aria-labelledby': 'donnees-titre' }, [
-    el('h3', { id: 'donnees-titre' }, ['Données']),
+    el('h3', { id: 'donnees-titre', tabindex: '-1' }, ['Données']),
     el('p', { class: 'aide' }, ['Les données restent sur cet appareil.']),
     el('div', { class: 'donnees-action' }, [el('h4', {}, ['Importer une archive Strava']), controle.champImport()]),
+    ...(encart === null ? [] : [encart]),
     el('div', { class: 'donnees-action' }, [exporterBouton]),
     el('div', { class: 'donnees-action' }, [el('label', { class: 'fichier' }, ['Importer une sauvegarde', champSauvegarde])]),
   ]);

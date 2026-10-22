@@ -1,14 +1,17 @@
 // Constantes versionnées du cœur de calcul (ADR 0006, D-008, D-014, D-015).
 // Toute modification d'un calcul change REGLES_VERSION.
+// Historique de REGLES_VERSION :
+// 1.1.0 : pic soutenu de la FC (D-019)
 
-export const REGLES_VERSION = '1.0.0';
+export const REGLES_VERSION = '1.1.0';
 
 // Formats des données mémorisées (ADR 0006, 0009). Un format différent rend l'entrée existante inutilisable.
-// FORMAT_SEANCE : entrée `seance:*` de derive, et partie de sa clé. FORMAT_VUE : `vue.formatVersion`, à monter à
-// chaque changement de forme de la Vue (2 : jours et ratio en colonnes, sans segmentsMp ; 3 : ratio.r et ratioDimanche
-// gardent leur précision ; 4 : modifications et suggestion paceHrK dans parametresEnVigueur).
-export const FORMAT_SEANCE = 1;
-export const FORMAT_VUE = 4;
+// FORMAT_SEANCE : entrée `seance:*` de derive, et partie de sa clé (2 : fcPic, D-019). FORMAT_VUE : `vue.formatVersion`,
+// à monter à chaque changement de forme de la Vue (2 : jours et ratio en colonnes, sans segmentsMp ; 3 : ratio.r et
+// ratioDimanche gardent leur précision ; 4 : modifications et suggestion paceHrK dans parametresEnVigueur ;
+// 5 : suggestion hrMax dans parametresEnVigueur, D-019).
+export const FORMAT_SEANCE = 2;
+export const FORMAT_VUE = 5;
 
 // Seuils du verdict (05, « Seuils du verdict », D-008).
 export const SEUILS = {
@@ -75,7 +78,7 @@ export const MOTIFS = {
 // Délai maximal de prolongement d'une mesure de FC, en secondes (D-013).
 export const DELAI_MAX_FC_S = 10;
 
-// Étape ① et ②a de la séance (ADR 0006, 04, 07 règle 2, D-001, D-013).
+// Étape ① et ②a de la séance (ADR 0006, 04, 07 règle 2, D-001, D-013, D-019).
 // Ces constantes (et celles de `DISTANCES_STANDARD_KM`, `MOTIFS`, `POIDS_CHARGE`, `DUREE_SORTIE_LONGUE_MIN`,
 // `FACTEUR_SORTIE_LONGUE_SEMAINE` plus haut) sont lues par src/core/seance/ : changer l'une de ces valeurs
 // impose d'augmenter `REGLES_VERSION`. Tests de gel dans tests/core/constantes.test.ts.
@@ -99,6 +102,23 @@ export const DUREE_SEGMENT_MP_MIN_S = 600;
 export const TOLERANCE_FORMAT_REPETITIONS = 0.15;
 // FC de fin d'une répétition : au moins subtHrLo − 5 bpm (07 règle 2).
 export const MARGE_FC_FIN_SOUS_SEUIL = 5;
+
+// Pic soutenu de la FC (D-019, ADR 0013) : une fenêtre de 15 s tenue, commençant à 300 s au plus tôt (les 5 premières
+// minutes sont la ceinture sèche).
+export const DUREE_PIC_FC_S = 15;
+export const DEBUT_PIC_FC_S = 300;
+// Écart maximal entre deux mesures d'une grille de FC, en secondes (D-013) : le délai de prolongement de D-013. Il
+// plafonne le pas de la grille (src/core/seance/pic.ts) ; un écart plus grand que ce pas coupe la fenêtre du pic.
+export const ECART_MAX_GRILLE_S = DELAI_MAX_FC_S;
+
+// Lues par la Vue (D-019, ADR 0013), dans src/core/suggestionHrMax.ts, et non par src/core/seance/.
+// Changer l'une de ces valeurs ne vide pas seul le cache de la Vue : il faut augmenter `REGLES_VERSION`, qui entre
+// dans l'empreinte de la Vue (vue.ts, `empreinteEntrees`) et dans son contrôle de forme (traitement.ts,
+// `formeActuelle`). `FORMAT_VUE` n'y entre pas : il ne change qu'avec la forme de la Vue.
+// Suggestion de FC max observée : proposée si le pic arrondi atteint hrMax(J−1) plus MARGE_HRMAX_BPM ; écart
+// signalé comme suspect au-delà de hrMax(J−1) plus ECART_SUSPECT_HRMAX_BPM.
+export const MARGE_HRMAX_BPM = 3;
+export const ECART_SUSPECT_HRMAX_BPM = 15;
 
 // Découplage candidat (D-005, 04 « Découplage aérobie »). Calculé pour toute séance d'au moins 60 min,
 // sur les portions faciles : une séance dont la durée retenue est sous 60 min n'a pas de valeur.

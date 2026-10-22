@@ -2,12 +2,13 @@
 // Tout est construit par code : aucune donnée réelle n'entre dans le dépôt (ADR 0010).
 import type { Fourchette, Simulateur } from '../../src/core/decision/types';
 import type {
-  CleSignal, DateCivile, EtatSignal, ModifDatee, Minutes, ParamsDates, ParamsGlobaux, Repetition, Seance, SemaineVue, Signal, TypeSeance, Vue,
+  CleSignal, DateCivile, EtatSignal, ModifDatee, Minutes, ParamsDates, ParamsGlobaux, Repetition, Seance, SemaineVue, Signal, SuggestionHrMax, TypeSeance, Vue,
 } from '../../src/core/types';
 import type { JournalImport } from '../../src/store/types';
 import { compteurs, type BarreVolume, type Compteurs, type Volume, type VolumeAnnee } from '../../src/core/series';
 import { NOMS_SIGNAUX } from '../../src/core/decision/signaux';
 import { ajouterJours, jourDeSemaine, lundiISO } from '../../src/core/dates';
+import { FORMAT_VUE, REGLES_VERSION } from '../../src/core/constantes';
 
 export const J_REFERENCE: DateCivile = '2026-10-21';
 
@@ -24,6 +25,8 @@ export interface OptionsSeance {
   distanceRef_km?: number | null;
   temps_s?: number | null;
   nom?: string | null;
+  /** Pic soutenu de la FC (D-019), bpm brut ; null par défaut. */
+  fcPic?: number | null;
 }
 
 let compteur = 0;
@@ -38,6 +41,7 @@ export function seance(o: OptionsSeance): Seance {
     date: o.date,
     debutUtc: Date.parse(`${o.date}T08:00:00Z`),
     nom: o.nom ?? null,
+    fcPic: o.fcPic ?? null,
     marquage: 'aucun',
     duree_min: duree,
     km: o.km ?? 5,
@@ -66,8 +70,8 @@ export function repetition(n: number, allure_skm: number, fcFin = 165): Repetiti
 /** Une Vue minimale : aucun verdict, mais des séances et une date de référence. */
 export function vue(seances: Seance[] = [], o: { J?: DateCivile; derniereSynchro?: string | null } = {}): Vue {
   return {
-    formatVersion: 4,
-    reglesVersion: '1.0.0',
+    formatVersion: FORMAT_VUE,
+    reglesVersion: REGLES_VERSION,
     J: o.J ?? J_REFERENCE,
     derniereSynchro: o.derniereSynchro ?? null,
     parametresEnVigueur: {
@@ -79,6 +83,7 @@ export function vue(seances: Seance[] = [], o: { J?: DateCivile; derniereSynchro
       modifs: [],
       suggestionPaceHrK: null,
       raisonAbsenceSuggestion: 'pas assez de données pour suggérer une valeur',
+      suggestionHrMax: null,
     },
     seances,
     jours: { date: [], km: [], min: [], charge: [], minutes: { easy: [], mp: [], subt: [], hard: [] }, types: [] },
@@ -352,6 +357,8 @@ export interface ParametresDeTest {
   modifs?: ModifDatee[];
   /** Valeur suggérée de paceHrK à J−1 (D-004). Absente : la raison est donnée. */
   suggestionPaceHrK?: number | null;
+  /** FC max observée à proposer (D-019). Absente : aucune proposition. */
+  suggestionHrMax?: SuggestionHrMax | null;
   J?: DateCivile;
 }
 
@@ -367,6 +374,7 @@ export function vueParametres(parametres: ParametresDeTest = {}): Vue {
       modifs: parametres.modifs ?? [],
       suggestionPaceHrK: suggestion,
       raisonAbsenceSuggestion: suggestion === null ? 'pas assez de données pour suggérer une valeur' : null,
+      suggestionHrMax: parametres.suggestionHrMax ?? null,
     },
   };
 }
