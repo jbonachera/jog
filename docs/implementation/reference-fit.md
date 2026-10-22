@@ -1,6 +1,6 @@
-# Référence FIT utile à Fjord
+# Référence FIT utile à Jog
 
-Le profil FIT décrit chaque message par un numéro global, et chacun de ses champs par un numéro, une échelle et un décalage. Voici les numéros utiles à Fjord. Ils ont été **contrôlés sur l'export réel** le 2026-10-21, avec un lecteur jetable : les valeurs lues étaient plausibles (distances des tours, durées, FC, décalages horaires). Les messages et champs non listés doivent être **sautés**.
+Le profil FIT décrit chaque message par un numéro global, et chacun de ses champs par un numéro, une échelle et un décalage. Voici les numéros utiles à Jog. Ils ont été **contrôlés sur l'export réel** le 2026-10-21, avec un lecteur jetable : les valeurs lues étaient plausibles (distances des tours, durées, FC, décalages horaires). Les messages et champs non listés doivent être **sautés**.
 
 Structure du fichier : un en-tête de 12 ou 14 octets (le premier octet donne sa taille ; les octets 8 à 11 valent `.FIT`), puis les enregistrements, puis 2 octets de CRC. L'octet 4 de l'en-tête donne la taille des données (uint32 LE).
 

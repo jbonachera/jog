@@ -1,5 +1,5 @@
 // Onglet Historique (02, 03 H1 et H2) : le sélecteur de période pilote les deux composants et se mémorise sous
-// `fjord-range`, lecture et écriture protégées.
+// `jog-range`, lecture et écriture protégées.
 import { afterEach, describe, expect, it } from 'vitest';
 import { fireEvent, within } from '@testing-library/dom';
 import { ajouterJours } from '../../src/core/dates';
@@ -49,7 +49,7 @@ function choix(racine: HTMLElement, nom: string): HTMLElement {
   return within(panneau(racine)).getByRole('button', { name: nom });
 }
 
-describe('sélecteur de période de l\'historique (03, 02 : fjord-range)', () => {
+describe('sélecteur de période de l\'historique (03, 02 : jog-range)', () => {
   it('propose 12 semaines, 26 semaines et Toutes les saisons, et « Toutes les saisons » par défaut', async () => {
     const racine = await monter(new ClientFactice({ vue: vueHistorique() }));
     fireEvent.click(onglet(racine, 'Historique'));
@@ -76,19 +76,19 @@ describe('sélecteur de période de l\'historique (03, 02 : fjord-range)', () =>
     expect(semainesH1(racine)).toBe(26);
   });
 
-  it('se mémorise sous fjord-range à chaque choix', async () => {
+  it('se mémorise sous jog-range à chaque choix', async () => {
     const stockage = new StockageMemoire();
     const racine = await monter(new ClientFactice({ vue: vueHistorique() }), stockage);
     fireEvent.click(onglet(racine, 'Historique'));
 
     fireEvent.click(choix(racine, '26 semaines'));
 
-    expect(stockage.getItem('fjord-range')).toBe('26');
+    expect(stockage.getItem('jog-range')).toBe('26');
   });
 
   it('se rouvre tel qu\'il a été choisi (la valeur mémorisée est lue au démarrage)', async () => {
     const stockage = new StockageMemoire();
-    stockage.setItem('fjord-range', '12');
+    stockage.setItem('jog-range', '12');
     const racine = await monter(new ClientFactice({ vue: vueHistorique() }), stockage);
     fireEvent.click(onglet(racine, 'Historique'));
 
@@ -98,7 +98,7 @@ describe('sélecteur de période de l\'historique (03, 02 : fjord-range)', () =>
 
   it('une valeur mémorisée inconnue revient à Toutes les saisons', async () => {
     const stockage = new StockageMemoire();
-    stockage.setItem('fjord-range', 'n-importe-quoi');
+    stockage.setItem('jog-range', 'n-importe-quoi');
     const racine = await monter(new ClientFactice({ vue: vueHistorique() }), stockage);
     fireEvent.click(onglet(racine, 'Historique'));
 

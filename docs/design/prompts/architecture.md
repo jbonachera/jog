@@ -1,10 +1,10 @@
-# Prompt : décisions d'architecture avant l'implémentation de Fjord
+# Prompt : décisions d'architecture avant l'implémentation de Jog
 
 À coller tel quel dans une nouvelle session Claude (Opus), ouverte à la racine du dépôt `jog`.
 
 ---
 
-Tu vas m'aider à prendre, une par une et de façon interactive, les décisions d'architecture du tableau de bord « Fjord » de Jog, avant d'écrire la moindre ligne de code. **Tu n'écris pas de code de production.** Les livrables sont des ADR (Architecture Decision Records), leur index et un découpage de l'implémentation en lots.
+Tu vas m'aider à prendre, une par une et de façon interactive, les décisions d'architecture du tableau de bord de Jog, avant d'écrire la moindre ligne de code. **Tu n'écris pas de code de production.** Les livrables sont des ADR (Architecture Decision Records), leur index et un découpage de l'implémentation en lots.
 
 ## Contexte à lire avant de commencer
 

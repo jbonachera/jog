@@ -2,7 +2,7 @@
 // en-tête collant de H2, thème sombre et préférence de mouvement réduit. Données : archive synthétique de 14 mois.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Browser, Page } from 'playwright-core';
-import { importerArchiveSynthetique, lancerChromium, ouvrirFjord, ouvrirOnglet, type OptionsSession, type Session } from './navigateur';
+import { importerArchiveSynthetique, lancerChromium, ouvrirJog, ouvrirOnglet, type OptionsSession, type Session } from './navigateur';
 
 const ONGLETS = ['apercu', 'charge', 'progression', 'historique', 'reglages'] as const;
 
@@ -18,7 +18,7 @@ afterAll(async () => {
 
 /** Ouvre l'application avec les données de l'archive synthétique, importées par le champ réel. */
 async function ouvrirAvecDonnees(options: OptionsSession = {}): Promise<Session> {
-  const session = await ouvrirFjord(navigateur, options);
+  const session = await ouvrirJog(navigateur, options);
   await importerArchiveSynthetique(session.page);
   return session;
 }

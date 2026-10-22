@@ -2,7 +2,7 @@
 //
 // Chromium est lancé par `playwright-core` (version exacte 1.62.1). Cette bibliothèque trouve seule le navigateur déjà
 // présent dans le cache Playwright (`~/Library/Caches/ms-playwright/chromium_headless_shell-1234` en mode sans tête) : rien
-// n'est téléchargé, et `playwright install` n'est jamais lancé. Si le cache est ailleurs, la variable `FJORD_CHROMIUM`
+// n'est téléchargé, et `playwright install` n'est jamais lancé. Si le cache est ailleurs, la variable `JOG_CHROMIUM`
 // donne le chemin du binaire, passé en `executablePath`.
 //
 // Les données viennent de l'archive synthétique (tests/fixtures), importée par le vrai champ « Choisir une archive
@@ -13,12 +13,12 @@ import { chromium, type Browser, type BrowserContext, type Page, type Route } fr
 import { archiveSynthetique, JOURS_14_MOIS } from '../fixtures/archive-synthetique';
 
 /**
- * Adresse de l'application servie par `vite preview`, fournie par scripts/e2e.mjs. En mode de secours (`FJORD_DIST`, voir
+ * Adresse de l'application servie par `vite preview`, fournie par scripts/e2e.mjs. En mode de secours (`JOG_DIST`, voir
  * scripts/e2e.mjs), c'est une adresse fictive dont les requêtes sont servies depuis `dist/` par Playwright.
  */
-export function urlFjord(): string {
-  const url = process.env.FJORD_URL;
-  if (url === undefined || url === '') throw new Error('FJORD_URL absent : lancer les scénarios par `npm run test:e2e`.');
+export function urlJog(): string {
+  const url = process.env.JOG_URL;
+  if (url === undefined || url === '') throw new Error('JOG_URL absent : lancer les scénarios par `npm run test:e2e`.');
   return url;
 }
 
@@ -26,7 +26,7 @@ export function urlFjord(): string {
 const INSTANT_FIXE = new Date('2026-10-21T10:00:00Z');
 
 export async function lancerChromium(): Promise<Browser> {
-  const executablePath = process.env.FJORD_CHROMIUM;
+  const executablePath = process.env.JOG_CHROMIUM;
   return chromium.launch(executablePath === undefined || executablePath === '' ? {} : { executablePath });
 }
 
@@ -58,8 +58,8 @@ export interface OptionsSession {
 }
 
 /** Ouvre l'application dans un contexte neuf (stockage vide), avec les observations branchées avant la navigation. */
-export async function ouvrirFjord(navigateur: Browser, options: OptionsSession = {}): Promise<Session> {
-  const origine = new URL(urlFjord()).origin;
+export async function ouvrirJog(navigateur: Browser, options: OptionsSession = {}): Promise<Session> {
+  const origine = new URL(urlJog()).origin;
   const contexte = await navigateur.newContext({
     viewport: { width: options.largeur ?? 1440, height: options.hauteur ?? 900 },
     colorScheme: options.colorScheme ?? 'light',
@@ -91,13 +91,13 @@ export async function ouvrirFjord(navigateur: Browser, options: OptionsSession =
     });
   });
 
-  const dist = process.env.FJORD_DIST;
+  const dist = process.env.JOG_DIST;
   if (dist !== undefined && dist !== '') {
     // Mode de secours sans socket : chaque requête vers l'origine de l'application reçoit le fichier de `dist/`.
     await contexte.route(`${origine}/**`, (route) => servirDepuisDist(route, dist));
   }
 
-  await page.goto(urlFjord());
+  await page.goto(urlJog());
   await page.locator('#t-apercu').waitFor();
   return { contexte, page, observations };
 }

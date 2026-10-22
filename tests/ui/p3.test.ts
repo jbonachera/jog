@@ -1,4 +1,4 @@
-// P3 · Allure × FC par répétition (03, P3 ; 04, « Centres du nuage allure × FC »). Comparaison mémorisée sous fjord-cmp (02).
+// P3 · Allure × FC par répétition (03, P3 ; 04, « Centres du nuage allure × FC »). Comparaison mémorisée sous jog-cmp (02).
 import { afterEach, describe, expect, it } from 'vitest';
 import { fireEvent, within } from '@testing-library/dom';
 import { ajouterJours } from '../../src/core/dates';
@@ -127,17 +127,17 @@ describe('P3 · note et légende (03, P3)', () => {
   });
 });
 
-describe('P3 · sélecteur de comparaison (02, fjord-cmp)', () => {
+describe('P3 · sélecteur de comparaison (02, jog-cmp)', () => {
   it('« vs il y a un an » est le choix par défaut', () => {
     const racine = rendre(vueDeTest());
     expect(within(racine).getByRole('button', { name: 'vs il y a un an' }).getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('le choix se mémorise sous fjord-cmp, et il est rétabli au rendu suivant', () => {
+  it('le choix se mémorise sous jog-cmp, et il est rétabli au rendu suivant', () => {
     const stockage = new StockageMemoire();
     const premier = rendre(vueDeTest(), stockage);
     fireEvent.click(within(premier).getByRole('button', { name: 'vs 12 semaines précédentes' }));
-    expect(stockage.getItem('fjord-cmp')).not.toBeNull();
+    expect(stockage.getItem('jog-cmp')).not.toBeNull();
     premier.remove();
 
     const second = rendre(vueDeTest(), stockage);

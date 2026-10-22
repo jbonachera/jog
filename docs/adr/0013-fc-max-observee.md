@@ -45,7 +45,7 @@ Or un pic brut ne prouve rien. `fcPlausible` (`src/adapters/commun.ts`) n'écart
 
 - Sous l'import d'archive, un encart quand `suggestionHrMax` est non nulle et n'a pas été écartée sur cet appareil. Textes exacts dans D-019.
 - **« Utiliser … »** : envoie `enregistrerParams` avec les paramètres enregistrés (ceux de la Vue, pas la saisie en cours du formulaire) et **une** modification `{ cle: 'hrMax', valeur: bpm, dateEffet: date }`. Même chemin que le formulaire : validation, recalcul dans le Worker, écriture seulement en cas de succès, annonce « Enregistré. Tableau de bord recalculé. » (D-010).
-- **« Ignorer »** : mémorise `cleSource:bpm` dans `localStorage` (`fjord-hrmax-ignoree`), lu et écrit dans `try/catch`. Un autre pic (autre séance ou autre valeur) fait réapparaître l'encart. C'est une commodité d'affichage, propre à l'appareil : elle n'entre ni dans la Vue, ni dans le cache, ni dans la sauvegarde.
+- **« Ignorer »** : mémorise `cleSource:bpm` dans `localStorage` (`jog-hrmax-ignoree`), lu et écrit dans `try/catch`. Un autre pic (autre séance ou autre valeur) fait réapparaître l'encart. C'est une commodité d'affichage, propre à l'appareil : elle n'entre ni dans la Vue, ni dans le cache, ni dans la sauvegarde.
 
 ## Conséquences
 

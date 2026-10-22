@@ -29,7 +29,7 @@ describe('Content-Security-Policy (ADR 0010)', () => {
   });
 
   it('le build produit un index.html portant la même CSP', async () => {
-    const sortie = mkdtempSync(join(tmpdir(), 'fjord-build-'));
+    const sortie = mkdtempSync(join(tmpdir(), 'jog-build-'));
     try {
       await build({
         root: racine,

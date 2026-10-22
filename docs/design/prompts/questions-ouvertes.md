@@ -1,10 +1,10 @@
-# Prompt : traiter les questions ouvertes du design Fjord
+# Prompt : traiter les questions ouvertes du design Jog
 
 À coller tel quel dans une nouvelle session Claude (Opus), ouverte à la racine du dépôt `jog`.
 
 ---
 
-Tu vas m'aider à trancher, une par une et de façon interactive, les questions ouvertes de la spécification du tableau de bord « Fjord » de Jog. **Tu ne codes rien.** Le livrable est une spécification mise à jour et un journal de décisions.
+Tu vas m'aider à trancher, une par une et de façon interactive, les questions ouvertes de la spécification du tableau de bord de Jog. **Tu ne codes rien.** Le livrable est une spécification mise à jour et un journal de décisions.
 
 ## Contexte à lire avant de commencer
 

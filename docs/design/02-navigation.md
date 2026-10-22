@@ -46,12 +46,12 @@ Chaque sélecteur agit sur son propre composant, pas sur toute la page.
 
 | Clé | Contenu |
 |---|---|
-| `fjord-view` | Onglet actif |
-| `fjord-range` | Période de l'historique |
-| `fjord-cmp` | Comparaison allure × FC |
-| `fjord-cmp-p` | Préréglage et dates du comparateur |
+| `jog-view` | Onglet actif |
+| `jog-range` | Période de l'historique |
+| `jog-cmp` | Comparaison allure × FC |
+| `jog-cmp-p` | Préréglage et dates du comparateur |
 
-Toute lecture et écriture est protégée : un stockage indisponible ne doit jamais casser l'affichage. Ces clés ne portent que les préférences d'affichage. En production, les **paramètres**, l'historique de leurs modifications et les activités importées sont stockés dans IndexedDB, sur l'appareil, rattachés à l'athlète, avec export et import d'une sauvegarde ([D-012](decisions.md#d-012--stockage-local-dans-le-navigateur)). La maquette, elle, garde les paramètres sous la clé `fjord-cfg`.
+Toute lecture et écriture est protégée : un stockage indisponible ne doit jamais casser l'affichage. Ces clés ne portent que les préférences d'affichage. En production, les **paramètres**, l'historique de leurs modifications et les activités importées sont stockés dans IndexedDB, sur l'appareil, rattachés à l'athlète, avec export et import d'une sauvegarde ([D-012](decisions.md#d-012--stockage-local-dans-le-navigateur)). La maquette, elle, garde les paramètres sous la clé `jog-cfg`.
 
 ## Responsive
 

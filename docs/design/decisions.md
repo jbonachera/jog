@@ -1,4 +1,4 @@
-# Journal des décisions · Fjord
+# Journal des décisions · Jog
 
 Décisions prises sur les questions ouvertes de la spécification. Chaque entrée renvoie aux fichiers où la règle est écrite de façon définitive.
 
@@ -209,10 +209,10 @@ Décisions prises sur les questions ouvertes de la spécification. Chaque entré
 ## D-012 · Stockage local dans le navigateur
 
 - **Date** : 2026-10-20
-- **Question** : Où sont stockés les activités importées, les paramètres et l'historique de leurs modifications, alors que Fjord est une application sans serveur, pour un seul athlète ([ADR 0001](../adr/0001-perimetre-deploiement.md)) ?
+- **Question** : Où sont stockés les activités importées, les paramètres et l'historique de leurs modifications, alors que Jog est une application sans serveur, pour un seul athlète ([ADR 0001](../adr/0001-perimetre-deploiement.md)) ?
 - **Décision** :
   - Les activités importées (flux et tours compris), les données dérivées, les paramètres et l'historique des modifications datées sont stockés dans **IndexedDB, sur l'appareil**. Ils sont rattachés au seul athlète connecté.
-  - Au premier lancement, Fjord demande au navigateur un stockage persistant (`navigator.storage.persist()`).
+  - Au premier lancement, Jog demande au navigateur un stockage persistant (`navigator.storage.persist()`).
   - L'onglet Paramètres propose **« Exporter mes données »** et **« Importer une sauvegarde »**. Le fichier JSON contient tout ce qui ne peut pas être retéléchargé, c'est-à-dire au minimum les paramètres et l'historique de leurs modifications, et tout ce qui est nécessaire pour restaurer la base (le contenu exact est fixé par l'ADR de stockage).
   - La barre supérieure affiche la date de la dernière synchronisation (inchangé).
   - Le message de validation n° 5 de `06` (« Impossible d'enregistrer dans ce navigateur (stockage bloqué). ») s'applique tel quel.
@@ -258,10 +258,10 @@ Décisions prises sur les questions ouvertes de la spécification. Chaque entré
   noms par défaut (Strava, fr) = /^Course à pied (le matin|le midi|dans l'après-midi|en soirée|de nuit)$/
   ```
   - Les noms par défaut et les motifs sont des **constantes versionnées**, comme les seuils du verdict (D-008). Chaque adaptateur fournit ses propres noms par défaut, par langue.
-  - Le marquage se fait **sur la plateforme** (case « Compétition », ou nom de l'activité), jamais dans Fjord. Un renommage à la source est repris à la synchronisation suivante.
+  - Le marquage se fait **sur la plateforme** (case « Compétition », ou nom de l'activité), jamais dans Jog. Un renommage à la source est repris à la synchronisation suivante.
 - **Options écartées** :
   - détection par l'effort (distance standard, FC moyenne haute, allure stable) : elle confond les courses avec les séances au seuil et les longs continus, et ses seuils n'ont pas de référence pour être calibrés ;
-  - case à cocher dans Fjord : c'est une saisie manuelle, que `01` (principe 2) et `07` excluent ;
+  - case à cocher dans Jog : c'est une saisie manuelle, que `01` (principe 2) et `07` excluent ;
   - motif `\d+ ?km` : sur l'export, il classe en course « Paris / Pantin • 11km endurance », un entraînement.
 - **Raison** : la règle de `07` reste « marquage ou nom ». Elle est seulement rendue précise et vérifiable. Sur l'export, elle détecte 8 courses, sans faux positif connu.
 - **Impacts** : classification des séances (course et test), records, niveau estimé (P5), exclusion des courses dans les autres types de séance.
@@ -282,8 +282,8 @@ Décisions prises sur les questions ouvertes de la spécification. Chaque entré
 ## D-019 · FC max observée
 
 - **Date** : 2026-10-22
-- **Question** : Quand l'historique montre une FC plus haute que `hrMax`, Fjord doit-il le dire, et changer le réglage ?
-- **Décision** : Fjord **propose**, l'athlète **décide**.
+- **Question** : Quand l'historique montre une FC plus haute que `hrMax`, Jog doit-il le dire, et changer le réglage ?
+- **Décision** : Jog **propose**, l'athlète **décide**.
   - Pic d'une séance : la plus haute FC tenue au moins 15 s d'affilée, hors des 5 premières minutes.
   - Séances examinées : de J−365 à J−1, et pas avant la date d'effet de la dernière modification de `hrMax`.
   - Proposition si le plus haut pic, arrondi au bpm, est ≥ `hrMax` en vigueur à J−1 + 3 bpm. À égalité, la séance la plus récente.

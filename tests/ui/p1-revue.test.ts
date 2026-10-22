@@ -16,7 +16,7 @@ afterEach(() => {
 
 const J = J_PROGRESSION;
 const PREMIER = '2025-06-01';
-const CLE = 'fjord-cmp-p';
+const CLE = 'jog-cmp-p';
 
 /** B : 84 km de footing à FC 150 ; A : 72 km à FC 135 ; un test de 5 km en 20:00 (B) et 21:36 (A). */
 function vueDeTest(): Vue {

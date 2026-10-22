@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, waitFor, within } from '@testing-library/dom';
 import type { Parametres, SuggestionHrMax, Vue } from '../../src/core/types';
-import type { StockageFjord } from '../../src/ui/app';
+import type { StockageJog } from '../../src/ui/app';
 import type { ResultatParametres } from '../../src/ui/client';
 import { ClientFactice, monter, StockageEnPanne, StockageMemoire } from '../fixtures/montage';
 import { vueParametres } from '../fixtures/vues';
@@ -28,7 +28,7 @@ function vueAvec(suggestion: SuggestionHrMax | null, surcharge: Parameters<typeo
 }
 
 /** Ouvre l'onglet Paramètres sur la Vue donnée. */
-async function ouvrir(client: ClientFactice, stockage: StockageFjord = new StockageMemoire()) {
+async function ouvrir(client: ClientFactice, stockage: StockageJog = new StockageMemoire()) {
   const racine = await monter(client, stockage);
   fireEvent.click(within(racine).getByRole('tab', { name: 'Paramètres' }));
   return racine;
@@ -207,12 +207,12 @@ describe('« Ignorer » : masquage sur cet appareil (D-019)', () => {
 
     fireEvent.click(bouton(racine, 'Ignorer'));
 
-    expect(stockage.getItem('fjord-hrmax-ignoree')).toBe('strava:s1:195');
+    expect(stockage.getItem('jog-hrmax-ignoree')).toBe('strava:s1:195');
   });
 
   it('avec ce couple déjà mémorisé avant l’ouverture, aucun encart', async () => {
     const stockage = new StockageMemoire();
-    stockage.setItem('fjord-hrmax-ignoree', 'strava:s1:195');
+    stockage.setItem('jog-hrmax-ignoree', 'strava:s1:195');
     const racine = await ouvrir(new ClientFactice({ vue: vueAvec(pic()) }), stockage);
 
     expect(encart(racine)).toBeNull();

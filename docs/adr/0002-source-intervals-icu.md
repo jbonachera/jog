@@ -6,7 +6,7 @@
 
 ## Contexte
 
-Fjord a besoin, pour chaque activité de course, des flux échantillonnés (temps, distance, allure, FC, altitude), des tours et du marquage course ou test (`07`, Sources autorisées et entité Activité). Aucune saisie manuelle n'est autorisée. Le classement des minutes (D-001) et le découplage (D-005) se calculent sur les flux à environ 1 s, et les flux bruts doivent rester disponibles pour le recalcul rétroactif (D-006). L'ADR 0001 impose une application tout navigateur, sans serveur ni secret à protéger.
+Jog a besoin, pour chaque activité de course, des flux échantillonnés (temps, distance, allure, FC, altitude), des tours et du marquage course ou test (`07`, Sources autorisées et entité Activité). Aucune saisie manuelle n'est autorisée. Le classement des minutes (D-001) et le découplage (D-005) se calculent sur les flux à environ 1 s, et les flux bruts doivent rester disponibles pour le recalcul rétroactif (D-006). L'ADR 0001 impose une application tout navigateur, sans serveur ni secret à protéger.
 
 L'athlète court avec une **Apple Watch** et une ceinture cardio. Ses activités arrivent déjà dans intervals.icu.
 
@@ -21,7 +21,7 @@ L'athlète court avec une **Apple Watch** et une ceinture cardio. Ses activités
 
 - La **seule source** des activités est l'**API intervals.icu `/api/v1/`**, appelée directement depuis le navigateur avec la **clé personnelle** de l'athlète, en Basic auth.
 - La clé est saisie une fois dans l'onglet Paramètres. Elle est stockée **dans IndexedDB seulement** et n'est **pas incluse** dans le fichier de sauvegarde (D-012).
-- Fjord ne retient que les activités de type course à pied (`type = Run`). L'ADR de synchronisation fixe le filtre exact des sous-types : tapis, trail.
+- Jog ne retient que les activités de type course à pied (`type = Run`). L'ADR de synchronisation fixe le filtre exact des sous-types : tapis, trail.
 - Le stockage brut conserve, pour chaque activité, la réponse du détail et celle des flux **telles que reçues**, avec la date de réception. Les entités de `07` en sont dérivées. Le format brut n'est donc pas réinterprété en amont.
 - Correspondance avec `07` :
 

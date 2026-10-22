@@ -5,4 +5,4 @@ import { it } from 'vitest';
  * En parallèle, la charge de la machine rend les durées instables. Les vrais
  * budgets (ADR 0012) se mesurent dans un navigateur, au lot 6.
  */
-export const itPerf = it.runIf(process.env['FJORD_PERF'] === '1');
+export const itPerf = it.runIf(process.env['JOG_PERF'] === '1');

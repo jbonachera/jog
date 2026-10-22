@@ -295,7 +295,7 @@ describe('creerClientWorker : le vrai Worker (ADR 0006, 0009)', () => {
     }
   }
 
-  it('crée un Worker de module, depuis le fichier fjord.worker.ts', () => {
+  it('crée un Worker de module, depuis le fichier jog.worker.ts', () => {
     WorkerFaux.instances = [];
     vi.stubGlobal('Worker', WorkerFaux);
 
@@ -304,7 +304,7 @@ describe('creerClientWorker : le vrai Worker (ADR 0006, 0009)', () => {
     const [worker] = WorkerFaux.instances;
     expect(WorkerFaux.instances).toHaveLength(1);
     expect(worker?.options).toEqual({ type: 'module' });
-    expect(worker?.url.pathname).toMatch(/\/src\/worker\/fjord\.worker\.ts$/);
+    expect(worker?.url.pathname).toMatch(/\/src\/worker\/jog\.worker\.ts$/);
   });
 
   it('relaie les messages du Worker au client, et lui envoie les requêtes', async () => {
@@ -440,9 +440,9 @@ describe('ClientWorker : paramètres et sauvegarde (D-010, D-012, ADR 0009)', ()
     const client = new ClientWorker(canal);
 
     const attente = client.exporterSauvegarde();
-    canal.recevoir({ type: 'sauvegarde', contenu: '{"formatVersion":1}', nomFichier: 'fjord-sauvegarde-2026-10-21.json' });
+    canal.recevoir({ type: 'sauvegarde', contenu: '{"formatVersion":1}', nomFichier: 'jog-sauvegarde-2026-10-21.json' });
 
-    await expect(attente).resolves.toEqual({ contenu: '{"formatVersion":1}', nomFichier: 'fjord-sauvegarde-2026-10-21.json' });
+    await expect(attente).resolves.toEqual({ contenu: '{"formatVersion":1}', nomFichier: 'jog-sauvegarde-2026-10-21.json' });
     expect(canal.envoyes).toEqual([{ type: 'exporterSauvegarde' }]);
   });
 

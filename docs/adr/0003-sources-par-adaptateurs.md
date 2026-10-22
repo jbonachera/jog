@@ -6,7 +6,7 @@
 
 ## Contexte
 
-Fjord a besoin, pour chaque activité de course, des flux échantillonnés (temps, distance, allure, FC, altitude), des tours et du marquage course ou test (`07`). Aucune saisie manuelle n'est autorisée. D-001 et D-005 se calculent sur les flux à environ 1 s, qui doivent rester disponibles (D-006). L'ADR 0001 impose une application tout navigateur, sans serveur.
+Jog a besoin, pour chaque activité de course, des flux échantillonnés (temps, distance, allure, FC, altitude), des tours et du marquage course ou test (`07`). Aucune saisie manuelle n'est autorisée. D-001 et D-005 se calculent sur les flux à environ 1 s, qui doivent rester disponibles (D-006). L'ADR 0001 impose une application tout navigateur, sans serveur.
 
 L'ADR 0002 retenait l'API intervals.icu comme seule source. La validation de la clé tarde. Il faut pouvoir avancer avec les données déjà en main : l'**archive de compte Strava** (« Download your account »), téléchargée en local. L'athlète court avec une **Apple Watch** et une ceinture cardio.
 
@@ -70,7 +70,7 @@ Archive `export_<id>.zip`, de juin 2024 à octobre 2026. Seuls `activities.csv` 
 - Tours : segments manuels ou programmés (`lap_trigger = manual`) dans les FIT produits par Strava ; tours automatiques au km (`distance`) ou au temps (`time`) dans ceux de l'app tierce. `intensity` est presque toujours vide. L'adaptateur conserve donc `declenchement` dans chaque tour, et un tour automatique n'est jamais un tour de travail.
 - Fuseau : `activity.local_timestamp` est présent dans 406 fichiers sur 406 (décalages +1 h, +2 h, −3 h). La date du CSV est en UTC.
 - `activities.csv` : en-têtes traduits (fr), noms de colonnes répétés, dates au format local. La colonne « Compétition » est vide partout : voir [D-014](../design/decisions.md#d-014--marquage-course-ou-test). L'adaptateur prend le début, le type, les flux et les tours **dans le FIT**, et seulement le nom, le fichier et « Compétition » dans le CSV.
-- L'archive contient aussi des données sans rapport avec Fjord (messages, contacts, connexions…). L'adaptateur ne lit que `activities.csv` et `activities/`.
+- L'archive contient aussi des données sans rapport avec Jog (messages, contacts, connexions…). L'adaptateur ne lit que `activities.csv` et `activities/`.
 
 ## Sources
 

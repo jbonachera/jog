@@ -1,5 +1,5 @@
 {
-  "name": "fjord",
+  "name": "jog",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
     "test:e2e": "node scripts/e2e.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
-    "test:perf": "FJORD_PERF=1 vitest run --no-file-parallelism",
+    "test:perf": "JOG_PERF=1 vitest run --no-file-parallelism",
     "verif:reel": "node scripts/lancer-ts.mjs scripts/verif-reel.ts",
     "verif:reel:snapshot": "node scripts/lancer-ts.mjs scripts/verif-reel.ts --snapshot"
   },

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Browser } from 'playwright-core';
-import { importerArchiveSynthetique, lancerChromium, mediane, ouvrirFjord, ouvrirOnglet, type Session } from './navigateur';
+import { importerArchiveSynthetique, lancerChromium, mediane, ouvrirJog, ouvrirOnglet, type Session } from './navigateur';
 
 const DOSSIER_E2E = dirname(fileURLToPath(import.meta.url));
 const RACINE = resolve(DOSSIER_E2E, '../..');
@@ -50,7 +50,7 @@ function verdict(valeur: number, budget: number): 'tenu' | 'non tenu' {
 beforeAll(async () => {
   navigateur = await lancerChromium();
   versionChromium = navigateur.version();
-  session = await ouvrirFjord(navigateur);
+  session = await ouvrirJog(navigateur);
   dureeImport = await importerArchiveSynthetique(session.page);
 }, 180_000);
 

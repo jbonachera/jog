@@ -36,7 +36,7 @@ import { domaineAxe, PRESETS_AXES, type CleDePreset } from '../src/ui/graph/doma
 
 const RACINE = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DOSSIER_SORTIE = resolve(RACINE, 'tests/local/out');
-const NOM_BASE = 'fjord-verif';
+const NOM_BASE = 'jog-verif';
 
 const MESSAGE_USAGE = [
   "JOG_EXPORT doit désigner l'archive Strava (export_*.zip). Exemple :",

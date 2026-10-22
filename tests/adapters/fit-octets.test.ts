@@ -168,7 +168,7 @@ describe('horodatage compressé écrit à la main (reference-fit)', () => {
   });
 
   it('prend pour base le timestamp d’un message non lu (FIT : chaque message avec horodatage compte)', () => {
-    // Même principe, avec un message de numéro 4242 (0x1092) que Fjord ne lit pas.
+    // Même principe, avec un message de numéro 4242 (0x1092) que Jog ne lit pas.
     const pivot = pivotDe(
       fichier(
         [

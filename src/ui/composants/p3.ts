@@ -12,7 +12,7 @@ import type { ColonneTableau, Donnee, Geometrie } from '../graph/types';
 import { choixSegmentes } from './commun';
 import { paramsAuJourDe, type StockageProgression } from './p1';
 
-const CLE_COMPARAISON = 'fjord-cmp';
+const CLE_COMPARAISON = 'jog-cmp';
 /** Pas des graduations de l'axe X, en s/km (03, P3). */
 const PAS_X_SKM = 5;
 /** Rayon d'un centre, et recul de la flèche à chacune de ses extrémités, en pixels. */
@@ -24,7 +24,7 @@ const CHOIX: readonly { valeur: PeriodeNuage; libelle: string }[] = [
   { valeur: 'precedentes', libelle: 'vs 12 semaines précédentes' },
 ];
 
-/** Rend P3 dans `conteneur`, en remplaçant son contenu. Le choix est mémorisé sous `fjord-cmp` (02). */
+/** Rend P3 dans `conteneur`, en remplaçant son contenu. Le choix est mémorisé sous `jog-cmp` (02). */
 export function rendreP3(conteneur: HTMLElement, vue: Vue, stockage: StockageProgression | null = null): void {
   let periode = lireChoix(stockage);
   const graphe = el('div');

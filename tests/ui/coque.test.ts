@@ -32,7 +32,7 @@ describe('barre fixe et onglets ARIA (02)', () => {
 
   it('la flèche droite depuis Paramètres revient à Aperçu, et la flèche gauche depuis Aperçu va à Paramètres', async () => {
     const stockage = new StockageMemoire();
-    stockage.setItem('fjord-view', 'reglages');
+    stockage.setItem('jog-view', 'reglages');
     const racine = await monter(new ClientFactice(), stockage);
 
     fireEvent.keyDown(onglet(racine, 'Paramètres'), { key: 'ArrowRight' });
@@ -77,21 +77,21 @@ describe('barre fixe et onglets ARIA (02)', () => {
     expect(within(visibles[0] as HTMLElement).getByRole('heading', { name: 'Historique' })).toBeDefined();
   });
 
-  it('rouvre l\'onglet mémorisé dans fjord-view, et mémorise chaque changement', async () => {
+  it('rouvre l\'onglet mémorisé dans jog-view, et mémorise chaque changement', async () => {
     const stockage = new StockageMemoire();
-    stockage.setItem('fjord-view', 'historique');
+    stockage.setItem('jog-view', 'historique');
     const racine = await monter(new ClientFactice(), stockage);
 
     expect(onglet(racine, 'Historique').getAttribute('aria-selected')).toBe('true');
 
     fireEvent.click(onglet(racine, 'Charge'));
 
-    expect(stockage.getItem('fjord-view')).toBe('charge');
+    expect(stockage.getItem('jog-view')).toBe('charge');
   });
 
-  it('une valeur invalide stockée sous fjord-view ouvre l\'Aperçu', async () => {
+  it('une valeur invalide stockée sous jog-view ouvre l\'Aperçu', async () => {
     const stockage = new StockageMemoire();
-    stockage.setItem('fjord-view', 'inconnu');
+    stockage.setItem('jog-view', 'inconnu');
     const racine = await monter(new ClientFactice(), stockage);
 
     expect(onglet(racine, 'Aperçu').getAttribute('aria-selected')).toBe('true');
@@ -163,7 +163,7 @@ describe('accessibilité de la coque (02, 08)', () => {
   it('un titre de niveau 1 visuellement masqué, sans attribut style, nomme l\'application', async () => {
     const racine = await monter(new ClientFactice());
 
-    const titre = within(racine).getByRole('heading', { level: 1, name: 'Jog · Fjord' });
+    const titre = within(racine).getByRole('heading', { level: 1, name: 'Jog · Tableau de bord' });
     expect(titre.classList.contains('visuellement-masque')).toBe(true);
     expect(titre.hasAttribute('style')).toBe(false);
   });

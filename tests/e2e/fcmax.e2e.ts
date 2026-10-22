@@ -3,7 +3,7 @@
 // au-dessus du réglage par défaut de 188 bpm. Importée par le vrai champ, comme les autres scénarios.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Browser } from 'playwright-core';
-import { archiveAvecPicFc, importerArchive, lancerChromium, ouvrirFjord, ouvrirOnglet } from './navigateur';
+import { archiveAvecPicFc, importerArchive, lancerChromium, ouvrirJog, ouvrirOnglet } from './navigateur';
 
 const MESSAGE_ENREGISTRE = 'Enregistré. Tableau de bord recalculé.';
 
@@ -19,7 +19,7 @@ afterAll(async () => {
 
 describe('9 · FC max observée (D-019) : proposition dans Paramètres, décision de l’athlète', () => {
   it('l’encart apparaît dans Données, rien ne change sans clic, « Utiliser » enregistre une modification datée et annonce', async () => {
-    const session = await ouvrirFjord(navigateur);
+    const session = await ouvrirJog(navigateur);
     try {
       const { page, observations } = session;
       await importerArchive(page, archiveAvecPicFc());

@@ -278,7 +278,7 @@ describe('sauvegarde (D-012, ADR 0005)', () => {
     await traiter({ type: 'exporterSauvegarde' });
 
     const sauvegarde = reponses.find((r) => r.type === 'sauvegarde');
-    expect(sauvegarde).toMatchObject({ type: 'sauvegarde', nomFichier: 'fjord-sauvegarde-2026-10-21.json' });
+    expect(sauvegarde).toMatchObject({ type: 'sauvegarde', nomFichier: 'jog-sauvegarde-2026-10-21.json' });
     expect((await lireMeta(base) as Meta & { derniereExport?: string }).derniereExport).toBe(HORLOGE.toISOString());
   });
 

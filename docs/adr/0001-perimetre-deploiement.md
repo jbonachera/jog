@@ -6,7 +6,7 @@
 
 ## Contexte
 
-Fjord sert un coureur qui veut une lecture rapide le matin (`01`, Utilisateur). La spécification prévoyait des paramètres « stockés côté serveur, rattachés à l'athlète » (`06`, Stockage en production ; `02`, Persistance locale), avec l'historique des modifications datées (D-006). La barre supérieure affiche la date de la dernière synchronisation (`02`). L'athlète ne veut administrer aucun serveur.
+Jog sert un coureur qui veut une lecture rapide le matin (`01`, Utilisateur). La spécification prévoyait des paramètres « stockés côté serveur, rattachés à l'athlète » (`06`, Stockage en production ; `02`, Persistance locale), avec l'historique des modifications datées (D-006). La barre supérieure affiche la date de la dernière synchronisation (`02`). L'athlète ne veut administrer aucun serveur.
 
 Les sources passent par des adaptateurs ([0003](0003-sources-par-adaptateurs.md)) : d'abord l'archive Strava importée en local, puis l'API intervals.icu, avec une clé personnelle. L'API Strava a été écartée : abonnement obligatoire et conservation limitée à 7 jours.
 
@@ -19,7 +19,7 @@ Les sources passent par des adaptateurs ([0003](0003-sources-par-adaptateurs.md)
 
 ## Décision
 
-- Fjord sert **un seul athlète**. C'est une **application statique** qui s'exécute entièrement dans son navigateur. Il n'y a ni serveur applicatif, ni fonction en ligne.
+- Jog sert **un seul athlète**. C'est une **application statique** qui s'exécute entièrement dans son navigateur. Il n'y a ni serveur applicatif, ni fonction en ligne.
 - Elle est servie en **HTTPS par un hébergement statique** (GitHub Pages ou équivalent), ou en local sur `http://localhost` pendant le développement. Elle ne fonctionne pas depuis `file://`, parce que CORS exige une origine web.
 - Toutes les données (activités importées, dérivées, paramètres, historique des modifications) sont stockées **dans IndexedDB, sur l'appareil**, avec export et import d'une sauvegarde : [D-012](../design/decisions.md#d-012--stockage-local-dans-le-navigateur).
 

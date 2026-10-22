@@ -1,4 +1,4 @@
-# Architecture Decision Records · Fjord
+# Architecture Decision Records · Jog
 
 Décisions d'architecture prises avant l'implémentation. Les règles fonctionnelles sont dans [`../design/decisions.md`](../design/decisions.md) (D-0xx). Ici, on fixe le comment.
 

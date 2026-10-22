@@ -90,8 +90,8 @@ describe('onglet Progression (02, 03)', () => {
     fireEvent.change(within(racine).getByRole('combobox', { name: 'Comparer' }), { target: { value: 'douze-semaines-annee-precedente' } });
     fireEvent.click(within(racine).getByRole('button', { name: 'vs 12 semaines précédentes' }));
 
-    expect(stockage.getItem('fjord-cmp-p')).toContain('douze-semaines-annee-precedente');
-    expect(stockage.getItem('fjord-cmp')).not.toBeNull();
+    expect(stockage.getItem('jog-cmp-p')).toContain('douze-semaines-annee-precedente');
+    expect(stockage.getItem('jog-cmp')).not.toBeNull();
   });
 });
 

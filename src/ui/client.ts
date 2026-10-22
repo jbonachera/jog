@@ -34,7 +34,7 @@ export interface ExportSauvegarde {
   nomFichier: string;
 }
 
-export interface ClientFjord {
+export interface ClientJog {
   /** Rend la dernière Vue connue, ou null si aucune donnée n'est importée. La Vue est aussi diffusée à `surVue`. */
   demarrer(J: DateCivile): Promise<Vue | null>;
   /** Importe une archive Strava. Rend le journal de l'import et la Vue recalculée, diffusée à `surVue`. */

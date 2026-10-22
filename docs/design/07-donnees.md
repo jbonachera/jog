@@ -93,4 +93,4 @@ Règles retenues. Leurs seuils sont à vérifier sur des données réelles (voir
 - environ 12 % de répétitions courues trop vite (dérive d'allure) ;
 - progression lente de l'allure sous-seuil (de 4:30 à 4:09 environ), découplage en baisse, 7 tests ou courses 5 km, 3 courses (semi, 5 km, 10 km).
 
-Le fichier contient encore des notions de plan (`plans`, `planned`, `race.goal`, `lactate`) héritées des premières maquettes. **Fjord ne les lit pas.** Elles ne doivent pas être reprises dans le modèle de données de production.
+Le fichier contient encore des notions de plan (`plans`, `planned`, `race.goal`, `lactate`) héritées des premières maquettes. **Jog ne les lit pas.** Elles ne doivent pas être reprises dans le modèle de données de production.

@@ -59,7 +59,7 @@ describe('onglet Charge (02, 03)', () => {
     fireEvent.click(within(racine).getByRole('button', { name: '12 mois' }));
 
     // Seule l'écriture de l'onglet (valeur « charge ») est faite : ni clé ni valeur de C1 ne sont mémorisées.
-    expect(stockage.ecritures).toEqual(['fjord-view=charge']);
+    expect(stockage.ecritures).toEqual(['jog-view=charge']);
   });
 
   it('l\'onglet n\'a aucun attribut style (ADR 0010)', async () => {

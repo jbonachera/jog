@@ -1,10 +1,10 @@
 // Montage de l'application dans happy-dom, client factice et stockages de test (02, persistance, ADR 0009).
-import { monterApplication, type StockageFjord } from '../../src/ui/app';
-import type { ClientFjord, ExportSauvegarde, ResultatImport, ResultatParametres, SurProgression } from '../../src/ui/client';
+import { monterApplication, type StockageJog } from '../../src/ui/app';
+import type { ClientJog, ExportSauvegarde, ResultatImport, ResultatParametres, SurProgression } from '../../src/ui/client';
 import type { Parametres, Vue } from '../../src/core/types';
 
 /** Un stockage en mémoire, qui se comporte comme localStorage. */
-export class StockageMemoire implements StockageFjord {
+export class StockageMemoire implements StockageJog {
   private readonly valeurs = new Map<string, string>();
 
   getItem(cle: string): string | null {
@@ -17,7 +17,7 @@ export class StockageMemoire implements StockageFjord {
 }
 
 /** Un stockage bloqué, comme en navigation privée : toute lecture et toute écriture lèvent. */
-export class StockageEnPanne implements StockageFjord {
+export class StockageEnPanne implements StockageJog {
   getItem(): string | null {
     throw new DOMException('stockage bloqué', 'SecurityError');
   }
@@ -46,7 +46,7 @@ export interface OptionsClientFactice {
  * Client sans Worker, réservé aux tests. Comme le vrai client, il diffuse chaque Vue à `surVue`,
  * que ce soit celle du démarrage ou celle d'un import.
  */
-export class ClientFactice implements ClientFjord {
+export class ClientFactice implements ClientJog {
   private vue: Vue | null;
   private readonly abonnes: ((vue: Vue, perimee: boolean) => void)[] = [];
 
@@ -121,8 +121,8 @@ export class ClientFactice implements ClientFjord {
 
 /** Monte l'application dans un conteneur neuf, attaché au document, et attend le premier rendu. */
 export async function monter(
-  client: ClientFjord,
-  stockage: StockageFjord = new StockageMemoire(),
+  client: ClientJog,
+  stockage: StockageJog = new StockageMemoire(),
   J = '2026-10-21',
 ): Promise<HTMLElement> {
   const racine = document.createElement('div');

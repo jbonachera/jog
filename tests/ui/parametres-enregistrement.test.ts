@@ -354,9 +354,9 @@ describe('défilement après l’enregistrement (D-010)', () => {
 describe('téléchargement de la sauvegarde (D-012)', () => {
   it('l\'URL créée est révoquée, le lien est retiré du DOM, et l\'annonce est faite', async () => {
     vi.useFakeTimers();
-    const exporter = vi.fn(async () => ({ contenu: '{"versions":1}', nomFichier: 'fjord-sauvegarde-2026-10-21.json' }));
+    const exporter = vi.fn(async () => ({ contenu: '{"versions":1}', nomFichier: 'jog-sauvegarde-2026-10-21.json' }));
     const racine = await ouvrir(new ClientFactice({ vue: vueParametres({ J: '2026-10-21' }), exporter }));
-    const url = 'blob:fjord-sauvegarde';
+    const url = 'blob:jog-sauvegarde';
     vi.spyOn(URL, 'createObjectURL').mockReturnValue(url);
     const revocation = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
     let lienDansLeDom = false;
@@ -391,7 +391,7 @@ describe('Données (D-012, D-018)', () => {
   });
 
   it('Exporter mes données télécharge le fichier par un lien a[download], sans nouvelle fenêtre ni style', async () => {
-    const exporter = vi.fn(async () => ({ contenu: '{"versions":1}', nomFichier: 'fjord-sauvegarde-2026-10-21.json' }));
+    const exporter = vi.fn(async () => ({ contenu: '{"versions":1}', nomFichier: 'jog-sauvegarde-2026-10-21.json' }));
     const racine = await ouvrir(new ClientFactice({ vue: vueParametres({ J: '2026-10-21' }), exporter }));
     const ouvertureFenetre = vi.spyOn(window, 'open');
     const telechargements: string[] = [];
@@ -403,7 +403,7 @@ describe('Données (D-012, D-018)', () => {
 
     fireEvent.click(bouton(racine, 'Exporter mes données'));
 
-    await waitFor(() => expect(telechargements).toEqual(['fjord-sauvegarde-2026-10-21.json']));
+    await waitFor(() => expect(telechargements).toEqual(['jog-sauvegarde-2026-10-21.json']));
     expect(creation).toHaveBeenCalledTimes(1);
     expect(ouvertureFenetre).not.toHaveBeenCalled();
     expect(racine.querySelector('a[download]')).toBeNull();

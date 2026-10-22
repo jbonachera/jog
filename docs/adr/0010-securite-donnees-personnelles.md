@@ -6,7 +6,7 @@
 
 ## Contexte
 
-La FC est une donnée de santé. Fjord n'a ni serveur ni comptes (0001). Les données sont dans IndexedDB, sur l'appareil, avec une sauvegarde par fichier (D-012, 0005). L'archive Strava contient aussi des messages, des contacts et des connexions (0003). L'adaptateur intervals.icu utilisera une clé personnelle qui donne accès à tout le compte (0002).
+La FC est une donnée de santé. Jog n'a ni serveur ni comptes (0001). Les données sont dans IndexedDB, sur l'appareil, avec une sauvegarde par fichier (D-012, 0005). L'archive Strava contient aussi des messages, des contacts et des connexions (0003). L'adaptateur intervals.icu utilisera une clé personnelle qui donne accès à tout le compte (0002).
 
 ## Options considérées
 
@@ -28,7 +28,7 @@ La FC est une donnée de santé. Fjord n'a ni serveur ni comptes (0001). Les don
 ## Conséquences
 
 - **Positives** : aucune donnée de santé ne transite par un tiers. La CSP bloque toute exfiltration par injection de script.
-- **Négatives et dette acceptée** : l'appareil n'est pas chiffré par Fjord, et sa protection relève du système d'exploitation. Les points GPS restent dans `brut` : seule une suppression complète les efface.
+- **Négatives et dette acceptée** : l'appareil n'est pas chiffré par Jog, et sa protection relève du système d'exploitation. Les points GPS restent dans `brut` : seule une suppression complète les efface.
 - **À vérifier pendant l'implémentation** : que la CSP n'empêche ni le Worker (mode module) ni les polices en production (`vite build`) ; qu'aucun test ni aucun fichier versionné ne contienne de données de l'export.
 
 ## Sources

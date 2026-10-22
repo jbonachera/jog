@@ -1,4 +1,4 @@
-# Plan de réalisation · Fjord
+# Plan de réalisation · Jog
 
 Découpage en lots. Chaque lot est une tranche utilisable de bout en bout, qui part des données réelles et va jusqu'à l'écran. Il est livré par une suite de tâches. Les références renvoient à la spécification (`docs/design/`), aux décisions D-0xx et aux ADR (`docs/adr/`). Les types partagés sont dans [contrats.md](contrats.md).
 
@@ -32,7 +32,7 @@ Découpage en lots. Chaque lot est une tranche utilisable de bout en bout, qui p
 
 ## Lot 1 · Importer l'archive réelle et voir les 7 derniers jours
 
-**But** : l'athlète importe `export_*.zip`. Fjord affiche, dans l'Aperçu, les 7 derniers jours (A3) : séances classées, minutes par intensité, et la date de la dernière synchronisation dans la barre.
+**But** : l'athlète importe `export_*.zip`. Jog affiche, dans l'Aperçu, les 7 derniers jours (A3) : séances classées, minutes par intensité, et la date de la dernière synchronisation dans la barre.
 
 | Tâche | Contenu | Tests attendus |
 |---|---|---|
@@ -41,7 +41,7 @@ Découpage en lots. Chaque lot est une tranche utilisable de bout en bout, qui p
 | 1.3 Adaptateur de l'archive Strava | `src/adapters/strava-archive/` : ZIP (fflate), `activities.csv` (colonnes par occurrence, en-têtes fr), `.gz`, `cleSource = strava:{id}`, `competition` (colonne « Compétition »), `nom`, empreinte SHA-256 (WebCrypto `crypto.subtle`) ; seuls `activities.csv` et `activities/*` sont ouverts (0010) | ZIP construit → pivots et journal (illisibles, non-courses) ; les autres fichiers ne sont jamais lus |
 | 1.4 Séance ①, ②a et ②b | `src/core/seance/` : rééchantillonnage de la FC (D-013), FC lissée sur 30 s, répétitions (`07`, règle 2 : tours de travail ≥ 2 min, récupérations ≤ 2 min, FC de fin ≥ subtHrLo − 5 ; tours automatiques exclus ; sinon détection dans le flux), minutes par intensité (D-001), segments `mp` ≥ 10 min, charge (`04`), FC moyenne, allure, EF, découplage candidat (D-005), lignes droites (< 30 s en fin de séance), marquage (D-014), distance et temps de référence d'une course ; classification ②b (`07`, règles 1 à 4) | un scénario par règle de D-001 (répétition hard ou subt, mp ≥ 10 min, segment de 9 min classé easy, lissage) ; FC à 1 s et à 5 s → mêmes minutes (D-013) ; un cas par type de séance ; un footing à tours au km n'est pas un sous-seuil ; D-014 sur les noms de l'export (« Semi De Porto Vecchio » → course, « Paris / Pantin • 11km endurance » → aucun) |
 | 1.5 Jours, store, import, Worker | `src/core/jours.ts` (③) ; `src/store/` (schéma de 0005, migration v1, transactions) ; `src/worker/` (messages de 0009 : `demarrer`, `importer`, `progression`, `vue`) ; import de 0004 (empreintes, instantané par source, doublons par recouvrement, journal) ; une Vue minimale (`seances`, `jours`, `derniereSynchro`, `J`) | sur `fake-indexeddb` : importer deux fois la même archive ne change rien ; une archive qui renomme une activité la reclasse ; une activité absente est supprimée ; un doublon entre sources garde la FC la plus fine ; une erreur au milieu de l'import n'écrit rien |
-| 1.6 Interface : coque et A3 | `src/ui/` : barre fixe (`02` : marque, onglets ARIA avec flèches et `tabindex`, mention « Dernière synchronisation : … »), onglet persistant (`fjord-view`), un panneau visible à la fois, `[hidden]{display:none!important}` ; tokens de `08`, thème sombre ; A3 « 7 derniers jours » (`03`) ; bouton « Importer une archive Strava » avec une barre de progression (voir « Écarts proposés ») | navigation au clavier ; persistance de l'onglet ; A3 : 7 lignes de J−7 à J−1, repos compris ; libellé « Sous-seuil 6×6' » ; résumé « n séances · km · min de sous-seuil » ; aucune mention de « prévu » |
+| 1.6 Interface : coque et A3 | `src/ui/` : barre fixe (`02` : marque, onglets ARIA avec flèches et `tabindex`, mention « Dernière synchronisation : … »), onglet persistant (`jog-view`), un panneau visible à la fois, `[hidden]{display:none!important}` ; tokens de `08`, thème sombre ; A3 « 7 derniers jours » (`03`) ; bouton « Importer une archive Strava » avec une barre de progression (voir « Écarts proposés ») | navigation au clavier ; persistance de l'onglet ; A3 : 7 lignes de J−7 à J−1, repos compris ; libellé « Sous-seuil 6×6' » ; résumé « n séances · km · min de sous-seuil » ; aucune mention de « prévu » |
 
 **Critères d'acceptation** (`03`, A3 ; `02`) : une ligne par jour, de J−7 à hier ; « Repos » grisé, sans cadre plein ; un seul panneau visible ; les flèches font défiler les onglets en boucle.
 **Points de `09` vérifiés** : classification et détection des répétitions (premier aperçu), FC à 1 s et à 5 s (D-013), courses détectées (D-014).
@@ -69,14 +69,14 @@ Découpage en lots. Chaque lot est une tranche utilisable de bout en bout, qui p
 |---|---|---|
 | 3.1 Sélecteurs et Vue | `src/core/selecteurs/` : fenêtre de C1 (16 sem. / 12 mois), période de H1 et H2 (12 / 26 / toutes), données de C2 et C3 ; résultats de course pour H1 | 29 premiers jours non tracés (C1) ; 26 et 30 semaines terminées ; cible ±1 point (C3) |
 | 3.2 Interface Charge | C1 (deux graphiques empilés, réticule partagé, bande 0,8–1,3, ligne 1,5), C2 (moyenne sur 4 semaines), C3 (bande cible, note de Foster) | critères de `03` (C1, C2, C3) ; vue tableau |
-| 3.3 Interface Historique | H1 (barres empilées par intensité, courses, ligne « aujourd'hui »), H2 (journal, en-tête collant, semaine en cours surlignée, pastilles) ; `fjord-range` | sélecteur partagé par H1 et H2 et mémorisé ; aucune semaine future |
+| 3.3 Interface Historique | H1 (barres empilées par intensité, courses, ligne « aujourd'hui »), H2 (journal, en-tête collant, semaine en cours surlignée, pastilles) ; `jog-range` | sélecteur partagé par H1 et H2 et mémorisé ; aucune semaine future |
 
 ## Lot 4 · Onglet Progression
 
 | Tâche | Contenu | Tests attendus |
 |---|---|---|
 | 4.1 Calculs | allure normalisée (`04`, `refHr`, `paceHrK`), hors sous-seuil (`lt2Pace`, `subtHrHi`), tendances P2 (lissages sur 4 et 3 points), centres du nuage P3, dernière séance P4, niveau P5 (Riegel dans `riegel.ts`, records), comparateur P1 (`04`, Comparateur), suggestion `paceHrK` (D-004) | une formule par mesure du comparateur ; « historique partiel » ; période invalide ; pic du ratio sans les 29 premiers jours ; suggestion absente quand il manque des données |
-| 4.2 Interface | P1 (préréglages, dates, `fjord-cmp-p`), P2 (losange quand il y a de l'allure marathon), P3 (cercles et carrés, flèche, `fjord-cmp`), P4 (sucettes, ligne de seuil), P5 (tableau) | critères de `03` (P1 à P5) |
+| 4.2 Interface | P1 (préréglages, dates, `jog-cmp-p`), P2 (losange quand il y a de l'allure marathon), P3 (cercles et carrés, flèche, `jog-cmp`), P4 (sucettes, ligne de seuil), P5 (tableau) | critères de `03` (P1 à P5) |
 
 ## Lot 5 · Paramètres et recalcul
 
@@ -92,7 +92,7 @@ Découpage en lots. Chaque lot est une tranche utilisable de bout en bout, qui p
 |---|---|---|
 | 6.1 Rapport réel | `npm run verif:reel` (0011) : un rapport par point de `09`, plus les mesures de performance | le script tourne sur l'export ; il n'écrit que dans `tests/local/out/` |
 | 6.2 Performance | budgets de 0012 : Vue en cache au démarrage, `Float64Array` transférées, rendu de l'onglet actif seulement | mesures dans le rapport ; taille du paquet |
-| 7 · FC max observée | terminé, relu, corrigé | 2026-10-22 : 2 101 tests unitaires (2 022 avant) ; `npm run test:e2e` : 17 scénarios Chromium (mode `FJORD_SANS_SOCKET=1`) ; lint et typecheck verts ; section « FC max observée » de `verif:reel` sur l'export réel |
+| 7 · FC max observée | terminé, relu, corrigé | 2026-10-22 : 2 101 tests unitaires (2 022 avant) ; `npm run test:e2e` : 17 scénarios Chromium (mode `JOG_SANS_SOCKET=1`) ; lint et typecheck verts ; section « FC max observée » de `verif:reel` sur l'export réel |
 | 6.3 Accessibilité et responsive | `08` (focus visible, contrastes, `prefers-reduced-motion`), seuils à 980 et 640 px, défilement horizontal limité aux tableaux larges | tests ARIA ; contrôle manuel |
 
 ## Lot 7 · FC max observée (D-019, ADR 0013)
@@ -103,7 +103,7 @@ Découpage en lots. Chaque lot est une tranche utilisable de bout en bout, qui p
 |---|---|---|
 | 7.1 Pic soutenu | `src/core/seance/` : `fcPic` dans `SeanceIntrinseque` (ADR 0013 : minimum glissant sur 15 s de `fc_bpm`, maximum des fenêtres sans NaN commençant à `t ≥ 300 s`, `null` sinon), en O(n) ; constantes `DUREE_PIC_FC_S`, `DEBUT_PIC_FC_S` ; `FORMAT_SEANCE = 2`, `REGLES_VERSION = "1.1.0"` ; types et `contrats.md` | pointe de 5 s à 210 bpm ignorée ; plateau de 20 s à 195 → 195 ; plateau de 14 s ignoré ; pic dans les 5 premières minutes ignoré ; FC à 1 s et à 5 s → même pic (D-013) ; trou de FC dans la fenêtre ; séance sans FC → `null` ; gel des constantes |
 | 7.2 Suggestion | `calculerVue` : `parametresEnVigueur.suggestionHrMax` (ADR 0013) ; constantes `MARGE_HRMAX_BPM`, `ECART_SUSPECT_HRMAX_BPM` ; `FORMAT_VUE = 5` (cache de Vue invalidé) | à `hrMax + 2` → null ; à `hrMax + 3` → proposée ; arrondi à mi-chemin ; séance à J−366 ignorée, à J−365 retenue ; séance antérieure à la dernière modification de `hrMax` ignorée, celle du même jour retenue ; égalité → la plus récente ; `ecartSuspect` à +15 faux, à +16 vrai ; doublon ignoré exclu |
-| 7.3 Encart | `src/ui/composants/` : encart du groupe « Données » (textes exacts de D-019, dates par `core/format`), « Utiliser » envoie `enregistrerParams` avec les paramètres enregistrés plus une modification `hrMax` datée, « Ignorer » via `localStorage` `fjord-hrmax-ignoree` sous `try/catch` | textes exacts avec et sans nom, avec et sans phrase d'écart ; le message envoyé contient les modifications existantes et une seule nouvelle, à la date de la séance ; la saisie en cours du formulaire n'y entre pas ; « Ignorer » masque et survit au rendu suivant ; un autre pic réapparaît ; `localStorage` qui lève → l'encart s'affiche quand même |
+| 7.3 Encart | `src/ui/composants/` : encart du groupe « Données » (textes exacts de D-019, dates par `core/format`), « Utiliser » envoie `enregistrerParams` avec les paramètres enregistrés plus une modification `hrMax` datée, « Ignorer » via `localStorage` `jog-hrmax-ignoree` sous `try/catch` | textes exacts avec et sans nom, avec et sans phrase d'écart ; le message envoyé contient les modifications existantes et une seule nouvelle, à la date de la séance ; la saisie en cours du formulaire n'y entre pas ; « Ignorer » masque et survit au rendu suivant ; un autre pic réapparaît ; `localStorage` qui lève → l'encart s'affiche quand même |
 | 7.4 Vérification | `scripts/verif-reel.ts` : section « FC max observée » (pic retenu, séance, nombre de séances dont le maximum brut se situe dans les 5 premières minutes) ; un scénario e2e (import, encart, « Utiliser », annonce) | le rapport tourne sur l'export ; `npm run test:e2e` passe |
 
 **Critères d'acceptation** (D-019) : aucune modification de `hrMax` sans clic ; après « Utiliser », la FC max en vigueur à J−1 vaut le pic, l'historique montre la modification datée, et l'encart disparaît.

@@ -7,7 +7,7 @@ import type { DateCivile, Parametres, Vue } from '../core/types';
 import type { JournalImport } from '../store/types';
 import { dateCivileAppareil, fuseauAppareil } from '../worker/horloge';
 import type { CorpsRequete, Reponse, Requete } from '../worker/traitement';
-import type { ClientFjord, ExportSauvegarde, Progression, ResultatImport, ResultatParametres, SurProgression } from './client';
+import type { ClientJog, ExportSauvegarde, Progression, ResultatImport, ResultatParametres, SurProgression } from './client';
 
 /** Le canal vers le Worker, réduit à ce que le client utilise. Injectable pour les tests. */
 export interface Canal {
@@ -47,7 +47,7 @@ interface ReponseVue {
   erreurRecalcul?: string;
 }
 
-export class ClientWorker implements ClientFjord {
+export class ClientWorker implements ClientJog {
   private readonly attentes = new Map<number, Attente>();
   private readonly abonnes: ((vue: Vue, perimee: boolean) => void)[] = [];
   private readonly inactiviteMs: number;
@@ -216,9 +216,9 @@ export class ClientWorker implements ClientFjord {
   }
 }
 
-/** Le client réel : un Worker de module, lancé depuis `fjord.worker.ts`. */
+/** Le client réel : un Worker de module, lancé depuis `jog.worker.ts`. */
 export function creerClientWorker(): ClientWorker {
-  const worker = new Worker(new URL('../worker/fjord.worker.ts', import.meta.url), { type: 'module' });
+  const worker = new Worker(new URL('../worker/jog.worker.ts', import.meta.url), { type: 'module' });
   return new ClientWorker({
     envoyer: (requete) => worker.postMessage(requete),
     surReponse: (ecouteur) => worker.addEventListener('message', (evenement: MessageEvent<Reponse>) => ecouteur(evenement.data)),

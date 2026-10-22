@@ -1,5 +1,5 @@
 // Coque de l'application (02) : barre fixe, cinq onglets ARIA, un seul panneau visible,
-// rendu à la demande (ADR 0009). L'onglet actif est mémorisé sous `fjord-view`.
+// rendu à la demande (ADR 0009). L'onglet actif est mémorisé sous `jog-view`.
 // L'état de l'import vit ici, et est réappliqué à chaque rendu du champ.
 import { formatDate } from '../core/format';
 import type { FenetreProgressivite, PeriodeHistorique } from '../core/selecteurs';
@@ -21,19 +21,19 @@ import { rendreP3 } from './composants/p3';
 import { rendreP4 } from './composants/p4';
 import { rendreP5 } from './composants/p5';
 import { rendreParametres } from './composants/parametres';
-import type { ClientFjord } from './client';
+import type { ClientJog } from './client';
 import { el, messageErreur } from './dom';
 import { fermerInfobulle } from './infobulle';
 
 /** Stockage local minimal (localStorage en production). Toute opération peut lever (02). */
-export interface StockageFjord {
+export interface StockageJog {
   getItem(cle: string): string | null;
   setItem(cle: string, valeur: string): void;
 }
 
-const CLE_ONGLET = 'fjord-view';
+const CLE_ONGLET = 'jog-view';
 /** Période de l'historique (H1 et H2), mémorisée (02). */
-const CLE_PERIODE = 'fjord-range';
+const CLE_PERIODE = 'jog-range';
 
 const PERIODES: readonly { valeur: PeriodeHistorique; libelle: string }[] = [
   { valeur: '12', libelle: '12 semaines' },
@@ -56,7 +56,7 @@ function estOnglet(valeur: string): valeur is Onglet {
 }
 
 /** localStorage si le navigateur l'autorise, sinon rien : l'application marche sans. */
-function stockageParDefaut(): StockageFjord | null {
+function stockageParDefaut(): StockageJog | null {
   try {
     return localStorage;
   } catch {
@@ -70,8 +70,8 @@ function stockageParDefaut(): StockageFjord | null {
  */
 export async function monterApplication(
   racine: HTMLElement,
-  client: ClientFjord,
-  stockage: StockageFjord | null = stockageParDefaut(),
+  client: ClientJog,
+  stockage: StockageJog | null = stockageParDefaut(),
   J: DateCivile,
 ): Promise<void> {
   let vue: Vue | null = null;
@@ -120,7 +120,7 @@ export async function monterApplication(
     panneaux.set(onglet.id, panneau);
   }
 
-  const titre = el('h1', { class: 'visuellement-masque' }, ['Jog · Fjord']);
+  const titre = el('h1', { class: 'visuellement-masque' }, ['Jog · Tableau de bord']);
   const tetiere = el('header', { class: 'top' }, [
     titre,
     el('div', { class: 'brand' }, [el('b', {}, ['Jog']), el('span', {}, ['Athlète · NSA'])]),
@@ -243,7 +243,7 @@ export async function monterApplication(
 
   /**
    * L'onglet Progression (03, P1 à P5) : P1 et P2 en pleine largeur, P3 et P4 côte à côte, P5 en dernier. Le comparateur
-   * et le nuage mémorisent leur choix sous `fjord-cmp-p` et `fjord-cmp`, par le stockage de l'application.
+   * et le nuage mémorisent leur choix sous `jog-cmp-p` et `jog-cmp`, par le stockage de l'application.
    */
   function ongletProgression(v: Vue | null): HTMLElement {
     if (v === null || v.seances.length === 0) return sansDonnees();
@@ -261,7 +261,7 @@ export async function monterApplication(
   }
 
   /**
-   * L'onglet Historique (03) : un seul sélecteur de période pilote H1 et H2. Le choix est mémorisé sous `fjord-range`.
+   * L'onglet Historique (03) : un seul sélecteur de période pilote H1 et H2. Le choix est mémorisé sous `jog-range`.
    * Le changement redessine seulement H1 et H2, pour que le focus reste sur le bouton choisi.
    */
   function ongletHistorique(v: Vue | null): HTMLElement {
@@ -285,7 +285,7 @@ export async function monterApplication(
   function encartImport(): HTMLElement {
     return el('section', { class: 'encart', 'aria-labelledby': 'import-titre' }, [
       el('h2', { id: 'import-titre' }, ['Importer une archive Strava']),
-      el('p', { class: 'aide' }, ['Fjord lit l’archive exportée depuis Strava. Le fichier reste sur cet appareil.']),
+      el('p', { class: 'aide' }, ['Jog lit l’archive exportée depuis Strava. Le fichier reste sur cet appareil.']),
       champImport(),
     ]);
   }
@@ -366,7 +366,7 @@ function sansDonnees(): HTMLElement {
 }
 
 /** La période mémorisée, ou « Toutes les saisons » si elle est absente, inconnue ou illisible (02). */
-function lirePeriode(stockage: StockageFjord | null): PeriodeHistorique {
+function lirePeriode(stockage: StockageJog | null): PeriodeHistorique {
   try {
     const valeur = stockage?.getItem(CLE_PERIODE);
     if (valeur === '12' || valeur === '26' || valeur === 'toutes') return valeur;
@@ -376,7 +376,7 @@ function lirePeriode(stockage: StockageFjord | null): PeriodeHistorique {
   return 'toutes';
 }
 
-function ecrirePeriode(stockage: StockageFjord | null, periode: PeriodeHistorique): void {
+function ecrirePeriode(stockage: StockageJog | null, periode: PeriodeHistorique): void {
   try {
     stockage?.setItem(CLE_PERIODE, periode);
   } catch {
@@ -384,7 +384,7 @@ function ecrirePeriode(stockage: StockageFjord | null, periode: PeriodeHistoriqu
   }
 }
 
-function lireOnglet(stockage: StockageFjord | null): Onglet {
+function lireOnglet(stockage: StockageJog | null): Onglet {
   try {
     const valeur = stockage?.getItem(CLE_ONGLET);
     if (valeur !== null && valeur !== undefined && estOnglet(valeur)) return valeur;
@@ -394,7 +394,7 @@ function lireOnglet(stockage: StockageFjord | null): Onglet {
   return 'apercu';
 }
 
-function ecrireOnglet(stockage: StockageFjord | null, id: Onglet): void {
+function ecrireOnglet(stockage: StockageJog | null, id: Onglet): void {
   try {
     stockage?.setItem(CLE_ONGLET, id);
   } catch {

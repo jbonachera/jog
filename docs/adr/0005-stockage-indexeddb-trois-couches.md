@@ -41,7 +41,7 @@ derive        cle → { versionRegles, versionParams, contenu }   # séances, jo
 - **Paramètres datés** : la valeur en vigueur au jour `d` est celle de la dernière entrée dont `dateEffet ≤ d`. Avant la première entrée, c'est la valeur de la première entrée. La liste des modifications (ancienne → nouvelle valeur) se déduit de l'ordre des entrées. Supprimer une modification efface son entrée. « Revenir aux valeurs par défaut » ajoute une entrée datée d'aujourd'hui pour chaque paramètre daté (`06`).
 - **Migrations** : `meta.schemaVersion` augmente à chaque changement de forme. Une fonction de migration par version s'exécute dans `onupgradeneeded`. Elle ne touche que `brut`, `activite`, `flux`, `param_*` et `journal`. Le dérivé est vidé.
 - **Sauvegarde** (D-012) : `sauvegarde.json = { formatVersion, meta.athlete, param_global, param_date, journal }`, soit quelques kilo-octets. La clé d'API (0002) n'y figure pas. Les activités se retrouvent en réimportant l'archive. L'import d'une sauvegarde remplace les paramètres et le journal, puis lance un recalcul complet.
-- Au premier lancement, Fjord appelle `navigator.storage.persist()`. Le résultat est écrit dans le journal de recalcul (0012). L'afficher dans l'onglet Paramètres est **proposé** (D-017), pas décidé.
+- Au premier lancement, Jog appelle `navigator.storage.persist()`. Le résultat est écrit dans le journal de recalcul (0012). L'afficher dans l'onglet Paramètres est **proposé** (D-017), pas décidé.
 
 ## Conséquences
 

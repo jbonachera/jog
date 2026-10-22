@@ -1,5 +1,5 @@
 // Encodeur FIT minimal, réservé aux tests. Il ne produit que les messages que le lecteur
-// de Fjord doit savoir lire (reference-fit.md). Aucune donnée réelle n'entre ici (ADR 0010).
+// de Jog doit savoir lire (reference-fit.md). Aucune donnée réelle n'entre ici (ADR 0010).
 //
 // Convention : les temps des échantillons, des tours et de la séance sont en secondes
 // depuis `debut`. `debut` est un instant Unix en millisecondes (UTC).

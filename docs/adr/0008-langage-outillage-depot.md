@@ -6,7 +6,7 @@
 
 ## Contexte
 
-Fjord est une application statique (0001). Son cœur de calcul est pur : il ne touche ni au DOM ni à IndexedDB, pour pouvoir être testé hors navigateur (0006). `pow`, `exp` et `log` sont interdits dans le pipeline (0006). Il faut lire des ZIP, du gzip, du FIT, du GPX et du TCX dans un Worker (0003, 0004). La performance dans le navigateur est prioritaire (consigne de l'athlète, 2026-10-21).
+Jog est une application statique (0001). Son cœur de calcul est pur : il ne touche ni au DOM ni à IndexedDB, pour pouvoir être testé hors navigateur (0006). `pow`, `exp` et `log` sont interdits dans le pipeline (0006). Il faut lire des ZIP, du gzip, du FIT, du GPX et du TCX dans un Worker (0003, 0004). La performance dans le navigateur est prioritaire (consigne de l'athlète, 2026-10-21).
 
 Constats tirés de l'export : un lecteur FIT minimal (environ 80 lignes) lit 406 fichiers sur 406 lisibles, pour les messages utiles. La licence du SDK officiel `@garmin/fitsdk` serait restrictive pour une distribution, d'après un tiers (non vérifiée).
 

@@ -41,7 +41,7 @@ describe('rapport sur données réelles (tâche 6.1)', () => {
   let cheminSnapshot: string | null = null;
 
   beforeAll(async () => {
-    dossierTemp = await mkdtemp(join(tmpdir(), 'fjord-verif-'));
+    dossierTemp = await mkdtemp(join(tmpdir(), 'jog-verif-'));
     zipChemin = join(dossierTemp, 'archive-synthetique.zip');
     await writeFile(zipChemin, archiveSynthetique(60, { picsFc: true }));
     debut = Date.now();

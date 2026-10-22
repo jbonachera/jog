@@ -1,4 +1,4 @@
-// P1 · Comparer deux périodes (03, P1 ; 04, « Comparateur de périodes » ; 02, persistance fjord-cmp-p).
+// P1 · Comparer deux périodes (03, P1 ; 04, « Comparateur de périodes » ; 02, persistance jog-cmp-p).
 import { afterEach, describe, expect, it } from 'vitest';
 import { fireEvent, within } from '@testing-library/dom';
 import { ajouterJours } from '../../src/core/dates';
@@ -173,14 +173,14 @@ describe('P1 · période invalide (03, P1)', () => {
   });
 });
 
-describe('P1 · mémorisation sous fjord-cmp-p', () => {
-  it('le préréglage choisi s\'écrit sous fjord-cmp-p', () => {
+describe('P1 · mémorisation sous jog-cmp-p', () => {
+  it('le préréglage choisi s\'écrit sous jog-cmp-p', () => {
     const stockage = new StockageMemoire();
     const racine = rendre(vueDeTest(), stockage);
 
     fireEvent.change(preset(racine), { target: { value: 'douze-semaines-annee-precedente' } });
 
-    expect(stockage.getItem('fjord-cmp-p')).toContain('douze-semaines-annee-precedente');
+    expect(stockage.getItem('jog-cmp-p')).toContain('douze-semaines-annee-precedente');
   });
 
   it('un choix mémorisé est rétabli au rendu suivant, avec ses dates personnalisées', () => {

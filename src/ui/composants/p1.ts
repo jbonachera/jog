@@ -1,4 +1,4 @@
-// P1 · Comparer deux périodes (03, P1 ; 04, « Comparateur de périodes » ; 02, persistance `fjord-cmp-p`).
+// P1 · Comparer deux périodes (03, P1 ; 04, « Comparateur de périodes » ; 02, persistance `jog-cmp-p`).
 // Préréglages, deux couples de dates bornés à l'historique, tableau en 5 colonnes, écarts formatés selon le type de
 // mesure. Une période invalide affiche un message et ne recalcule pas.
 import { ajouterJours, estDateCivile } from '../../core/dates';
@@ -23,7 +23,7 @@ export interface StockageProgression {
   setItem(cle: string, valeur: string): void;
 }
 
-const CLE_COMPARATEUR = 'fjord-cmp-p';
+const CLE_COMPARATEUR = 'jog-cmp-p';
 const PERSONNALISEES = 'personnalisees';
 
 type Choix = Prereglage | typeof PERSONNALISEES;
@@ -103,7 +103,7 @@ export function paramsAuJourDe(vue: Vue): ParamsAuJour {
   return (date) => index.auJour(date);
 }
 
-/** Rend P1 dans `conteneur`, en remplaçant son contenu. Le choix est mémorisé sous `fjord-cmp-p` (02). */
+/** Rend P1 dans `conteneur`, en remplaçant son contenu. Le choix est mémorisé sous `jog-cmp-p` (02). */
 export function rendreP1(conteneur: HTMLElement, vue: Vue, stockage: StockageProgression | null = null): void {
   const etat = lireEtat(vue, stockage);
   const paramsAuJour = paramsAuJourDe(vue);

@@ -2,7 +2,7 @@
 // clavier (onglets, graphique, infobulle). Données : archive synthétique de 14 mois, importée par le champ réel.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Browser, Page } from 'playwright-core';
-import { importerArchiveSynthetique, lancerChromium, ouvrirFjord, ouvrirOnglet, type Session } from './navigateur';
+import { importerArchiveSynthetique, lancerChromium, ouvrirJog, ouvrirOnglet, type Session } from './navigateur';
 
 let navigateur: Browser;
 
@@ -15,7 +15,7 @@ afterAll(async () => {
 });
 
 async function ouvrirAvecDonnees(): Promise<Session> {
-  const session = await ouvrirFjord(navigateur, { largeur: 1440, hauteur: 900 });
+  const session = await ouvrirJog(navigateur, { largeur: 1440, hauteur: 900 });
   await importerArchiveSynthetique(session.page);
   return session;
 }

@@ -5,8 +5,8 @@
 import { formatDate, formatDateAnnee, formatNombre } from '../../core/format';
 import { historiqueModifications, parametresAuJour, parametresDefaut } from '../../core/parametres';
 import type { DateCivile, SuggestionHrMax, Vue } from '../../core/types';
-import type { ClientFjord, ResultatParametres } from '../client';
-import type { StockageFjord } from '../app';
+import type { ClientJog, ResultatParametres } from '../client';
+import type { StockageJog } from '../app';
 import { dateCivileAppareil, fuseauAppareil } from '../../worker/horloge';
 import { el, messageErreur } from '../dom';
 import { fermerInfobulle } from '../infobulle';
@@ -31,17 +31,17 @@ import {
 
 /** Ce dont l'onglet a besoin de l'application (02, ADR 0009). */
 export interface ControleParametres {
-  client: ClientFjord;
+  client: ClientJog;
   /** La zone d'annonce `role="status"` de l'application, placée à côté des boutons. */
   annonce: HTMLElement;
   /** Le champ d'import d'archive (D-018), rendu par l'application, qui en réapplique l'état d'import. */
   champImport: () => HTMLElement;
   /** Le stockage de l'application, où « Ignorer » mémorise la FC max écartée (D-019). Null sans localStorage. */
-  stockage: StockageFjord | null;
+  stockage: StockageJog | null;
 }
 
 /** Clé de `localStorage` : la suggestion de FC max écartée sur cet appareil (D-019). */
-const CLE_HRMAX_IGNOREE = 'fjord-hrmax-ignoree';
+const CLE_HRMAX_IGNOREE = 'jog-hrmax-ignoree';
 const TEXTE_ECART_HRMAX = 'Écart important : vérifiez qu’il ne s’agit pas d’un artefact du capteur.';
 
 export const MESSAGE_ENREGISTRE = 'Enregistré. Tableau de bord recalculé.';
@@ -89,7 +89,7 @@ function cleSuggestion(suggestion: SuggestionHrMax): string {
 }
 
 /** Vrai si l'athlète a écarté cette suggestion sur cet appareil. Une lecture qui lève compte comme non écartée. */
-function estEcartee(stockage: StockageFjord | null, suggestion: SuggestionHrMax): boolean {
+function estEcartee(stockage: StockageJog | null, suggestion: SuggestionHrMax): boolean {
   try {
     return stockage !== null && stockage.getItem(CLE_HRMAX_IGNOREE) === cleSuggestion(suggestion);
   } catch {
@@ -98,7 +98,7 @@ function estEcartee(stockage: StockageFjord | null, suggestion: SuggestionHrMax)
 }
 
 /** Mémorise l'écart. Une écriture qui lève ne bloque rien : l'encart est alors masqué pour le rendu courant seulement. */
-function memoriserEcartee(stockage: StockageFjord | null, suggestion: SuggestionHrMax): void {
+function memoriserEcartee(stockage: StockageJog | null, suggestion: SuggestionHrMax): void {
   try {
     stockage?.setItem(CLE_HRMAX_IGNOREE, cleSuggestion(suggestion));
   } catch {
@@ -319,7 +319,7 @@ export function rendreParametres(conteneur: HTMLElement, vue: Vue | null, J: Dat
   }
 
   /**
-   * L'encart « FC max observée » (D-019) : Fjord propose, l'athlète décide. Absent sans suggestion, ou quand l'athlète l'a
+   * L'encart « FC max observée » (D-019) : Jog propose, l'athlète décide. Absent sans suggestion, ou quand l'athlète l'a
    * écartée sur cet appareil. « Utiliser » enregistre une seule modification datée, avec les paramètres enregistrés.
    */
   function encartFcMaxObservee(): HTMLElement | null {
@@ -393,7 +393,7 @@ function nouvelIdentifiant(): string {
 function listeModifications(
   reference: ReferenceParametres,
   issue: (resultat: ResultatParametres, succes: string) => void,
-  client: ClientFjord,
+  client: ClientJog,
   annoncer: (texte: string) => void,
 ): HTMLElement {
   const modifs = historiqueModifications({ globaux: reference.globaux, modifs: reference.modifs });

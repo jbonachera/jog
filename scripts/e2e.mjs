@@ -51,10 +51,10 @@ async function attendreServeur(url, delaiMs) {
 const build = spawnSync(process.execPath, [viteBin, 'build'], { cwd: racine, stdio: 'inherit' });
 if (build.status !== 0) process.exit(build.status ?? 1);
 
-// Mode de secours sans socket (FJORD_SANS_SOCKET=1) : pour un environnement qui interdit les connexions locales. Le
+// Mode de secours sans socket (JOG_SANS_SOCKET=1) : pour un environnement qui interdit les connexions locales. Le
 // navigateur reçoit les fichiers de dist/ par interception Playwright ; aucun serveur n'est lancé. Le mode par défaut,
 // celui du projet, sert dist/ avec `vite preview` sur un port libre.
-const sansSocket = process.env.FJORD_SANS_SOCKET === '1';
+const sansSocket = process.env.JOG_SANS_SOCKET === '1';
 let preview = null;
 // localhost est un contexte sécurisé, comme 127.0.0.1 : WebCrypto (SHA-256 de l’import) y est disponible.
 let url = 'http://localhost:4173/';
@@ -70,8 +70,8 @@ if (!sansSocket) {
 let code;
 try {
   if (!sansSocket) await attendreServeur(url, 20_000);
-  const env = { ...process.env, FJORD_URL: url };
-  if (sansSocket) env.FJORD_DIST = resolve(racine, 'dist');
+  const env = { ...process.env, JOG_URL: url };
+  if (sansSocket) env.JOG_DIST = resolve(racine, 'dist');
   const tests = spawn(process.execPath, [vitestBin, 'run', '--config', 'vitest.e2e.config.ts'], {
     cwd: racine,
     stdio: 'inherit',

@@ -5,7 +5,7 @@ import { defineConfig, type Plugin } from 'vite';
 // le build garde la CSP stricte de l'ADR 0010 (CSS extrait en fichier).
 function cspDev(): Plugin {
   return {
-    name: 'fjord-csp-dev',
+    name: 'jog-csp-dev',
     apply: 'serve',
     transformIndexHtml(html) {
       return html.replace("style-src 'self'", "style-src 'self' 'unsafe-inline'");

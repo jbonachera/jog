@@ -1,4 +1,4 @@
-# Jog · Design du tableau de bord « Fjord »
+# Jog · Design du tableau de bord
 
 Spécification de référence pour l'implémentation du tableau de bord de suivi de course à pied de Jog. Elle décrit ce que le produit doit permettre, comment il est organisé, chaque composant, chaque calcul et le système visuel. La maquette jointe en est l'illustration exécutable.
 

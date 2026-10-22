@@ -46,7 +46,7 @@ Worker → UI : { type: "vue", vue: Vue } , { type: "progression", fait, total, 
 
   Les séries numériques sont des `Float64Array`, **transférées** (pas copiées) par `postMessage`.
 - Les **sélecteurs locaux** (fenêtre de C1, période de H1 et H2, comparaison de P3, comparateur P1, vue tableau) se calculent **dans le fil principal**, avec des fonctions pures de `src/core/selecteurs/`, à partir de la Vue. Ils ne repassent pas par le Worker.
-- **État** : la Vue est en mémoire dans le fil principal. Les préférences d'affichage sont dans `localStorage` (`fjord-view`, `fjord-range`, `fjord-cmp`, `fjord-cmp-p`), chaque lecture et écriture étant protégée (`02`). Tout le reste est dans IndexedDB, que seul le Worker manipule.
+- **État** : la Vue est en mémoire dans le fil principal. Les préférences d'affichage sont dans `localStorage` (`jog-view`, `jog-range`, `jog-cmp`, `jog-cmp-p`), chaque lecture et écriture étant protégée (`02`). Tout le reste est dans IndexedDB, que seul le Worker manipule.
 - **Démarrage rapide** : la dernière Vue calculée est conservée dans `derive`, avec la clé `(empreinte des entrées, J)`. Au lancement, l'interface affiche cette Vue immédiatement. Le Worker ne recalcule que si J ou les entrées ont changé.
 
 ## Conséquences

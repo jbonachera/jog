@@ -300,7 +300,7 @@ export function creerTraitement(options: OptionsTraitement): (requete: CorpsRequ
     const sauvegarde = await exporterSauvegarde(b);
     const contenu = JSON.stringify(sauvegarde, null, 2);
     await noterDernierExport(b, maintenant().toISOString());
-    emettre({ type: 'sauvegarde', contenu, nomFichier: `fjord-sauvegarde-${aujourdHui()}.json` });
+    emettre({ type: 'sauvegarde', contenu, nomFichier: `jog-sauvegarde-${aujourdHui()}.json` });
   }
 
   /** `importerSauvegarde` (D-012) : taille, format et valeurs vérifiés avant tout ; puis recalcul ; puis écriture. */
