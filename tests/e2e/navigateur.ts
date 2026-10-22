@@ -136,16 +136,23 @@ export function archiveDeTest(): Buffer {
   return archive;
 }
 
+/** Archive de 14 mois avec deux séances de FC (pic soutenu à 194 bpm, pointe de début), pour la FC max observée (D-019). */
+let archiveAvecPic: Buffer | undefined;
+export function archiveAvecPicFc(): Buffer {
+  archiveAvecPic ??= Buffer.from(archiveSynthetique(JOURS_14_MOIS, { picsFc: true }));
+  return archiveAvecPic;
+}
+
 /**
- * Importe l'archive synthétique par le champ réel « Choisir une archive Strava (.zip) » (setInputFiles), puis attend la fin
- * de l'import. Rend la durée en millisecondes.
+ * Importe une archive par le champ réel « Choisir une archive Strava (.zip) » (setInputFiles), puis attend la fin de
+ * l'import. Rend la durée en millisecondes.
  */
-export async function importerArchiveSynthetique(page: Page): Promise<number> {
+export async function importerArchive(page: Page, octets: Buffer): Promise<number> {
   const debut = performance.now();
   await page.locator('input[type="file"][accept=".zip"]').first().setInputFiles({
     name: 'archive-synthetique.zip',
     mimeType: 'application/zip',
-    buffer: archiveDeTest(),
+    buffer: octets,
   });
   await page.waitForFunction(
     () => {
@@ -159,6 +166,11 @@ export async function importerArchiveSynthetique(page: Page): Promise<number> {
   const statut = (await page.locator('.statut').textContent()) ?? '';
   if (!statut.startsWith('Import terminé')) throw new Error(`import refusé : ${statut}`);
   return duree;
+}
+
+/** Importe l'archive synthétique de 14 mois (voir `importerArchive`). */
+export function importerArchiveSynthetique(page: Page): Promise<number> {
+  return importerArchive(page, archiveDeTest());
 }
 
 /** Ouvre un onglet par son identifiant (`aperçu`, `charge`, `progression`, `historique`, `reglages`) et attend son panneau. */

@@ -16,7 +16,7 @@ import { IDBFactory } from 'fake-indexeddb';
 import { lireArchiveStrava } from '../src/adapters/strava-archive/lecteur';
 import { arrondir } from '../src/core/arrondi';
 import { calculerSeanceIntrinseque } from '../src/core/seance';
-import { FORMAT_VUE, PRECISION, REGLES_VERSION, SEUILS } from '../src/core/constantes';
+import { DEBUT_PIC_FC_S, FORMAT_VUE, PRECISION, REGLES_VERSION, SEUILS } from '../src/core/constantes';
 import { ajouterJours, dateDepuisNumero, estDateCivile, numeroJour } from '../src/core/dates';
 import { formatNombre, formatPourcentage, formatTempsCourse } from '../src/core/format';
 import { niveauEstime, suggestionPaceHrK } from '../src/core/progression';
@@ -24,6 +24,7 @@ import { etatRatio, selectionProgressivite } from '../src/core/selecteurs';
 import { indexerParametres, parametresDefaut } from '../src/core/parametres';
 import { miseEnForme } from '../src/core/seance/miseEnForme';
 import { detecterRepetitions, mediane } from '../src/core/seance/repetitions';
+import { picRetenu, seancesExaminees } from '../src/core/suggestionHrMax';
 import { validerParametres } from '../src/core/validationParametres';
 import { calculerVueBrute, seancesIntrinseques } from '../src/core/vue';
 import type { ActivitePivot, DateCivile, Flux, Parametres, Repetition, SeanceIntrinseque, SeanceVue, Signal, TypeSeance, Vue } from '../src/core/types';
@@ -645,6 +646,59 @@ function sectionCourses(c: Contexte): string[] {
   ];
 }
 
+/**
+ * Une passe sur le flux brut (D-019) : vrai si la FC existe, et si son maximum brut n'est atteint qu'avant 5 min
+ * (pointe de début de séance : aucune mesure après DEBUT_PIC_FC_S n'atteint ce maximum).
+ */
+function pointeFcDebut(flux: Flux): { avecFc: boolean; debut: boolean } {
+  const fc = flux.fc_bpm;
+  if (fc === null) return { avecFc: false, debut: false };
+  let maxTout = Number.NEGATIVE_INFINITY;
+  let maxApres = Number.NEGATIVE_INFINITY;
+  for (let i = 0; i < fc.length; i++) {
+    const valeur = fc[i] ?? Number.NaN;
+    if (Number.isNaN(valeur)) continue;
+    if (valeur > maxTout) maxTout = valeur;
+    if ((flux.t_s[i] ?? 0) >= DEBUT_PIC_FC_S && valeur > maxApres) maxApres = valeur;
+  }
+  if (maxTout === Number.NEGATIVE_INFINITY) return { avecFc: false, debut: false };
+  return { avecFc: true, debut: maxApres < maxTout };
+}
+
+function sectionFcMaxObservee(c: Contexte): string[] {
+  // La Vue brute (pics non arrondis) : la même que celle de la suggestion de l'application (D-019).
+  const brute = calculerVueBrute({ intrinseques: c.intrinseques, parametres: c.parametres, J: c.J, derniereSynchro: null });
+  const reglage = c.vue.parametresEnVigueur.datesAJm1.hrMax;
+  const retenu = picRetenu(brute);
+  const examinees = seancesExaminees(brute);
+  const avecPic = examinees.filter((s) => s.fcPic !== null).length;
+  const proposition = c.vue.parametresEnVigueur.suggestionHrMax;
+
+  let avecFc = 0;
+  let debutSeance = 0;
+  for (const pivot of c.pivots) {
+    const pointe = pointeFcDebut(pivot.flux);
+    if (pointe.avecFc) avecFc += 1;
+    if (pointe.debut) debutSeance += 1;
+  }
+
+  const ecart = retenu === null ? null : retenu.bpm - reglage;
+  return [
+    `## FC max observée (D-019, ADR 0013)${retenu === null ? '' : ` : pic le ${retenu.seance.date}`}`,
+    '',
+    `Pic retenu : ${retenu === null ? '–' : `${n(retenu.bpm)} bpm, le ${retenu.seance.date}`}. `
+      + `Écart au réglage en vigueur (${n(reglage)} bpm à J−1) : ${ecart === null ? '–' : `${ecart >= 0 ? '+' : ''}${n(ecart)} bpm`}.`,
+    `Séances examinées : ${n(examinees.length)}, dont ${n(avecPic)} avec un pic soutenu (fcPic).`,
+    `Proposition : ${proposition === null
+      ? 'aucune'
+      : `${n(proposition.bpm)} bpm à partir du ${proposition.date}${proposition.ecartSuspect ? ', écart suspect (plus de 15 bpm)' : ''}`}.`,
+    `Séances avec FC (toutes les activités importées, pas seulement les 365 derniers jours) : ${n(avecFc)}. `
+      + `Dont le maximum brut de FC se situe dans les 5 premières minutes : ${n(debutSeance)}`
+      + `${avecFc === 0 ? '' : ` (${pct((debutSeance / avecFc) * 100, 1)} des séances avec FC)`}.`,
+    '',
+  ];
+}
+
 function sectionBudgets(m: Mesures): string[] {
   const ko = (octets: number): string => mesure(octets / 1024, 'Ko');
   return [
@@ -814,6 +868,7 @@ export async function verifierReel(options: OptionsVerif = {}): Promise<Resultat
       ...sectionAxes(contexte),
       ...sectionFcPas(contexte),
       ...sectionCourses(contexte),
+      ...sectionFcMaxObservee(contexte),
       ...sectionBudgets(mesures),
     ].join('\n');
 

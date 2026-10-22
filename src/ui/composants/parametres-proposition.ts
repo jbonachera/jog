@@ -87,7 +87,32 @@ export function construireProposition(
     modifs: [...reference.modifs.map((modif) => ({ ...modif })), ...nouvelles],
   };
 
-  // Date d'effet future, règles 3 et 4 : `validerParametres` fait foi, et le Worker revalide la même chose.
+  return verifier(proposes, J);
+}
+
+/**
+ * Proposition de « Utiliser » (D-019) : les paramètres enregistrés, plus une seule modification de FC max datée de la
+ * séance (D-006). La saisie en cours du formulaire n'y entre pas. Même validation que le formulaire.
+ */
+export function construirePropositionHrMax(
+  suggestion: { bpm: number; date: DateCivile },
+  reference: ReferenceParametres,
+  J: DateCivile,
+  instant: string,
+  nouvelId: () => string,
+): ResultatProposition {
+  const proposes: Parametres = {
+    globaux: { ...reference.globaux },
+    modifs: [
+      ...reference.modifs.map((modif) => ({ ...modif })),
+      { id: nouvelId(), cle: 'hrMax', valeur: suggestion.bpm, dateEffet: suggestion.date, enregistreLe: instant },
+    ],
+  };
+  return verifier(proposes, J);
+}
+
+/** Date d'effet future, règles 3 et 4 : `validerParametres` fait foi, et le Worker revalide la même chose. */
+function verifier(proposes: Parametres, J: DateCivile): ResultatProposition {
   const verdict = validerParametres(proposes, J);
   if (!verdict.ok) return echec(verdict.champ, verdict.message);
   return { ok: true, proposes };

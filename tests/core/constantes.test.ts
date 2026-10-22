@@ -3,15 +3,19 @@ import {
   DELAI_APRES_SEGMENT_MP_S,
   DELAI_MAX_FC_S,
   DEMI_FENETRE_ACCELERATION_S,
+  DEBUT_PIC_FC_S,
   DEMI_FENETRE_VITESSE_S,
   DISTANCES_STANDARD_KM,
   DUREE_MAX_ACCELERATION_S,
   DUREE_MIN_ACCELERATION_S,
   DUREE_MIN_CANDIDAT_DECOUPLAGE_MIN,
   DUREE_MIN_RETENUE_DECOUPLAGE_S,
+  DUREE_PIC_FC_S,
   DUREE_REPETITION_MIN_S,
   DUREE_SEGMENT_MP_MIN_S,
   DUREE_SORTIE_LONGUE_MIN,
+  ECART_MAX_GRILLE_S,
+  ECART_SUSPECT_HRMAX_BPM,
   FACTEUR_ACCELERATION,
   FACTEUR_SORTIE_LONGUE_SEMAINE,
   FENETRE_FC_LISSEE_S,
@@ -21,6 +25,7 @@ import {
   FOURCHETTE,
   MARGE_ALLURE_RAPIDE_S_KM,
   MARGE_FC_FIN_SOUS_SEUIL,
+  MARGE_HRMAX_BPM,
   MINIMUMS,
   MOTIFS,
   NOMBRE_MIN_ACCELERATIONS,
@@ -29,6 +34,7 @@ import {
   POIDS_CHARGE,
   PRECISION,
   RECUPERATION_MAX_S,
+  REGLES_VERSION,
   SEUILS,
   SIMULATEUR,
   TOLERANCE_FORMAT_REPETITIONS,
@@ -125,6 +131,10 @@ describe('délai de prolongement de la FC gelé (D-013)', () => {
   it('une mesure de FC se prolonge au plus 10 s', () => {
     expect(DELAI_MAX_FC_S).toBe(10);
   });
+
+  it('l\'écart maximal entre deux mesures d\'une grille de FC est celui de D-013 : 10 s', () => {
+    expect(ECART_MAX_GRILLE_S).toBe(10);
+  });
 });
 
 // Comportement des motifs de D-014, sur les noms qu'exporte la plateforme.
@@ -211,12 +221,30 @@ describe('constantes de ②a gelées (changer une valeur impose d\'augmenter REG
   });
 });
 
-describe('formats mémorisés (ADR 0006, 0009)', () => {
-  it('format de la séance mémorisée : 1, dans la clé de mémorisation', () => {
-    expect(FORMAT_SEANCE).toBe(1);
+describe('pic soutenu de la FC gelé (D-019, ADR 0013)', () => {
+  it('fenêtre de 15 s, à partir de 300 s (5 min)', () => {
+    expect(DUREE_PIC_FC_S).toBe(15);
+    expect(DEBUT_PIC_FC_S).toBe(300);
+  });
+});
+
+describe('suggestion de FC max observée gelée (D-019, ADR 0013)', () => {
+  it('marge de 3 bpm au-dessus de hrMax pour proposer, écart suspect au-delà de 15 bpm', () => {
+    expect(MARGE_HRMAX_BPM).toBe(3);
+    expect(ECART_SUSPECT_HRMAX_BPM).toBe(15);
+  });
+});
+
+describe('règles et formats mémorisés (ADR 0006, 0009, 0013)', () => {
+  it('règles : 1.1.0, depuis le pic soutenu de la FC (D-019)', () => {
+    expect(REGLES_VERSION).toBe('1.1.0');
   });
 
-  it('format de la Vue : 4, depuis l\'ajout des modifications et de la suggestion paceHrK à parametresEnVigueur ; partagé par le calcul et le Worker', () => {
-    expect(FORMAT_VUE).toBe(4);
+  it('format de la séance mémorisée : 2, depuis fcPic (D-019), dans la clé de mémorisation', () => {
+    expect(FORMAT_SEANCE).toBe(2);
+  });
+
+  it('format de la Vue : 5, depuis l\'ajout de la suggestion hrMax à parametresEnVigueur ; partagé par le calcul et le Worker', () => {
+    expect(FORMAT_VUE).toBe(5);
   });
 });

@@ -348,6 +348,7 @@ export function seanceIntrinseque(partiel: Partial<SeanceIntrinseque> = {}): Sea
     format: null,
     recup_s: null,
     ef: 1.2,
+    fcPic: null,
     decouplage: null,
     lignesDroites: false,
     distanceRef_km: null,

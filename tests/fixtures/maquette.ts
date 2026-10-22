@@ -111,6 +111,7 @@ function decouplageDe(j: JourMaquette): Seance['decouplage'] {
 function seanceDe(j: JourMaquette, type: TypeSeance, rang: number): Seance {
   return {
     cleSource: `maquette:${rang}`,
+    fcPic: null,
     date: j.date,
     debutUtc: Date.parse(`${j.date}T00:00:00Z`),
     type,

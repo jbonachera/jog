@@ -83,6 +83,7 @@ export interface SeanceIntrinseque {            // étape ②a, mémorisée (ADR
   segmentsMp: { debut_s: number; fin_s: number }[];
   repetitions: Repetition[]; format: string | null; recup_s: number | null;
   ef: number | null;                              // m/min ÷ bpm, séance entière
+  fcPic: number | null;                           // pic soutenu (D-019), bpm brut, null sans fenêtre valide
   decouplage: { valeur: number | null; retenu_min: number; total_min: number; avecMp: boolean } | null;
   lignesDroites: boolean;
   distanceRef_km: number | null; temps_s: number | null;   // course / test
@@ -95,13 +96,32 @@ export type CleSignal = "progressivite" | "fraicheur" | "reponse" | "horsSousSeu
 export interface Signal { cle: CleSignal; nom: string; etat: EtatSignal; valeur: number | null; valeurTexte: string; explication: string }
 export type Verdict = "augmenter" | "maintenir" | "alleger" | "aucun";
 
+/** FC max observée (D-019, ADR 0013) : le pic soutenu le plus haut de l'année, à proposer comme hrMax. */
+export interface SuggestionHrMax {
+  /** Pic de la séance, arrondi au bpm (D-015). */
+  bpm: number;
+  date: DateCivile;
+  cleSource: string;
+  nom: string | null;
+  /** Distance de la séance, arrondie au dixième de km comme à l'affichage. */
+  km: number;
+  /** Vrai quand le pic dépasse hrMax(J−1) de plus de ECART_SUSPECT_HRMAX_BPM. */
+  ecartSuspect: boolean;
+}
+
 // ── Vue (ADR 0009) : ce que l'interface affiche ─────────────────
 export interface Vue {
-  formatVersion: 2;                              // FORMAT_VUE (constantes.ts)
+  formatVersion: 5;                              // FORMAT_VUE (constantes.ts)
   reglesVersion: string;
   J: DateCivile;
   derniereSynchro: string | null;               // ISO, dernier import réussi
-  parametresEnVigueur: { globaux: ParamsGlobaux; datesAJm1: ParamsDates };
+  parametresEnVigueur: {
+    globaux: ParamsGlobaux; datesAJm1: ParamsDates;
+    modifs: ModifDatee[];                        // toutes les modifications datées, triées (06, historique)
+    suggestionPaceHrK: number | null;            // D-004 ; null sans données suffisantes
+    raisonAbsenceSuggestion: string | null;      // 06 ; null quand une valeur est suggérée
+    suggestionHrMax: SuggestionHrMax | null;     // D-019, ADR 0013
+  };
   seances: SeanceVue[];                          // ordre (date, debutUtc, cleSource) ; sans segmentsMp
   jours: JoursVue;                               // en colonnes alignées sur date (budget de taille, ADR 0009)
   premierJour: DateCivile | null;               // jour 1 de l'historique ; null sans séance
@@ -140,7 +160,7 @@ export interface SemaineVue {
 
 **Assemblage** (`calculerVue`) : une Vue sans séance a toutes ses séries vides, `premierJour` nul, `palier` à zéro et `decision` au verdict `aucun` (sans signaux). Sinon, `serieCharge`, `ratio`, `semaines`, `palier`, `compteurs` et `decision` sont calculés sur `jours` (du premier jour à J−1) avec `ctlDays` et `atlDays` globaux, et `decision` vient de `decider`. Aucune donnée n'est lue hors des séances passées.
 
-**Clé de mémorisation de ②a** : SHA-256 (WebCrypto) de `[empreinteBrute, versionAdaptateur, REGLES_VERSION, { hrMax, z2, lt2Hr, lt2Pace, subtHrLo }, FORMAT_SEANCE]`, les paramètres étant ceux du jour de la séance (ADR 0006). **`lt2Pace` figure dans la clé** : la détection des répétitions par le flux (`repetitions.ts`) s'en sert. **`subtHrHi` n'y figure pas** : il n'est lu qu'à l'étape ④. `refHr` et `paceHrK` n'y figurent pas non plus (étape ⑤). `FORMAT_SEANCE` (constantes.ts, valeur 1) change quand le format d'une entrée change. La clé ne couvre ni `cleSource` ni la date : une séance mémorisée est rattachée à l'activité qui la demande. Les constantes de ②a lues par `src/core/seance/` sont gelées dans `tests/core/constantes.test.ts` ; changer l'une d'elles impose d'augmenter `REGLES_VERSION`.
+**Clé de mémorisation de ②a** : SHA-256 (WebCrypto) de `[empreinteBrute, versionAdaptateur, REGLES_VERSION, { hrMax, z2, lt2Hr, lt2Pace, subtHrLo }, FORMAT_SEANCE]`, les paramètres étant ceux du jour de la séance (ADR 0006). **`lt2Pace` figure dans la clé** : la détection des répétitions par le flux (`repetitions.ts`) s'en sert. **`subtHrHi` n'y figure pas** : il n'est lu qu'à l'étape ④. `refHr` et `paceHrK` n'y figurent pas non plus (étape ⑤). `FORMAT_SEANCE` (constantes.ts, valeur 2 depuis `fcPic`, D-019) change quand le format d'une entrée change. La clé ne couvre ni `cleSource` ni la date : une séance mémorisée est rattachée à l'activité qui la demande. Les constantes de ②a lues par `src/core/seance/` sont gelées dans `tests/core/constantes.test.ts` ; changer l'une d'elles impose d'augmenter `REGLES_VERSION`.
 
 **Stockage** (`derive`) : une entrée `seance:<clé>` par séance ; une entrée `vue` contenant `{ empreinteEntrees, J, vue }`. Après un recalcul réussi, les entrées `seance:*` dont la clé n'appartient plus à une activité active sont supprimées, en `derive` comme en mémoire vive. Une écriture échouée ne retient ni la Vue ni le journal.
 

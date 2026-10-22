@@ -278,3 +278,24 @@ Décisions prises sur les questions ouvertes de la spécification. Chaque entré
 - **Impacts** : les 7 signaux, le verdict, les pastilles du simulateur, les tests de bornes (`05`, critères d'acceptation). Aucun seuil ne change.
 - **Fichiers modifiés** : `05-decision-volume.md`.
 - **À valider sur données réelles** : rien.
+
+## D-019 · FC max observée
+
+- **Date** : 2026-10-22
+- **Question** : Quand l'historique montre une FC plus haute que `hrMax`, Fjord doit-il le dire, et changer le réglage ?
+- **Décision** : Fjord **propose**, l'athlète **décide**.
+  - Pic d'une séance : la plus haute FC tenue au moins 15 s d'affilée, hors des 5 premières minutes.
+  - Séances examinées : de J−365 à J−1, et pas avant la date d'effet de la dernière modification de `hrMax`.
+  - Proposition si le plus haut pic, arrondi au bpm, est ≥ `hrMax` en vigueur à J−1 + 3 bpm. À égalité, la séance la plus récente.
+  - Encart dans Paramètres, groupe « Données », sous l'import :
+    - titre « FC max observée » ;
+    - phrase « {bpm} bpm tenus 15 s le {date} (« {nom} », {km} km), au-dessus de votre réglage de {hrMax} bpm. » ; sans nom : « ({km} km) » ;
+    - si l'écart dépasse 15 bpm, phrase ajoutée : « Écart important : vérifiez qu’il ne s’agit pas d’un artefact du capteur. » ;
+    - boutons « Utiliser {bpm} bpm à partir du {date} » et « Ignorer ».
+  - « Utiliser » enregistre une modification datée de `hrMax` à la date de la séance (D-006), avec le recalcul et l'annonce de D-010. « Ignorer » masque cette proposition sur cet appareil ; un autre pic la remplace.
+- **Options écartées** : mise à jour automatique (contraire au principe 5 de `01`) ; maximum brut (pointes de capteur).
+- **Raison** : un pic soutenu est une borne basse fiable de la FC max ; l'athlète reste maître de ses repères et peut écarter un artefact.
+- **Impacts** : séance ②a (`fcPic`), Vue (`suggestionHrMax`), onglet Paramètres. Architecture : ADR 0013.
+- **Fichiers modifiés** : `06-parametres.md`.
+- **À valider sur données réelles** : le pic retenu sur l'export et la séance citée.
+

@@ -18,19 +18,19 @@ const J = '2026-10-21';
 const TETE_CSV = "ID de l'activité,Nom de l'activité,Type d'activité,Nom du fichier\n";
 
 /** Un FIT de course à 1 Hz : durée en minutes, FC constante, allure constante. */
-function fit(debut: number, min: number, decalageLocal_min = 120): Uint8Array {
+function fit(debut: number, min: number, decalageLocal_min = 120, fc = 150): Uint8Array {
   const records: EchantillonFit[] = [];
-  for (let t = 0; t <= min * 60; t++) records.push({ t, dist: t * 3, fc: 150, vit: 3 });
+  for (let t = 0; t <= min * 60; t++) records.push({ t, dist: t * 3, fc, vit: 3 });
   return encoderFit({ debut, decalageLocal_min, sport: 1, subSport: 2, records, laps: [], fabricant: 265 });
 }
 
 /** Une archive Strava : activities.csv et les fichiers cités, construits par code (ADR 0010). */
-function archive(entrees: { id: string; debut: number; min: number }[]): Uint8Array {
+function archive(entrees: { id: string; debut: number; min: number; fc?: number }[]): Uint8Array {
   const lignes = entrees.map((e) => `${e.id},Sortie,Course à pied,activities/${e.id}.fit`);
   const fichiers: Record<string, Uint8Array> = {
     'activities.csv': strToU8(TETE_CSV + lignes.join('\n') + '\n'),
   };
-  for (const e of entrees) fichiers[`activities/${e.id}.fit`] = fit(e.debut, e.min);
+  for (const e of entrees) fichiers[`activities/${e.id}.fit`] = fit(e.debut, e.min, 120, e.fc);
   return zipSync(fichiers);
 }
 
@@ -302,6 +302,21 @@ describe('importer une archive (ADR 0004, 0009)', () => {
     const seances = vueDe(reponses)?.seances ?? [];
     expect(seances).toHaveLength(1);
     expect(reponses.find((r) => r.type === 'journal')).toMatchObject({ journal: { ignorees: 1 } });
+  });
+
+  it('une séance ignorée (doublon) ne propose pas de FC max observée (D-019, ADR 0004)', async () => {
+    // Deux activités au même instant, de même durée : la gardée est la première par clé (ADR 0004). Le doublon
+    // ignoré a un pic à 200 bpm, qui proposerait une FC max si le doublon entrait dans la Vue.
+    const { reponses, traiter } = await banc();
+
+    await traiter({
+      type: 'importer',
+      fichier: enBlob(archive([{ id: '1', debut: DEBUT_A, min: 30, fc: 150 }, { id: '2', debut: DEBUT_A, min: 30, fc: 200 }])),
+      J,
+    });
+
+    expect(reponses.find((r) => r.type === 'journal')).toMatchObject({ journal: { ignorees: 1 } });
+    expect(vueDe(reponses)?.parametresEnVigueur.suggestionHrMax).toBeNull();
   });
 
   it('la Vue porte la date de la dernière synchronisation, celle de l\'import', async () => {

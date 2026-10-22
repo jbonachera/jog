@@ -16,3 +16,4 @@ Décisions d'architecture prises avant l'implémentation. Les règles fonctionne
 | [0010](0010-securite-donnees-personnelles.md) | Sécurité et données personnelles | Acceptée | 2026-10-21 |
 | [0011](0011-strategie-de-test.md) | Stratégie de test : comportement, fixtures construites, données réelles en local | Acceptée | 2026-10-21 |
 | [0012](0012-exploitation.md) | Exploitation : hébergement statique, journaux locaux, reprise | Acceptée | 2026-10-21 |
+| [0013](0013-fc-max-observee.md) | FC max observée : pic soutenu par séance, suggestion dans Paramètres | Acceptée | 2026-10-22 |

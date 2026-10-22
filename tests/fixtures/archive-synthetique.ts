@@ -78,11 +78,23 @@ function course(debut: number): Uint8Array {
   return fit(debut, [[2520, 172, 3.97]], 5);
 }
 
+/** Une séance de 30 min dont la FC tient 194 bpm pendant 60 s, après les 5 premières minutes : un pic soutenu (D-019). */
+function picSoutenu(debut: number): Uint8Array {
+  return fit(debut, [[300, 135, 3.0], [60, 194, 3.0], [1440, 140, 3.0]], 5);
+}
+
+/** Une séance de 26 min dont la FC vaut 205 bpm pendant la première minute seulement : une pointe de début (D-019). */
+function pointeDebut(debut: number): Uint8Array {
+  return fit(debut, [[60, 205, 3.0], [1500, 135, 3.0]], 5);
+}
+
 /**
  * L'archive synthétique : `jours` jours (60 par défaut, 426 pour 14 mois), qui se terminent le 2026-10-20. Avec footings,
  * séances sous-seuil avec tours, une sortie longue et une course nommée (à J−10).
+ * `picsFc` ajoute, les jours où il n'y a pas d'activité (J−2 : pic soutenu à 194 bpm ; J−4 : pointe de début à 205 bpm),
+ * deux séances pour la FC max observée (D-019). Sans cette option, l'archive est inchangée.
  */
-export function archiveSynthetique(jours = 60): Uint8Array {
+export function archiveSynthetique(jours = 60, options: { picsFc?: boolean } = {}): Uint8Array {
   const lignes: string[] = [];
   const fichiers: Record<string, Uint8Array> = {};
   const premier = DEBUT_PERIODE - (jours - 60) * JOUR_MS;
@@ -92,7 +104,13 @@ export function archiveSynthetique(jours = 60): Uint8Array {
     let nom = 'Séance';
     const type = 'Course à pied';
     let octets: Uint8Array | null = null;
-    if (i === jours - 10) {
+    if (options.picsFc && i === jours - 2) {
+      nom = 'Footing pic';
+      octets = picSoutenu(debut);
+    } else if (options.picsFc && i === jours - 4) {
+      nom = 'Footing ceinture';
+      octets = pointeDebut(debut);
+    } else if (i === jours - 10) {
       nom = '10k adidas';
       octets = course(debut);
     } else if (i % 7 === 1) {

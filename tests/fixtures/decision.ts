@@ -21,6 +21,7 @@ export function seance(partiel: Partial<Seance> & Pick<Seance, 'date' | 'type'>)
     debutUtc: compteur,
     nom: null,
     marquage: 'aucun',
+    fcPic: null,
     duree_min: 60,
     km: 10,
     fcMoy: 130,

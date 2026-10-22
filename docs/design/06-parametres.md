@@ -42,6 +42,10 @@ Les messages s'affichent dans une zone `role="status"`, à côté des boutons.
   La maquette, elle, recharge la page et rouvre l'onglet Paramètres.
 - **Revenir aux valeurs par défaut** : remet les paramètres globaux à leur défaut, et enregistre pour chaque paramètre daté une modification datée d'aujourd'hui vers sa valeur par défaut. L'historique des modifications est conservé. Puis recalcule.
 
+## FC max observée
+
+Règle de [D-019](decisions.md#d-019--fc-max-observée). Quand une séance de J−365 à J−1 a tenu 15 s une FC ≥ `hrMax` + 3 bpm (hors 5 premières minutes, et pas avant la dernière modification de `hrMax`), un encart du groupe « Données » propose d'enregistrer ce pic comme FC max, à la date de la séance. « Ignorer » le masque sur cet appareil. Textes exacts dans D-019.
+
 ## Recalculs déclenchés
 
 Pour un paramètre daté, le recalcul part de la date d'effet. Pour un paramètre global, il porte sur tout l'historique.

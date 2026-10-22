@@ -7,6 +7,7 @@ import { type GrilleSeance, miseEnForme } from './miseEnForme';
 import { calculerDecouplage } from './decouplage';
 import { detecterLignesDroites } from './lignesDroites';
 import { distanceStandardProche, marquer } from './marquage';
+import { calculerFcPic } from './pic';
 import { detecterRepetitions, type Repetitions } from './repetitions';
 
 const FACILE = 0;
@@ -59,6 +60,7 @@ export function calculerSeanceIntrinseque(pivot: ActivitePivot, p: ParamsDates):
     format: reps.format,
     recup_s: reps.recup_s,
     ef: resume.ef,
+    fcPic: calculerFcPic(g),
     decouplage: calculerDecouplage(g, segmentsMp),
     lignesDroites: reps.repetitions.length === 0 && detecterLignesDroites(g),
     distanceRef_km: enCourse && resume.km > 0 ? distanceStandardProche(resume.km) : null,

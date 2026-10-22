@@ -5,7 +5,7 @@ import { CLE_META, ecrireParametres, importer, lireFlux, lireMeta, lireParametre
 import { executer, requete } from '../../src/store/transaction';
 import type { Base } from '../../src/store/types';
 import type { ActivitePivot, Parametres, Vue } from '../../src/core/types';
-import { FORMAT_VUE } from '../../src/core/constantes';
+import { FORMAT_VUE, REGLES_VERSION } from '../../src/core/constantes';
 import { sousSeuil } from '../fixtures/construire';
 import { activite, fermerBases, lot, MAINTENANT, nouvelleBase } from '../fixtures/lots';
 
@@ -314,7 +314,7 @@ describe('démarrage rapide (ADR 0009)', () => {
 
     expect(nouveau.reponses.map((r) => r.type)).toEqual(['vue']);
     expect(vueDe(nouveau.reponses)).toEqual(reference);
-    expect(vueDe(nouveau.reponses)).toMatchObject({ formatVersion: FORMAT_VUE, reglesVersion: '1.0.0' });
+    expect(vueDe(nouveau.reponses)).toMatchObject({ formatVersion: FORMAT_VUE, reglesVersion: REGLES_VERSION });
   });
 });
 
