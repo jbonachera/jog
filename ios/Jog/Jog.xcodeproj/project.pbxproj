@@ -3,34 +3,42 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00000000000000000000A070 /* SpikeJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A060 /* SpikeJSON.swift */; };
-		00000000000000000000A071 /* SpikeHealthKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A061 /* SpikeHealthKit.swift */; };
-		00000000000000000000A072 /* SpikeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A062 /* SpikeView.swift */; };
-		00000000000000000000A021 /* JogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A020 /* JogApp.swift */; };
-		00000000000000000000A023 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A022 /* ContentView.swift */; };
-		00000000000000000000A025 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A024 /* Assets.xcassets */; };
 		00000000000000000000A029 /* JogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A028 /* JogTests.swift */; };
 		00000000000000000000A053 /* JogCore in Frameworks */ = {isa = PBXBuildFile; productRef = 00000000000000000000A051 /* JogCore */; };
 		00000000000000000000A054 /* JogCore in Frameworks */ = {isa = PBXBuildFile; productRef = 00000000000000000000A052 /* JogCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		00000000000000000000A060 /* SpikeJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeJSON.swift; sourceTree = "<group>"; };
-		00000000000000000000A061 /* SpikeHealthKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeHealthKit.swift; sourceTree = "<group>"; };
-		00000000000000000000A062 /* SpikeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeView.swift; sourceTree = "<group>"; };
-		00000000000000000000A020 /* JogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JogApp.swift; sourceTree = "<group>"; };
-		00000000000000000000A022 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		00000000000000000000A024 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		00000000000000000000A026 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00000000000000000000A027 /* Jog.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Jog.entitlements; sourceTree = "<group>"; };
 		00000000000000000000A028 /* JogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JogTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A02A /* Jog.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jog.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00000000000000000000A02B /* JogTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JogTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		00000000000000000000B010 /* Exceptions de « Jog », cible Jog */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				Jog.entitlements,
+			);
+			target = 00000000000000000000A030 /* Jog */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		00000000000000000000A012 /* Jog */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				00000000000000000000B010 /* Exceptions de « Jog », cible Jog */,
+			);
+			path = Jog;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		00000000000000000000A033 /* Frameworks */ = {
@@ -52,16 +60,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00000000000000000000A080 /* Spike */ = {
-			isa = PBXGroup;
-			children = (
-				00000000000000000000A060 /* SpikeJSON.swift */,
-				00000000000000000000A061 /* SpikeHealthKit.swift */,
-				00000000000000000000A062 /* SpikeView.swift */,
-			);
-			path = Spike;
-			sourceTree = "<group>";
-		};
 		00000000000000000000A010 = {
 			isa = PBXGroup;
 			children = (
@@ -78,19 +76,6 @@
 				00000000000000000000A02B /* JogTests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		00000000000000000000A012 /* Jog */ = {
-			isa = PBXGroup;
-			children = (
-				00000000000000000000A020 /* JogApp.swift */,
-				00000000000000000000A022 /* ContentView.swift */,
-				00000000000000000000A080 /* Spike */,
-				00000000000000000000A024 /* Assets.xcassets */,
-				00000000000000000000A026 /* Info.plist */,
-				00000000000000000000A027 /* Jog.entitlements */,
-			);
-			path = Jog;
 			sourceTree = "<group>";
 		};
 		00000000000000000000A013 /* JogTests */ = {
@@ -115,6 +100,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				00000000000000000000A012 /* Jog */,
 			);
 			name = Jog;
 			packageProductDependencies = (
@@ -187,7 +175,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00000000000000000000A025 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -198,11 +185,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00000000000000000000A021 /* JogApp.swift in Sources */,
-				00000000000000000000A023 /* ContentView.swift in Sources */,
-				00000000000000000000A070 /* SpikeJSON.swift in Sources */,
-				00000000000000000000A071 /* SpikeHealthKit.swift in Sources */,
-				00000000000000000000A072 /* SpikeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
