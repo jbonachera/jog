@@ -1,0 +1,419 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 63;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00000000000000000000A070 /* SpikeJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A060 /* SpikeJSON.swift */; };
+		00000000000000000000A071 /* SpikeHealthKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A061 /* SpikeHealthKit.swift */; };
+		00000000000000000000A072 /* SpikeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A062 /* SpikeView.swift */; };
+		00000000000000000000A021 /* JogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A020 /* JogApp.swift */; };
+		00000000000000000000A023 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A022 /* ContentView.swift */; };
+		00000000000000000000A025 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A024 /* Assets.xcassets */; };
+		00000000000000000000A029 /* JogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A028 /* JogTests.swift */; };
+		00000000000000000000A053 /* JogCore in Frameworks */ = {isa = PBXBuildFile; productRef = 00000000000000000000A051 /* JogCore */; };
+		00000000000000000000A054 /* JogCore in Frameworks */ = {isa = PBXBuildFile; productRef = 00000000000000000000A052 /* JogCore */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		00000000000000000000A060 /* SpikeJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeJSON.swift; sourceTree = "<group>"; };
+		00000000000000000000A061 /* SpikeHealthKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeHealthKit.swift; sourceTree = "<group>"; };
+		00000000000000000000A062 /* SpikeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeView.swift; sourceTree = "<group>"; };
+		00000000000000000000A020 /* JogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JogApp.swift; sourceTree = "<group>"; };
+		00000000000000000000A022 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		00000000000000000000A024 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		00000000000000000000A026 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		00000000000000000000A027 /* Jog.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Jog.entitlements; sourceTree = "<group>"; };
+		00000000000000000000A028 /* JogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JogTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A02A /* Jog.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		00000000000000000000A02B /* JogTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JogTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		00000000000000000000A033 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00000000000000000000A053 /* JogCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00000000000000000000A036 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00000000000000000000A054 /* JogCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		00000000000000000000A080 /* Spike */ = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000A060 /* SpikeJSON.swift */,
+				00000000000000000000A061 /* SpikeHealthKit.swift */,
+				00000000000000000000A062 /* SpikeView.swift */,
+			);
+			path = Spike;
+			sourceTree = "<group>";
+		};
+		00000000000000000000A010 = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000A012 /* Jog */,
+				00000000000000000000A013 /* JogTests */,
+				00000000000000000000A011 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		00000000000000000000A011 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000A02A /* Jog.app */,
+				00000000000000000000A02B /* JogTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		00000000000000000000A012 /* Jog */ = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000A020 /* JogApp.swift */,
+				00000000000000000000A022 /* ContentView.swift */,
+				00000000000000000000A080 /* Spike */,
+				00000000000000000000A024 /* Assets.xcassets */,
+				00000000000000000000A026 /* Info.plist */,
+				00000000000000000000A027 /* Jog.entitlements */,
+			);
+			path = Jog;
+			sourceTree = "<group>";
+		};
+		00000000000000000000A013 /* JogTests */ = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000A028 /* JogTests.swift */,
+			);
+			path = JogTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		00000000000000000000A030 /* Jog */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00000000000000000000A041 /* Build configuration list for PBXNativeTarget "Jog" */;
+			buildPhases = (
+				00000000000000000000A032 /* Sources */,
+				00000000000000000000A033 /* Frameworks */,
+				00000000000000000000A034 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Jog;
+			packageProductDependencies = (
+				00000000000000000000A051 /* JogCore */,
+			);
+			productName = Jog;
+			productReference = 00000000000000000000A02A /* Jog.app */;
+			productType = "com.apple.product-type.application";
+		};
+		00000000000000000000A031 /* JogTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00000000000000000000A042 /* Build configuration list for PBXNativeTarget "JogTests" */;
+			buildPhases = (
+				00000000000000000000A035 /* Sources */,
+				00000000000000000000A036 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = JogTests;
+			packageProductDependencies = (
+				00000000000000000000A052 /* JogCore */,
+			);
+			productName = JogTests;
+			productReference = 00000000000000000000A02B /* JogTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		00000000000000000000A000 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					00000000000000000000A030 = {
+						CreatedOnToolsVersion = 27.1;
+					};
+					00000000000000000000A031 = {
+						CreatedOnToolsVersion = 27.1;
+					};
+				};
+			};
+			buildConfigurationList = 00000000000000000000A040 /* Build configuration list for PBXProject "Jog" */;
+			developmentRegion = fr;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				fr,
+				Base,
+			);
+			mainGroup = 00000000000000000000A010;
+			packageReferences = (
+				00000000000000000000A050 /* XCLocalSwiftPackageReference "../JogCore" */,
+			);
+			productRefGroup = 00000000000000000000A011 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				00000000000000000000A030 /* Jog */,
+				00000000000000000000A031 /* JogTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		00000000000000000000A034 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00000000000000000000A025 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		00000000000000000000A032 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00000000000000000000A021 /* JogApp.swift in Sources */,
+				00000000000000000000A023 /* ContentView.swift in Sources */,
+				00000000000000000000A070 /* SpikeJSON.swift in Sources */,
+				00000000000000000000A071 /* SpikeHealthKit.swift in Sources */,
+				00000000000000000000A072 /* SpikeView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00000000000000000000A035 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00000000000000000000A029 /* JogTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		00000000000000000000A043 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		00000000000000000000A044 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				ONLY_ACTIVE_ARCH = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		00000000000000000000A045 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Jog/Jog.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = "";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Jog/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.bonachera.jog;
+				PRODUCT_NAME = Jog;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		00000000000000000000A046 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Jog/Jog.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = "";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Jog/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.bonachera.jog;
+				PRODUCT_NAME = Jog;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		00000000000000000000A047 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.bonachera.jog.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		00000000000000000000A048 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.bonachera.jog.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		00000000000000000000A040 /* Build configuration list for PBXProject "Jog" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00000000000000000000A043 /* Debug */,
+				00000000000000000000A044 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00000000000000000000A041 /* Build configuration list for PBXNativeTarget "Jog" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00000000000000000000A045 /* Debug */,
+				00000000000000000000A046 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00000000000000000000A042 /* Build configuration list for PBXNativeTarget "JogTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00000000000000000000A047 /* Debug */,
+				00000000000000000000A048 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		00000000000000000000A050 /* XCLocalSwiftPackageReference "../JogCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../JogCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		00000000000000000000A051 /* JogCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00000000000000000000A050 /* XCLocalSwiftPackageReference "../JogCore" */;
+			productName = JogCore;
+		};
+		00000000000000000000A052 /* JogCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00000000000000000000A050 /* XCLocalSwiftPackageReference "../JogCore" */;
+			productName = JogCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 00000000000000000000A000 /* Project object */;
+}
