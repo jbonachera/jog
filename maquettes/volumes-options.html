@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jog Fjord · options volume</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Planche d'options pour Fjord : chaque option est un bloc prêt à intégrer, avec ses usages et ses limites. */
+:root {
+  --bg: #f4f7f9; --surface: #ffffff; --ink: #0f1e2b; --ink-2: #4b5d6c; --ink-3: #7c8b97;
+  --line: #dde5eb; --grid: #e9eef2; --accent: #2a6390;
+  --z-easy: #93b3c9; --z-mp: #5f8db0; --z-subt: #2a6390; --z-hard: #0f3150;
+  --good: #2f7d4f; --warn: #a66a00; --bad: #b3372f; --band: rgba(42, 99, 144, .10);
+  --f-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b141c; --surface: #0f1a24; --ink: #e6eef4; --ink-2: #a4b4c1; --ink-3: #6f8293;
+  --line: #1f2f3d; --grid: #172532; --accent: #8bb8d9;
+  --z-easy: #3b5f7a; --z-mp: #5c8bb0; --z-subt: #8bb8d9; --z-hard: #cfe5f4;
+  --good: #5cbf85; --warn: #e0a440; --bad: #ec7a70; --band: rgba(139, 184, 217, .12); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0b141c; --surface: #0f1a24; --ink: #e6eef4; --ink-2: #a4b4c1; --ink-3: #6f8293;
+  --line: #1f2f3d; --grid: #172532; --accent: #8bb8d9;
+  --z-easy: #3b5f7a; --z-mp: #5c8bb0; --z-subt: #8bb8d9; --z-hard: #cfe5f4;
+  --good: #5cbf85; --warn: #e0a440; --bad: #ec7a70; --band: rgba(139, 184, 217, .12); color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-display); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 48px); padding-block: 28px 72px; display: grid; gap: 56px; }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 4vw, 48px); font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+h2 { font-size: 24px; font-weight: 700; letter-spacing: -.015em; }
+h3 { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+p { margin: 0; }
+.muted { color: var(--ink-3); }
+.intro { display: grid; gap: 14px; max-width: 78ch; }
+.intro p { color: var(--ink-2); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; }
+.tabs { display: flex; gap: 4px; }
+.tabs button { font: inherit; font-size: 14px; border: 1px solid transparent; background: none; color: var(--ink-2); padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+.tabs button[aria-pressed="true"] { border-color: var(--line); background: var(--surface); color: var(--ink); font-weight: 600; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sample { font-size: 12px; color: var(--ink-3); border: 1px dashed var(--line); padding: 3px 10px; border-radius: 999px; }
+
+.reco { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 22px; display: grid; gap: 8px; }
+.reco ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; color: var(--ink-2); }
+.reco b { color: var(--ink); }
+
+.opt { display: grid; gap: 18px; border-top: 2px solid var(--ink); padding-top: 18px; }
+.opt-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 16px; align-items: baseline; }
+.opt-head .tag { font: 500 13px var(--f-mono); color: var(--accent); }
+.opt-head p { grid-column: 2; color: var(--ink-2); max-width: 80ch; }
+.why { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 28px; font-size: 13.5px; color: var(--ink-2); }
+.why div { display: grid; gap: 4px; align-content: start; }
+.why b { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+.demo { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px; min-width: 0; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.legend i.line { height: 2px; border-radius: 0; vertical-align: 3px; width: 14px; }
+.legend i.dash { height: 0; border-top: 2px dashed var(--ink-3); border-radius: 0; vertical-align: 3px; width: 14px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; width: fit-content; white-space: nowrap; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.good { color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); }
+.pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.pill.bad { color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
+.pill.neutral { color: var(--ink-2); background: var(--grid); }
+
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { fill: var(--ink-3); font: 11px var(--f-mono); }
+.chart .grid line { stroke: var(--grid); }
+
+/* Option 1 : compteurs */
+.counters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.counter { display: grid; gap: 6px; padding: 0 22px; align-content: start; min-width: 0; }
+.counter:first-child { padding-left: 0; }
+.counter + .counter { border-left: 1px solid var(--line); }
+.counter .l { font-size: 13px; color: var(--ink-2); display: flex; justify-content: space-between; gap: 8px; }
+.counter .v { font-size: 44px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+.counter .v small { font-size: 16px; font-weight: 500; color: var(--ink-3); letter-spacing: 0; margin-left: 4px; }
+.counter .s { font-size: 13px; color: var(--ink-2); }
+.counter .d { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-3); }
+
+/* Option 2 : cumul */
+.milestones { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 13px; color: var(--ink-2); margin-top: 12px; }
+.milestones b { color: var(--ink); }
+
+/* Option 5 : tableau */
+.tablebox { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: right; font-weight: 500; color: var(--ink-3); font-size: 12px; padding: 0 14px 8px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 11px 14px 11px 0; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+.mini { display: inline-flex; gap: 1px; height: 8px; width: 90px; border-radius: 2px; overflow: hidden; vertical-align: middle; }
+.mini span { display: block; height: 100%; }
+
+#tip { position: fixed; pointer-events: none; z-index: 10; background: var(--ink); color: var(--bg); font: 12px/1.45 var(--f-mono); padding: 8px 10px; border-radius: 6px; max-width: 280px; transform: translate(-50%, calc(-100% - 12px)); }
+footer { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 16px; }
+
+@media (max-width: 860px) {
+  .counters { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .counter { padding: 0; }
+  .counter + .counter { border-left: 0; border-top: 1px solid var(--line); padding-top: 18px; }
+  .why { grid-template-columns: minmax(0, 1fr); }
+  .opt-head { grid-template-columns: minmax(0, 1fr); }
+  .opt-head p { grid-column: 1; }
+}
+@media (prefers-reduced-motion: no-preference) { .counter .v { transition: opacity .2s; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="intro">
+    <span class="sample" style="width:fit-content">Données d'exemple · Jog Fjord</span>
+    <h1>Volume : l'accompli et la progressivité de la charge</h1>
+    <p>Cinq façons d'afficher le volume de l'année, des 30 derniers jours et des 7 derniers jours. Chaque option répond à une question différente. On peut en combiner deux ou trois. Les fenêtres glissantes s'arrêtent à hier soir, dernier jour complet.</p>
+    <div class="toolbar">
+      <nav class="tabs" aria-label="Unité">
+        <button id="u-km" data-unit="km" aria-pressed="true">Kilomètres</button>
+        <button id="u-h" data-unit="h" aria-pressed="false">Heures</button>
+      </nav>
+      <span class="muted" style="font-size:13px">L'unité s'applique à toutes les options.</span>
+    </div>
+  </div>
+
+  <div class="reco">
+    <h3>Combinaison recommandée</h3>
+    <ol>
+      <li><b>Option 1, compteurs</b> en tête de Fjord, à la place ou à côté des indicateurs actuels : l'accompli en un coup d'œil.</li>
+      <li><b>Option 3, fenêtres glissantes</b> dans la section Charge : c'est elle qui mesure la progressivité, jour par jour.</li>
+      <li><b>Option 2, cumul annuel</b> dans la vue Saisons : la satisfaction du chemin parcouru, avec des jalons.</li>
+    </ol>
+    <p class="muted" style="font-size:13px">L'option 4 recoupe l'option 3 à la semaine. L'option 5 sert plutôt de vue détaillée ou de vue mobile.</p>
+  </div>
+
+  <!-- Option 1 -->
+  <section class="opt" id="opt1">
+    <div class="opt-head"><span class="tag">Option 1</span><h2>Trois compteurs : année, 30 jours, 7 jours</h2>
+      <p>Les trois totaux côte à côte, chacun comparé à la période précédente de même durée, avec une mini-série du détail.</p></div>
+    <div class="demo"><div class="counters" id="counters"></div></div>
+    <div class="why">
+      <div><b>Répond à</b>« Combien j'ai couru ? Plus ou moins que d'habitude ? »</div>
+      <div><b>Points forts</b>Lisible en deux secondes ; les deltas donnent déjà une idée de la tendance.</div>
+      <div><b>Limites</b>Les deltas en pourcentage ne disent pas si la hausse est raisonnable : il faut l'option 3 à côté.</div>
+    </div>
+  </section>
+
+  <!-- Option 2 -->
+  <section class="opt" id="opt2">
+    <div class="opt-head"><span class="tag">Option 2</span><h2>Cumul de l'année avec jalons et projection</h2>
+      <p>La courbe du total cumulé depuis le 1<sup>er</sup> janvier, les jalons franchis, et la projection au 31 décembre au rythme des 90 derniers jours.</p></div>
+    <div class="demo">
+      <svg class="chart" id="cumul" role="img" aria-label="Volume cumulé depuis le 1er janvier avec projection"></svg>
+      <div class="legend" style="margin-top:10px"><span><i class="line" style="background:var(--accent)"></i>Cumul réalisé</span><span><i class="dash"></i>Projection au rythme des 90 derniers jours</span><span><i style="background:var(--band)"></i>Coupure</span></div>
+      <div class="milestones" id="milestones"></div>
+    </div>
+    <div class="why">
+      <div><b>Répond à</b>« Où j'en suis sur l'année ? »</div>
+      <div><b>Points forts</b>Valorise la régularité. Les pentes montrent les blocs, les plats montrent les coupures. Les jalons motivent.</div>
+      <div><b>Limites</b>Dit peu de chose sur la charge du moment. La comparaison avec l'année précédente n'est possible qu'à partir d'un historique complet.</div>
+    </div>
+  </section>
+
+  <!-- Option 3 -->
+  <section class="opt" id="opt3">
+    <div class="opt-head"><span class="tag">Option 3</span><h2>Fenêtres glissantes : 7 jours face à 30 jours</h2>
+      <p>Chaque jour, le volume des 7 derniers jours est comparé à la moyenne hebdomadaire des 30 derniers jours, sur la même échelle. Le ratio en dessous mesure la progressivité.</p></div>
+    <div class="demo">
+      <div class="tabs" role="group" aria-label="Fenêtre affichée" style="margin-bottom:12px">
+        <button id="w-16" data-win="112" aria-pressed="true">16 semaines</button>
+        <button id="w-52" data-win="365" aria-pressed="false">12 mois</button>
+      </div>
+      <svg class="chart" id="roll" role="img" aria-label="Volume sur 7 jours glissants et moyenne hebdomadaire sur 30 jours"></svg>
+      <svg class="chart" id="ratio" role="img" aria-label="Ratio 7 jours sur 30 jours, zone 0,8 à 1,3"></svg>
+      <div class="legend" style="margin-top:10px"><span><i style="background:var(--z-easy)"></i>7 derniers jours</span><span><i class="line" style="background:var(--ink)"></i>Moyenne hebdo des 30 derniers jours</span><span><i style="background:var(--band)"></i>Ratio 0,8–1,3 : progression maîtrisée</span></div>
+    </div>
+    <div class="why">
+      <div><b>Répond à</b>« Est-ce que j'augmente trop vite ? »</div>
+      <div><b>Points forts</b>Mesure la progressivité jour par jour, sans attendre la fin de la semaine. Une seule échelle, donc aucune ambiguïté de lecture.</div>
+      <div><b>Limites</b>Le ratio est un signal d'attention, pas un prédicteur de blessure (sa fiabilité est discutée). Il est bruité les jours de sortie longue.</div>
+    </div>
+  </section>
+
+  <!-- Option 4 -->
+  <section class="opt" id="opt4">
+    <div class="opt-head"><span class="tag">Option 4</span><h2>Escalier hebdomadaire : variation d'une semaine à l'autre</h2>
+      <p>Le volume de chaque semaine avec sa variation par rapport à la précédente, colorée au-delà de +10 % et de +20 %. Les semaines allégées sont signalées pour ne pas lire leur baisse comme un problème.</p></div>
+    <div class="demo">
+      <svg class="chart" id="stairs" role="img" aria-label="Volume hebdomadaire et variation par rapport à la semaine précédente"></svg>
+      <div class="legend" style="margin-top:10px"><span><i style="background:var(--z-mp)"></i>Variation ≤ +10 %</span><span><i style="background:var(--warn)"></i>+10 à +20 %</span><span><i style="background:var(--bad)"></i>&gt; +20 %</span><span><i style="background:var(--z-easy)"></i>Semaine allégée</span><span><i class="line" style="background:var(--ink)"></i>Moyenne 4 semaines</span></div>
+    </div>
+    <div class="why">
+      <div><b>Répond à</b>« Ma montée en charge semaine après semaine est-elle raisonnable ? »</div>
+      <div><b>Points forts</b>Correspond à la règle bien connue des 10 %, et à la façon dont on pense un plan (des semaines).</div>
+      <div><b>Limites</b>Une remontée après une semaine allégée paraît toujours brutale. Il faut la lire avec la moyenne sur 4 semaines.</div>
+    </div>
+  </section>
+
+  <!-- Option 5 -->
+  <section class="opt" id="opt5">
+    <div class="opt-head"><span class="tag">Option 5</span><h2>Tableau des périodes</h2>
+      <p>Une ligne par fenêtre (7 j, 30 j, 90 j, année, 12 mois glissants) avec km, heures, séances, part de sous-seuil, charge et écart à la période précédente.</p></div>
+    <div class="demo"><div class="tablebox"><table id="periods"></table></div></div>
+    <div class="why">
+      <div><b>Répond à</b>« Tous les chiffres, d'un coup. »</div>
+      <div><b>Points forts</b>Exhaustif, compact, et facile à rendre sur mobile en cartes empilées.</div>
+      <div><b>Limites</b>Pas de forme visuelle de la progressivité : c'est un complément, pas un remplaçant.</div>
+    </div>
+  </section>
+
+  <footer>Planche d'options pour Jog Fjord. Données générées pour l'exemple (historique depuis le 1<sup>er</sup> septembre 2025). La charge est de type TRIMP, pondérée par zone.</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script src="data.js"></script>
+<script>
+(() => {
+const J = window.JOG, u = J.u, NS = 'http://www.w3.org/2000/svg';
+const ZC = { easy: 'var(--z-easy)', mp: 'var(--z-mp)', subt: 'var(--z-subt)', hard: 'var(--z-hard)' };
+const el = (t, a = {}, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const txt = (p, x, y, s, a = {}) => { const t = el('text', { x, y, ...a }, p); t.textContent = s; return t; };
+const lin = (d0, d1, r0, r1) => (v) => r0 + (v - d0) / (d1 - d0) * (r1 - r0);
+const tip = document.getElementById('tip');
+const show = (e, h) => { tip.innerHTML = h; tip.hidden = false; tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px'; };
+const bindTip = (n, h) => { n.addEventListener('pointermove', e => show(e, typeof h === 'function' ? h() : h)); n.addEventListener('pointerleave', () => tip.hidden = true); };
+
+let unit = 'km';
+try { unit = localStorage.getItem('jog-vol-unit') || 'km'; } catch (e) {}
+let win = 112;
+
+// Jours réalisés, indexés par date
+const done = J.days.filter(d => d.done);
+const byDate = new Map(done.map(d => [d.date, d]));
+const yesterday = u.iso(u.addDays(u.d(J.today), -1));
+const shift = (iso, n) => u.iso(u.addDays(u.d(iso), n));
+const val = (d) => unit === 'km' ? d.km : d.min / 60;
+const fmtV = (v, dec) => unit === 'km' ? v.toFixed(dec ?? (v >= 100 ? 0 : 1)).replace('.', ',') : (v >= 10 && dec === undefined ? v.toFixed(0) : u.hm(v * 60));
+const U = () => unit === 'km' ? 'km' : 'h';
+function agg(from, to) { // [from, to] inclus
+  let km = 0, min = 0, n = 0, subt = 0, load = 0;
+  const z = { easy: 0, mp: 0, subt: 0, hard: 0 };
+  for (const d of done) if (d.date >= from && d.date <= to) {
+    km += d.km; min += d.min; load += d.load; if (d.min) n++; J.ZONES.forEach(k => z[k] += d.z[k]);
+  }
+  return { km, min, n, z, load, v: unit === 'km' ? km : min / 60, subtPct: min ? z.subt / min : 0 };
+}
+const pct = (a, b) => b ? (a - b) / b : null;
+const deltaPill = (p, label) => {
+  if (p == null) return `<span class="pill neutral">pas d'historique</span>`;
+  const cls = p > .3 ? 'warn' : p < -.3 ? 'warn' : 'neutral';
+  return `<span class="pill ${cls}">${p >= 0 ? '+' : '−'}${Math.abs(p * 100).toFixed(0)} %</span> ${label}`;
+};
+
+// ---------- Option 1
+function drawCounters() {
+  const y0 = J.today.slice(0, 4) + '-01-01';
+  const P = [
+    { l: `Année ${J.today.slice(0, 4)}`, from: y0, to: yesterday, prev: null, spark: 'week', note: 'depuis le 1er janvier' },
+    { l: '30 derniers jours', from: shift(yesterday, -29), to: yesterday, prev: [shift(yesterday, -59), shift(yesterday, -30)], spark: 'day', note: 'vs les 30 jours d\'avant' },
+    { l: '7 derniers jours', from: shift(yesterday, -6), to: yesterday, prev: [shift(yesterday, -13), shift(yesterday, -7)], spark: 'day', note: 'vs la semaine d\'avant' },
+  ];
+  const box = document.getElementById('counters'); box.innerHTML = '';
+  P.forEach((p, idx) => {
+    const a = agg(p.from, p.to);
+    const other = unit === 'km' ? `${u.hm(a.min)} · ${a.n} séances` : `${Math.round(a.km)} km · ${a.n} séances`;
+    let deltaHtml;
+    if (p.prev) deltaHtml = deltaPill(pct(a.v, agg(p.prev[0], p.prev[1]).v), p.note);
+    else {
+      const days = (u.d(p.to) - u.d(p.from)) / 864e5 + 1;
+      deltaHtml = `<span class="pill neutral">${fmtV(a.v / days * 7, 1)} ${U()}/sem.</span> en moyenne`;
+    }
+    const div = document.createElement('div'); div.className = 'counter';
+    div.innerHTML = `<span class="l"><span>${p.l}</span><span class="muted num">${u.date(p.from)} – ${u.date(p.to)}</span></span>
+      <span class="v num">${unit === 'km' ? Math.round(a.km).toLocaleString('fr-FR') : Math.round(a.min / 60)}<small>${U()}</small></span>
+      <span class="s">${other}</span><span class="d">${deltaHtml}</span>`;
+    const svg = el('svg', { class: 'chart', viewBox: '0 0 300 56', role: 'img', 'aria-label': 'Détail de la période' });
+    div.appendChild(svg); box.appendChild(div);
+    let bars = [];
+    if (p.spark === 'day') for (let dt = p.from; dt <= p.to; dt = shift(dt, 1)) { const d = byDate.get(dt); bars.push({ v: d ? val(d) : 0, lab: `${u.date(dt, { weekday: 'short', day: 'numeric', month: 'short' })}<br>${d ? d.label + ' · ' + fmtV(val(d)) + ' ' + U() : 'Repos'}`, sub: d && d.type === 'subt' }); }
+    else J.weeks.filter(w => w.start >= shift(p.from, -6) && w.status !== 'planned').forEach(w => { const v = unit === 'km' ? w.km : w.min / 60; bars.push({ v, lab: `Sem. du ${u.date(w.start)}<br>${fmtV(v)} ${U()}` }); });
+    const max = Math.max(...bars.map(b => b.v), 1), bw = 300 / bars.length;
+    bars.forEach((b, i) => {
+      const h = b.v / max * 48;
+      const r = el('rect', { x: i * bw + .5, y: 54 - h, width: Math.max(1, bw - (bars.length > 20 ? 1 : 3)), height: Math.max(h, b.v ? 1 : 0), rx: 1.5, fill: b.sub ? 'var(--z-subt)' : 'var(--z-easy)' }, svg);
+      const hit = el('rect', { x: i * bw, y: 0, width: bw, height: 56, fill: 'transparent' }, svg); bindTip(hit, b.lab);
+    });
+    el('line', { x1: 0, x2: 300, y1: 54.5, y2: 54.5, stroke: 'var(--line)' }, svg);
+  });
+}
+
+// ---------- Option 2
+function drawCumul() {
+  const svg = document.getElementById('cumul'); svg.innerHTML = '';
+  const Wd = 1100, H = 300, L = 54, R = 70, T = 18, B = 28; svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const yr = J.today.slice(0, 4), y0 = yr + '-01-01', yEnd = yr + '-12-31';
+  const nDays = (u.d(yEnd) - u.d(y0)) / 864e5 + 1;
+  const series = []; let acc = 0;
+  for (let i = 0, dt = y0; dt <= yesterday; i++, dt = shift(dt, 1)) { const d = byDate.get(dt); acc += d ? val(d) : 0; series.push({ i, dt, v: acc }); }
+  const last90 = agg(shift(yesterday, -89), yesterday).v / 90;
+  const proj = acc + last90 * (nDays - series.length);
+  const step = unit === 'km' ? 500 : 50;
+  const maxV = Math.ceil(proj * 1.05 / step) * step;
+  const x = lin(0, nDays - 1, L, Wd - R), y = lin(0, maxV, H - B, T);
+  const g = el('g', { class: 'grid' }, svg);
+  for (let v = 0; v <= maxV; v += step) { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v) }, g); txt(svg, L - 8, y(v) + 4, v.toLocaleString('fr-FR'), { 'text-anchor': 'end' }); }
+  txt(svg, L - 8, T - 6, U(), { 'text-anchor': 'end' });
+  for (let m = 0; m < 12; m++) { const dt = `${yr}-${String(m + 1).padStart(2, '0')}-01`; const i = (u.d(dt) - u.d(y0)) / 864e5; txt(svg, x(i) + 4, H - 8, u.date(dt, { month: 'short' })); el('line', { x1: x(i), x2: x(i), y1: H - B, y2: H - B + 5, stroke: 'var(--line)' }, svg); }
+  // coupure
+  const off = J.plans.find(p => p.kind === 'off' && p.start.startsWith(yr));
+  if (off) { const a = (u.d(off.start) - u.d(y0)) / 864e5, b = (u.d(off.end) - u.d(y0)) / 864e5; el('rect', { x: x(a), y: T, width: x(b) - x(a), height: H - B - T, fill: 'var(--band)' }, svg); }
+  const dstr = series.map((p, k) => `${k ? 'L' : 'M'}${x(p.i).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
+  el('path', { d: dstr + `L${x(series.length - 1)},${y(0)}L${x(0)},${y(0)}Z`, fill: 'var(--accent)', opacity: .1 }, svg);
+  el('path', { d: dstr, fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2.2 }, svg);
+  const lp = series[series.length - 1];
+  el('line', { x1: x(lp.i), y1: y(lp.v), x2: x(nDays - 1), y2: y(proj), stroke: 'var(--ink-3)', 'stroke-width': 2, 'stroke-dasharray': '5 5' }, svg);
+  el('circle', { cx: x(lp.i), cy: y(lp.v), r: 5, fill: 'var(--accent)', stroke: 'var(--surface)', 'stroke-width': 2 }, svg);
+  txt(svg, x(lp.i) - 10, y(lp.v) - 12, `${fmtV(lp.v, 0)} ${U()}`, { 'text-anchor': 'end', style: 'fill:var(--ink);font:700 15px var(--f-display)' });
+  txt(svg, x(nDays - 1) + 6, y(proj) + 4, `≈ ${fmtV(proj, 0)}`, { style: 'fill:var(--ink-2);font:600 12px var(--f-mono)' });
+  // jalons
+  const ms = []; let next = step;
+  series.forEach(p => { while (p.v >= next) { ms.push({ v: next, p }); next += step; } });
+  ms.forEach(m => { el('circle', { cx: x(m.p.i), cy: y(m.v), r: 3.5, fill: 'var(--surface)', stroke: 'var(--accent)', 'stroke-width': 1.5 }, svg); });
+  document.getElementById('milestones').innerHTML = ms.map(m => `<span><b class="num">${m.v.toLocaleString('fr-FR')} ${U()}</b> le ${u.date(m.p.dt, { day: 'numeric', month: 'long' })}</span>`).join('') +
+    `<span class="muted">Prochain jalon, ${next.toLocaleString('fr-FR')} ${U()} : vers le ${u.date(shift(yesterday, Math.ceil((next - lp.v) / last90)), { day: 'numeric', month: 'long' })} au rythme actuel</span>`;
+  const hit = el('rect', { x: L, y: T, width: x(lp.i) - L, height: H - B - T, fill: 'transparent' }, svg);
+  const cross = el('line', { y1: T, y2: H - B, stroke: 'var(--ink-3)', 'stroke-dasharray': '2 2', visibility: 'hidden' }, svg);
+  hit.addEventListener('pointermove', e => { const r = svg.getBoundingClientRect(); const i = Math.max(0, Math.min(series.length - 1, Math.round(((e.clientX - r.left) / r.width * Wd - L) / (Wd - L - R) * (nDays - 1))));
+    cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible'); show(e, `${u.date(series[i].dt, { day: 'numeric', month: 'long' })}<br>cumul ${fmtV(series[i].v, 0)} ${U()}`); });
+  hit.addEventListener('pointerleave', () => { tip.hidden = true; cross.setAttribute('visibility', 'hidden'); });
+}
+
+// ---------- Option 3
+function rolling() {
+  const out = [];
+  const first = shift(J.days[0].date, 29);
+  for (let dt = first; dt <= yesterday; dt = shift(dt, 1)) {
+    let s7 = 0, s30 = 0;
+    for (let k = 0; k < 30; k++) { const d = byDate.get(shift(dt, -k)); const v = d ? val(d) : 0; s30 += v; if (k < 7) s7 += v; }
+    const chronic = s30 / 30 * 7;
+    out.push({ dt, s7, chronic, r: chronic ? s7 / chronic : null });
+  }
+  return out;
+}
+function drawRoll() {
+  const all = rolling(), data = all.slice(-win);
+  const s1 = document.getElementById('roll'); s1.innerHTML = '';
+  const Wd = 1100, H = 260, L = 54, R = 16, T = 16, B = 24; s1.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const step = unit === 'km' ? 20 : 2;
+  const maxV = Math.ceil(Math.max(...data.map(p => Math.max(p.s7, p.chronic))) * 1.08 / step) * step;
+  const x = lin(0, data.length - 1, L, Wd - R), y = lin(0, maxV, H - B, T);
+  const g = el('g', { class: 'grid' }, s1);
+  for (let v = 0; v <= maxV; v += step * (maxV / step > 6 ? 2 : 1)) { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v) }, g); txt(s1, L - 8, y(v) + 4, v, { 'text-anchor': 'end' }); }
+  txt(s1, L - 8, T - 4, U() + ' / 7 j', { 'text-anchor': 'end' });
+  const bw = (Wd - L - R) / data.length;
+  data.forEach((p, i) => el('rect', { x: x(i) - bw / 2 + .3, y: y(p.s7), width: Math.max(.8, bw - .6), height: y(0) - y(p.s7), fill: 'var(--z-easy)' }, s1));
+  el('path', { d: data.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.chronic).toFixed(1)}`).join(''), fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2 }, s1);
+  const lp = data[data.length - 1];
+  el('circle', { cx: x(data.length - 1), cy: y(lp.chronic), r: 4, fill: 'var(--ink)', stroke: 'var(--surface)', 'stroke-width': 2 }, s1);
+  let lm = ''; data.forEach((p, i) => { const m = p.dt.slice(0, 7); if (m !== lm) { lm = m; if (i > 3 && (win < 200 || ['01', '04', '07', '10'].includes(m.slice(5)))) txt(s1, x(i), H - 6, u.date(p.dt, { month: 'short', year: win > 200 ? '2-digit' : undefined }), { 'text-anchor': 'middle' }); } });
+  // ratio
+  const s2 = document.getElementById('ratio'); s2.innerHTML = '';
+  const H2 = 130; s2.setAttribute('viewBox', `0 0 ${Wd} ${H2}`);
+  const y2 = lin(.4, 1.8, H2 - 18, 10);
+  el('rect', { x: L, width: Wd - L - R, y: y2(1.3), height: y2(.8) - y2(1.3), fill: 'var(--band)' }, s2);
+  [.6, 1, 1.4, 1.8].forEach(v => { el('line', { x1: L, x2: Wd - R, y1: y2(v), y2: y2(v), stroke: 'var(--grid)' }, s2); txt(s2, L - 8, y2(v) + 4, v.toFixed(1).replace('.', ','), { 'text-anchor': 'end' }); });
+  el('line', { x1: L, x2: Wd - R, y1: y2(1.5), y2: y2(1.5), stroke: 'var(--bad)', 'stroke-dasharray': '3 3' }, s2);
+  txt(s2, Wd - R, y2(1.5) - 5, 'vigilance 1,5', { 'text-anchor': 'end', style: 'fill:var(--bad)' });
+  txt(s2, L + 4, 10 + 4, 'ratio 7 j / 30 j', { style: 'fill:var(--ink-2)' });
+  el('path', { d: data.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y2(Math.max(.4, Math.min(1.8, p.r))).toFixed(1)}`).join(''), fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2 }, s2);
+  data.forEach((p, i) => { if (p.r > 1.3) el('circle', { cx: x(i), cy: y2(Math.min(1.8, p.r)), r: 2.5, fill: p.r > 1.5 ? 'var(--bad)' : 'var(--warn)' }, s2); });
+  el('circle', { cx: x(data.length - 1), cy: y2(lp.r), r: 5, fill: 'var(--accent)', stroke: 'var(--surface)', 'stroke-width': 2 }, s2);
+  txt(s2, x(data.length - 1) - 10, y2(lp.r) - 9, lp.r.toFixed(2).replace('.', ','), { 'text-anchor': 'end', style: 'fill:var(--ink);font:700 13px var(--f-mono)' });
+  // survol commun
+  [s1, s2].forEach((s, si) => {
+    const HH = si ? H2 : H;
+    const cross = el('line', { y1: 8, y2: HH - 18, stroke: 'var(--ink-3)', 'stroke-dasharray': '2 2', visibility: 'hidden' }, s);
+    const hit = el('rect', { x: L, y: 0, width: Wd - L - R, height: HH, fill: 'transparent' }, s);
+    hit.addEventListener('pointermove', e => { const r = s.getBoundingClientRect(); const i = Math.max(0, Math.min(data.length - 1, Math.round(((e.clientX - r.left) / r.width * Wd - L) / (Wd - L - R) * (data.length - 1)))); const p = data[i];
+      cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible');
+      show(e, `<b>${u.date(p.dt, { weekday: 'short', day: 'numeric', month: 'short' })}</b><br>7 derniers jours : ${fmtV(p.s7)} ${U()}<br>Moyenne hebdo sur 30 j : ${fmtV(p.chronic)} ${U()}<br>Ratio : ${p.r.toFixed(2)}`); });
+    hit.addEventListener('pointerleave', () => { tip.hidden = true; cross.setAttribute('visibility', 'hidden'); });
+  });
+}
+
+// ---------- Option 4
+function drawStairs() {
+  const svg = document.getElementById('stairs'); svg.innerHTML = '';
+  const wk = J.weeks.filter(w => w.status === 'done').slice(-26);
+  const Wd = 1100, H = 280, L = 54, R = 16, T = 30, B = 40; svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const v = (w) => unit === 'km' ? w.km : w.min / 60;
+  const step = unit === 'km' ? 25 : 2.5;
+  const maxV = Math.ceil(Math.max(...wk.map(v)) * 1.1 / step) * step;
+  const y = lin(0, maxV, H - B, T), bw = (Wd - L - R) / wk.length;
+  const g = el('g', { class: 'grid' }, svg);
+  for (let t = 0; t <= maxV; t += step) { el('line', { x1: L, x2: Wd - R, y1: y(t), y2: y(t) }, g); txt(svg, L - 8, y(t) + 4, t, { 'text-anchor': 'end' }); }
+  txt(svg, L - 8, T - 14, U() + ' / sem.', { 'text-anchor': 'end' });
+  const all = J.weeks.filter(w => w.status === 'done');
+  const avgPts = [];
+  wk.forEach((w, i) => {
+    const gi = all.indexOf(w), prev = all[gi - 1];
+    const ch = prev ? pct(v(w), v(prev)) : null;
+    const col = w.recov ? 'var(--z-easy)' : ch == null || ch <= .1 ? 'var(--z-mp)' : ch <= .2 ? 'var(--warn)' : 'var(--bad)';
+    const xx = L + i * bw + 3;
+    const r = el('rect', { x: xx, y: y(v(w)), width: bw - 6, height: y(0) - y(v(w)), rx: 3, fill: col }, svg);
+    if (ch != null) txt(svg, xx + (bw - 6) / 2, y(v(w)) - 6, `${ch >= 0 ? '+' : '−'}${Math.abs(ch * 100).toFixed(0)}`, { 'text-anchor': 'middle', style: `fill:${ch > .1 && !w.recov ? 'var(--ink)' : 'var(--ink-3)'};font:${ch > .1 && !w.recov ? 600 : 400} 10.5px var(--f-mono)` });
+    const last4 = all.slice(Math.max(0, gi - 3), gi + 1); avgPts.push([xx + (bw - 6) / 2, y(last4.reduce((a, q) => a + v(q), 0) / last4.length)]);
+    if (i % 3 === 0) txt(svg, xx, H - B + 16, u.date(w.start));
+    if (w.wInPlan === 1) txt(svg, xx, H - B + 32, w.planName, { style: 'fill:var(--ink-2);font:500 11.5px var(--f-display)' });
+    bindTip(r, `<b>Sem. du ${u.date(w.start)}</b> · ${w.planName} S${w.wInPlan}<br>${fmtV(v(w))} ${U()}${ch != null ? ` · ${ch >= 0 ? '+' : ''}${(ch * 100).toFixed(0)} % vs sem. précédente` : ''}${w.recov ? '<br>Semaine allégée' : ''}`);
+  });
+  el('path', { d: avgPts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(''), fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2 }, svg);
+}
+
+// ---------- Option 5
+function drawTable() {
+  const y0 = J.today.slice(0, 4) + '-01-01';
+  const days = (a, b) => Math.round((u.d(b) - u.d(a)) / 864e5) + 1;
+  const rows = [
+    { l: '7 derniers jours', from: shift(yesterday, -6) },
+    { l: '30 derniers jours', from: shift(yesterday, -29) },
+    { l: '90 derniers jours', from: shift(yesterday, -89) },
+    { l: `Année ${J.today.slice(0, 4)}`, from: y0, noPrev: true },
+    { l: '12 mois glissants', from: shift(yesterday, -364), noPrev: true },
+  ];
+  document.getElementById('periods').innerHTML = `<tr><th>Période</th><th>km</th><th>Heures</th><th>Séances</th><th>${U()} / sem.</th><th>Répartition</th><th>Sous-seuil</th><th>Charge / sem.</th><th>vs période précédente</th></tr>` +
+    rows.map(r => {
+      const a = agg(r.from, yesterday), n = days(r.from, yesterday);
+      const prevFrom = shift(r.from, -n), prevTo = shift(r.from, -1);
+      const hasPrev = !r.noPrev && prevFrom >= J.days[0].date;
+      const p = hasPrev ? pct(a.v, agg(prevFrom, prevTo).v) : null;
+      const tot = a.min || 1;
+      const mini = `<span class="mini">${J.ZONES.filter(z => a.z[z]).map(z => `<span style="width:${a.z[z] / tot * 100}%;background:${ZC[z]}"></span>`).join('')}</span>`;
+      return `<tr><td><b>${r.l}</b><div class="muted" style="font-size:12px">${u.date(r.from, { day: 'numeric', month: 'short', year: '2-digit' })} – ${u.date(yesterday, { day: 'numeric', month: 'short' })}</div></td>
+        <td class="num">${Math.round(a.km).toLocaleString('fr-FR')}</td><td class="num">${u.hm(a.min)}</td><td class="num">${a.n}</td>
+        <td class="num">${fmtV(a.v / n * 7, 1)}</td><td>${mini}</td><td class="num">${(a.subtPct * 100).toFixed(0)} %</td><td class="num">${Math.round(a.load / n * 7)}</td>
+        <td>${r.noPrev ? '<span class="muted">–</span>' : deltaPill(p, '')}</td></tr>`;
+    }).join('');
+}
+
+function drawAll() { drawCounters(); drawCumul(); drawRoll(); drawStairs(); drawTable(); }
+document.querySelectorAll('nav[aria-label="Unité"] button').forEach(b => {
+  b.setAttribute('aria-pressed', b.dataset.unit === unit);
+  b.addEventListener('click', () => { unit = b.dataset.unit; try { localStorage.setItem('jog-vol-unit', unit); } catch (e) {}
+    document.querySelectorAll('nav[aria-label="Unité"] button').forEach(c => c.setAttribute('aria-pressed', c === b)); drawAll(); });
+});
+document.querySelectorAll('[aria-label="Fenêtre affichée"] button').forEach(b => b.addEventListener('click', () => {
+  win = +b.dataset.win; document.querySelectorAll('[aria-label="Fenêtre affichée"] button').forEach(c => c.setAttribute('aria-pressed', c === b)); drawRoll(); }));
+drawAll();
+})();
+</script>
+</body>
+</html>

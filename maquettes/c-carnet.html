@@ -1,0 +1,370 @@
+<title>Jog Carnet de labo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Caveat:wght@500;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap">
+<style>
+/* Layout : une page de carnet de laboratoire sur papier millimétré. Tables d'abord, graphiques de mesure, annotations à la main. Thème unique clair (papier). */
+:root {
+  color-scheme: light;
+  --paper: #f1f5ea; --grid: #d9e5d2; --grid-2: #c4d6bb; --margin: #e2a59c;
+  --ink: #1d2a3a; --ink-2: #4b5868; --ink-3: #7a8592;
+  --blue: #3a64c0; --red: #d23f30; --green: #0f8a63; --ochre: #b9771f;
+  --z-easy: #b9771f; --z-mp: #3a64c0; --z-subt: #0f8a63; --z-hard: #d23f30;
+  --hl: rgba(255, 226, 92, .55);
+  --f-type: "Courier Prime", "Courier New", monospace;
+  --f-hand: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+  --f-sans: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font: 14px/1.5 var(--f-sans);
+  background-image:
+    linear-gradient(var(--grid-2) 1px, transparent 1px), linear-gradient(90deg, var(--grid-2) 1px, transparent 1px),
+    linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 50px 50px, 50px 50px, 10px 10px, 10px 10px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 56px); padding-block: 28px 70px; display: grid; gap: 34px; position: relative; }
+.page::before { content: ""; position: absolute; top: 0; bottom: 0; left: clamp(6px, 2vw, 30px); border-left: 2px solid var(--margin); opacity: .7; }
+.num, td, .type { font-family: var(--f-type); font-variant-numeric: tabular-nums; }
+.hand { font-family: var(--f-hand); font-weight: 500; color: var(--blue); font-size: 21px; line-height: 1.1; }
+.hand.red { color: var(--red); }
+h1 { margin: 0; font: 700 28px/1.1 var(--f-type); letter-spacing: -.01em; text-wrap: balance; }
+h2 { margin: 0; font: 700 15px var(--f-type); text-transform: uppercase; letter-spacing: .06em; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+h2 .ref { font: 400 12px var(--f-type); color: var(--ink-3); text-transform: none; letter-spacing: 0; }
+section { display: grid; gap: 12px; min-width: 0; }
+
+.head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 30px; align-items: start; border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.meta { display: grid; grid-template-columns: repeat(4, auto); gap: 4px 22px; font: 13px var(--f-type); color: var(--ink-2); margin-top: 10px; }
+.meta b { color: var(--ink); }
+.stamp { border: 3px solid var(--red); color: var(--red); font: 700 15px/1.15 var(--f-type); text-transform: uppercase; padding: 8px 12px; transform: rotate(-4deg); text-align: center; letter-spacing: .08em; opacity: .85; }
+.stamp small { display: block; font-size: 11px; letter-spacing: .04em; }
+
+.readout { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 1.5px solid var(--ink); background: rgba(255,255,255,.55); }
+.readout > div { padding: 10px 12px; border-right: 1px solid var(--ink-3); display: grid; gap: 2px; }
+.readout > div:last-child { border-right: 0; }
+.readout .l { font: 500 11.5px var(--f-sans); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
+.readout .v { font: 700 26px/1.1 var(--f-type); }
+.readout .s { font: 12px var(--f-type); color: var(--ink-3); }
+.mark { background: linear-gradient(transparent 55%, var(--hl) 55%, var(--hl) 90%, transparent 90%); }
+
+.tablebox { overflow-x: auto; background: rgba(255,255,255,.55); border: 1.5px solid var(--ink); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th { font: 600 11.5px var(--f-sans); text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); text-align: right; padding: 7px 9px; border-bottom: 1.5px solid var(--ink); white-space: nowrap; background: rgba(241,245,234,.8); }
+th.l, td.l { text-align: left; }
+td { padding: 5px 9px; text-align: right; border-bottom: 1px solid var(--grid-2); white-space: nowrap; }
+tr.cur td { background: var(--hl); }
+tr.recov td { color: var(--ink-3); }
+td.flag-bad { color: var(--red); font-weight: 700; }
+td.flag-ok { color: var(--green); }
+.zbar { display: flex; height: 10px; width: 120px; gap: 1px; }
+.zbar span { display: block; height: 100%; }
+.cell-heat { display: inline-block; min-width: 42px; padding: 0 4px; }
+
+.g2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 34px; }
+.g-side { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: 30px; align-items: start; }
+.fig { background: rgba(255,255,255,.55); border: 1.5px solid var(--ink); padding: 12px 14px 10px; display: grid; gap: 8px; min-width: 0; }
+.fig .cap { font: 12.5px var(--f-type); color: var(--ink-2); }
+.fig .cap b { color: var(--ink); }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font: 11px var(--f-type); fill: var(--ink-2); }
+svg .hand-t { font: 600 18px var(--f-hand); fill: var(--blue); }
+svg .hand-r { font: 600 18px var(--f-hand); fill: var(--red); }
+.legend { display: flex; gap: 4px 16px; flex-wrap: wrap; font: 12px var(--f-type); color: var(--ink-2); }
+.legend i { display: inline-block; width: 11px; height: 11px; margin-right: 6px; vertical-align: -1px; }
+
+.notes { display: grid; gap: 10px; padding: 6px 0 0 4px; }
+.notes p { margin: 0; }
+.sample { font: 700 12px var(--f-type); color: var(--red); border: 1.5px dashed var(--red); padding: 2px 8px; width: fit-content; }
+#tip { position: fixed; pointer-events: none; z-index: 10; background: #fffdf2; color: var(--ink); border: 1.5px solid var(--ink); box-shadow: 3px 3px 0 rgba(29,42,58,.2); font: 12px/1.45 var(--f-type); padding: 7px 10px; max-width: 260px; transform: translate(-50%, calc(-100% - 12px)); }
+footer { font: 12px var(--f-type); color: var(--ink-3); }
+
+@media (max-width: 1000px) {
+  .g2, .g-side { grid-template-columns: minmax(0, 1fr); }
+  .readout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .readout > div:nth-child(3) { border-right: 0; }
+  .readout > div:nth-child(-n+3) { border-bottom: 1px solid var(--ink-3); }
+}
+@media (max-width: 620px) {
+  .head { grid-template-columns: minmax(0, 1fr); }
+  .meta { grid-template-columns: repeat(2, auto); }
+  .readout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .readout > div { border-right: 0 !important; border-bottom: 1px solid var(--ink-3); }
+}
+</style>
+
+<div class="page">
+  <div class="head">
+    <div>
+      <span class="sample">Données d'exemple</span>
+      <h1 id="title" style="margin-top:10px"></h1>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div class="stamp">Méthode NSA<small>sous-seuil · 3 × / sem.</small></div>
+  </div>
+
+  <section>
+    <h2>Relevés du jour <span class="ref">valeurs à la veille au soir</span></h2>
+    <div class="readout" id="readout"></div>
+  </section>
+
+  <section>
+    <h2>Fig. 1 · Calendrier de charge <span class="ref">1 case = 1 jour · intensité = charge du jour · cercles rouges = courses</span></h2>
+    <div class="fig">
+      <div style="overflow-x:auto"><svg id="cal" role="img" aria-label="Calendrier de charge quotidienne sur 14 mois" style="min-width:820px"></svg></div>
+      <div class="legend" id="cal-legend"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tab. 1 · Journal hebdomadaire <span class="ref">12 dernières semaines + semaine en cours</span></h2>
+    <div class="tablebox"><table id="log"></table></div>
+    <div class="legend" id="z-legend"></div>
+  </section>
+
+  <div class="g2">
+    <section>
+      <h2>Fig. 2 · Courbe lactate / allure <span class="ref">mesures en fin de séance sous-seuil</span></h2>
+      <div class="fig">
+        <svg id="lac" role="img" aria-label="Lactate mesuré en fonction de l'allure, automne 2025 comparé à 2026"></svg>
+        <div class="legend"><span><i style="background:var(--ochre);border-radius:50%"></i>Sept.–déc. 2025</span><span><i style="background:var(--blue)"></i>Juil.–oct. 2026</span><span><i style="background:rgba(15,138,99,.15);border:1px solid var(--green)"></i>Cible 2,0–3,5 mmol/L</span></div>
+        <div class="cap" id="lac-cap"></div>
+      </div>
+    </section>
+    <section>
+      <h2>Fig. 3 · Allure × FC par répétition <span class="ref">toutes les répétitions sous-seuil</span></h2>
+      <div class="fig">
+        <svg id="phr" role="img" aria-label="Fréquence cardiaque en fonction de l'allure pour chaque répétition"></svg>
+        <div class="legend"><span><i style="background:var(--ochre);border-radius:50%"></i>Sept.–déc. 2025</span><span><i style="background:var(--blue)"></i>Juil.–oct. 2026</span></div>
+        <div class="cap" id="phr-cap"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="g-side">
+    <section>
+      <h2>Fig. 4 · Modèle forme / fatigue <span class="ref">CTL 42 j, ATL 7 j, TSB = CTL − ATL</span></h2>
+      <div class="fig">
+        <svg id="pmc" role="img" aria-label="Forme de fond et fatigue sur 14 mois"></svg>
+        <svg id="tsb" role="img" aria-label="Fraîcheur sur 14 mois"></svg>
+        <div class="legend"><span><i style="background:var(--ink)"></i>CTL forme de fond</span><span><i style="background:var(--ink-3)"></i>ATL fatigue</span><span><i style="background:var(--red)"></i>TSB fraîcheur</span></div>
+      </div>
+    </section>
+    <section>
+      <h2>Observations</h2>
+      <div class="notes" id="notes"></div>
+    </section>
+  </div>
+
+  <section>
+    <h2>Tab. 2 · Registre des plans et des courses</h2>
+    <div class="tablebox"><table id="races"></table></div>
+  </section>
+
+  <footer>Maquette C · « Carnet de labo ». Données générées pour l'exemple. Monotonie = moyenne / écart-type de la charge quotidienne (Foster) ; contrainte = charge hebdo × monotonie.</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script src="data.js"></script>
+<script>
+(() => {
+const J = window.JOG, u = J.u, NS = 'http://www.w3.org/2000/svg';
+const ZC = { easy: 'var(--z-easy)', mp: 'var(--z-mp)', subt: 'var(--z-subt)', hard: 'var(--z-hard)' };
+const el = (t, a = {}, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const txt = (p, x, y, s, a = {}) => { const t = el('text', { x, y, ...a }, p); t.textContent = s; return t; };
+const lin = (d0, d1, r0, r1) => (v) => r0 + (v - d0) / (d1 - d0) * (r1 - r0);
+const tip = document.getElementById('tip');
+const bindTip = (n, h) => { n.addEventListener('pointermove', e => { tip.innerHTML = h; tip.hidden = false; tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px'; }); n.addEventListener('pointerleave', () => tip.hidden = true); };
+const cur = J.current, cw = cur.week, f = cur.fitness;
+const done = J.weeks.filter(w => w.status === 'done'), last = done[done.length - 1];
+const sheetNo = J.weeks.indexOf(cw) + 1;
+
+document.getElementById('title').textContent = `Feuille n° ${sheetNo} · semaine du ${u.date(cw.start, { day: 'numeric', month: 'long', year: 'numeric' })}`;
+document.getElementById('meta').innerHTML = [
+  ['Sujet', J.athlete.name], ['Plan', `${cur.plan.name} S${cw.wInPlan}/${cw.nWeeks}`],
+  ['FCmax', J.athlete.hrMax + ' bpm'], ['Plafond footing', J.athlete.hrEasyCap + ' bpm'],
+  ['Bande sous-seuil', J.athlete.subtHrBand.join('–') + ' bpm'], ['Lactate cible', '2,0–3,5 mmol/L'],
+  ['Course', `${cur.plan.race.dist}, ${u.date(cur.plan.race.date, { day: 'numeric', month: 'short' })}`], ['Objectif', cur.plan.race.goal],
+].map(([k, v]) => `<span>${k} : <b>${v}</b></span>`).join('');
+
+// Relevés
+const pm = J.predictions.find(p => p.dist === 'Marathon');
+const p0 = J.paceAtHr[0].v, p1 = J.paceAtHr[J.paceAtHr.length - 1].v;
+const lr = J.longRuns[J.longRuns.length - 1];
+document.getElementById('readout').innerHTML = [
+  { l: 'CTL', v: f.ctl.toFixed(1), s: 'forme de fond' },
+  { l: 'TSB', v: (f.tsb > 0 ? '+' : '') + f.tsb.toFixed(1), s: f.tsb < -25 ? 'surcharge' : f.tsb < -10 ? 'charge productive' : 'équilibre', mark: true },
+  { l: 'ACWR', v: last.acwr.toFixed(2), s: '1 : 4 sem.' },
+  { l: 'Sous-seuil @164', v: u.pace(p1), s: `${p1 - p0} s/km depuis sept. 25`, mark: true },
+  { l: 'Découplage SL', v: lr.decoupling.toFixed(1) + '%', s: `${u.date(lr.date)} · ${lr.km} km` },
+  { l: 'Marathon prédit', v: u.dur(pm.sec), s: `obj. ${cur.plan.race.goal}` },
+].map(r => `<div><span class="l">${r.l}</span><span class="v"><span class="${r.mark ? 'mark' : ''}">${r.v}</span></span><span class="s">${r.s}</span></div>`).join('');
+
+// Fig 1 : calendrier
+(() => {
+  const svg = document.getElementById('cal');
+  const days = J.days; const nW = Math.ceil(days.length / 7);
+  const c = 13, g = 2, L = 34, T = 22;
+  const Wd = L + nW * (c + g) + 10, H = T + 7 * (c + g) + 34;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const steps = [0, 60, 110, 160, 230];
+  const op = [0, .2, .4, .65, .95];
+  const cls = (v) => v <= 0 ? 0 : v < steps[1] ? 1 : v < steps[2] ? 2 : v < steps[3] ? 3 : 4;
+  ['L', '', 'M', '', 'V', '', 'D'].forEach((s, i) => txt(svg, L - 8, T + i * (c + g) + 10, s, { 'text-anchor': 'end' }));
+  let lastM = '';
+  days.forEach((d0, i) => {
+    const w = Math.floor(i / 7), x = L + w * (c + g), y = T + d0.dow * (c + g);
+    const m = d0.date.slice(0, 7);
+    if (d0.dow === 0 && m !== lastM) { lastM = m; txt(svg, x, T - 8, u.date(d0.date, { month: 'short' }) + (m.endsWith('-01') || i === 0 ? ' ' + m.slice(2, 4) : '')); }
+    const k = d0.done ? cls(d0.load) : 0;
+    const r = el('rect', { x, y, width: c, height: c, fill: d0.done ? (k ? 'var(--blue)' : 'rgba(255,255,255,.7)') : 'transparent', 'fill-opacity': d0.done && k ? op[k] : 1,
+      stroke: d0.done ? 'var(--grid-2)' : 'var(--ink-3)', 'stroke-dasharray': d0.done ? '' : '2 1.5', 'stroke-width': d0.done ? .6 : .8 }, svg);
+    if (d0.date === J.today) el('rect', { x: x - 1.5, y: y - 1.5, width: c + 3, height: c + 3, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2 }, svg);
+    if (d0.type === 'race') el('circle', { cx: x + c / 2, cy: y + c / 2, r: c * .85, fill: 'none', stroke: 'var(--red)', 'stroke-width': 1.8 }, svg);
+    if (d0.type === 'subt' && d0.done) el('circle', { cx: x + c / 2, cy: y + c / 2, r: 1.6, fill: k >= 3 ? '#fff' : 'var(--ink)' }, svg);
+    bindTip(r, `<b>${u.date(d0.date, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</b><br>${d0.label}${d0.min ? `<br>${u.hm(d0.min)} · ${d0.km} km · charge ${d0.load}` : ''}${d0.done ? '' : '<br>(prévu)'}`);
+  });
+  // plans sous la grille
+  J.plans.forEach(p => { const i0 = days.findIndex(d0 => d0.date >= p.start), i1 = days.findIndex(d0 => d0.date > p.end); const a = Math.floor(i0 / 7), b = Math.floor(((i1 < 0 ? days.length : i1) - 1) / 7);
+    const x0 = L + a * (c + g), x1 = L + (b + 1) * (c + g) - g;
+    el('path', { d: `M${x0},${H - 22} v-4 H${x1} v4`, fill: 'none', stroke: 'var(--ink-2)', 'stroke-width': 1 }, svg);
+    if (x1 - x0 > 50) txt(svg, x0 + 2, H - 6, p.name, { style: 'font:11px var(--f-type);fill:var(--ink)' }); });
+  document.getElementById('cal-legend').innerHTML = '<span>charge :</span>' + [1, 2, 3, 4].map(k => `<span><i style="background:var(--blue);opacity:${op[k]}"></i>${k < 4 ? `${steps[k - 1] || 1}–${steps[k] - 1}` : `≥ ${steps[3]}`}</span>`).join('') +
+    '<span>· point = séance sous-seuil</span><span><i style="border:1px dashed var(--ink-3)"></i>prévu</span>';
+})();
+
+// Tab 1 : journal
+(() => {
+  document.getElementById('z-legend').innerHTML = 'Répartition : ' + J.ZONES.map(z => `<span><i style="background:${ZC[z]}"></i>${J.ZONE_LABEL[z]}</span>`).join('');
+  const rows = J.weeks.slice(J.weeks.indexOf(cw) - 12, J.weeks.indexOf(cw) + 1);
+  const head = `<tr><th class="l">Semaine</th><th class="l">Plan</th><th>km</th><th>Durée</th><th class="l">Répartition</th><th>% SS</th><th>Séances SS</th><th>Charge</th><th>ACWR</th><th>Monotonie</th><th>Contrainte</th><th>Footings ≤ plafond</th></tr>`;
+  document.getElementById('log').innerHTML = head + rows.map(w => {
+    const isC = w.status === 'current';
+    const tot = w.min || 1;
+    const zb = `<div class="zbar">${J.ZONES.filter(z => w.z[z]).map(z => `<span style="width:${w.z[z] / tot * 100}%;background:${ZC[z]}"></span>`).join('')}</div>`;
+    const sp = w.subtPct, spCls = isC ? '' : sp >= .19 && sp <= .26 ? 'flag-ok' : w.recov ? '' : 'flag-bad';
+    const acCls = w.acwr == null ? '' : w.acwr > 1.3 ? 'flag-bad' : w.acwr < .8 && !w.recov ? 'flag-bad' : '';
+    return `<tr class="${isC ? 'cur' : ''} ${w.recov ? 'recov' : ''}"><td class="l">${u.date(w.start)}${isC ? ' ←' : ''}</td><td class="l">${w.planName} S${w.wInPlan}${w.recov ? ' (allégée)' : ''}</td>
+      <td>${isC ? w.km + ' / ' + w.plannedKm : w.km.toFixed(1)}</td><td>${u.hm(w.min)}</td><td class="l">${zb}</td>
+      <td class="${spCls}">${isC ? '–' : (sp * 100).toFixed(0) + '%'}</td><td>${w.subtSessions}</td><td>${isC ? '–' : w.load}</td>
+      <td class="${acCls}">${w.acwr ?? '–'}</td><td>${isC ? '–' : w.monotony.toFixed(2)}</td><td>${isC ? '–' : w.strain}</td><td>${isC ? '–' : Math.round(w.easyCompliance * 100) + '%'}</td></tr>`;
+  }).join('');
+})();
+
+// séries pour les figures 2 et 3
+const isOld = s => s.date < '2026-01-01', isNew = s => s.date >= '2026-07-01';
+const subs = J.subtSessions.filter(s => isOld(s) || isNew(s));
+const avgPace = s => s.reps.reduce((a, r) => a + r.pace, 0) / s.reps.length;
+
+function axes(svg, Wd, H, L, B, T, R, xs, ys, xf, yf, xl, yl) {
+  xs.ticks.forEach(v => { el('line', { x1: xs.f(v), x2: xs.f(v), y1: T, y2: H - B, stroke: 'var(--grid-2)', 'stroke-width': .7 }, svg); txt(svg, xs.f(v), H - B + 15, xf(v), { 'text-anchor': 'middle' }); });
+  ys.ticks.forEach(v => { el('line', { x1: L, x2: Wd - R, y1: ys.f(v), y2: ys.f(v), stroke: 'var(--grid-2)', 'stroke-width': .7 }, svg); txt(svg, L - 6, ys.f(v) + 4, yf(v), { 'text-anchor': 'end' }); });
+  el('path', { d: `M${L},${T} V${H - B} H${Wd - R}`, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.2 }, svg);
+  txt(svg, Wd - R, H - 4, xl, { 'text-anchor': 'end', style: 'font:11px var(--f-type);fill:var(--ink)' });
+  txt(svg, L, T - 6, yl, { style: 'font:11px var(--f-type);fill:var(--ink)' });
+}
+function fitLine(pts) { const n = pts.length, mx = pts.reduce((a, p) => a + p[0], 0) / n, my = pts.reduce((a, p) => a + p[1], 0) / n;
+  const b = pts.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / pts.reduce((a, p) => a + (p[0] - mx) ** 2, 0); return x => my + b * (x - mx); }
+
+// Fig 2 : lactate vs allure (allure plus rapide à droite)
+(() => {
+  const svg = document.getElementById('lac'), Wd = 560, H = 300, L = 40, R = 14, T = 22, B = 34;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const xs = { f: lin(280, 236, L, Wd - R), ticks: [276, 266, 256, 246, 236] }, ys = { f: lin(1, 4.5, H - B, T), ticks: [1, 2, 3, 4] };
+  el('rect', { x: L, width: Wd - L - R, y: ys.f(3.5), height: ys.f(2) - ys.f(3.5), fill: 'rgba(15,138,99,.10)' }, svg);
+  axes(svg, Wd, H, L, B, T, R, xs, ys, u.pace, v => v.toFixed(0), 'allure moy. des rép. (/km) →', 'lactate (mmol/L)');
+  const pts = subs.filter(s => s.lactate).map(s => ({ s, x: avgPace(s), y: s.lactate, old: isOld(s) }));
+  [true, false].forEach(o => { const p = pts.filter(q => q.old === o).map(q => [q.x, q.y]); if (p.length < 3) return; const fl = fitLine(p);
+    const xa = Math.max(...p.map(q => q[0])), xb = Math.min(...p.map(q => q[0]));
+    el('line', { x1: xs.f(xa), y1: ys.f(fl(xa)), x2: xs.f(xb), y2: ys.f(fl(xb)), stroke: o ? 'var(--ochre)' : 'var(--blue)', 'stroke-width': 2, 'stroke-dasharray': '6 4' }, svg); });
+  pts.forEach(p => {
+    const cx = xs.f(p.x), cy = ys.f(p.y);
+    const m = p.old ? el('circle', { cx, cy, r: 5, fill: 'var(--ochre)', stroke: 'var(--paper)', 'stroke-width': 1.5 }, svg)
+      : el('rect', { x: cx - 4.5, y: cy - 4.5, width: 9, height: 9, fill: 'var(--blue)', stroke: 'var(--paper)', 'stroke-width': 1.5 }, svg);
+    bindTip(m, `${u.date(p.s.date, { day: 'numeric', month: 'short', year: 'numeric' })} · ${p.s.fmt.replace('x', '×')}'<br>allure ${u.pace(p.x)}/km · ${p.y} mmol/L`);
+  });
+  const o = pts.filter(p => p.old), n = pts.filter(p => !p.old);
+  const ao = o.reduce((a, p) => a + p.x, 0) / o.length, an = n.reduce((a, p) => a + p.x, 0) / n.length;
+  txt(svg, xs.f(an) + 10, ys.f(4.1), `≈ ${Math.round(ao - an)} s/km plus vite`, { class: 'hand-t' });
+  txt(svg, xs.f(an) + 10, ys.f(3.85), 'pour le même lactate', { class: 'hand-t' });
+  document.getElementById('lac-cap').innerHTML = `<b>${pts.length} mesures</b>. La courbe se décale vers la droite : à lactate égal, l'allure sous-seuil a gagné environ ${Math.round(ao - an)} s/km en un an.`;
+})();
+
+// Fig 3 : FC vs allure par répétition
+(() => {
+  const svg = document.getElementById('phr'), Wd = 560, H = 300, L = 40, R = 14, T = 22, B = 34;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const xs = { f: lin(280, 236, L, Wd - R), ticks: [276, 266, 256, 246, 236] }, ys = { f: lin(154, 172, H - B, T), ticks: [155, 160, 165, 170] };
+  el('rect', { x: L, width: Wd - L - R, y: ys.f(168), height: ys.f(160) - ys.f(168), fill: 'rgba(15,138,99,.08)' }, svg);
+  axes(svg, Wd, H, L, B, T, R, xs, ys, u.pace, v => v, 'allure de la rép. (/km) →', 'FC fin de rép. (bpm)');
+  const reps = subs.flatMap(s => s.reps.map(r => ({ x: r.pace, y: r.hr, old: isOld(s), s })));
+  reps.forEach(p => { const cx = xs.f(p.x) + ((reps.indexOf(p) * 37) % 9 - 4) / 3, cy = ys.f(p.y);
+    if (p.old) el('circle', { cx, cy, r: 2.6, fill: 'var(--ochre)', 'fill-opacity': .7 }, svg);
+    else el('rect', { x: cx - 2.4, y: cy - 2.4, width: 4.8, height: 4.8, fill: 'var(--blue)', 'fill-opacity': .75 }, svg); });
+  const mo = reps.filter(p => p.old), mn = reps.filter(p => !p.old);
+  const c = (a) => [a.reduce((s, p) => s + p.x, 0) / a.length, a.reduce((s, p) => s + p.y, 0) / a.length];
+  const [ox, oy] = c(mo), [nx, ny] = c(mn);
+  el('line', { x1: xs.f(ox), y1: ys.f(oy), x2: xs.f(nx), y2: ys.f(ny), stroke: 'var(--red)', 'stroke-width': 2, 'marker-end': 'url(#arr)' }, svg);
+  const defs = el('defs', {}, svg); const mk = el('marker', { id: 'arr', viewBox: '0 0 10 10', refX: 8, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto' }, defs); el('path', { d: 'M0,0 L10,5 L0,10 z', fill: 'var(--red)' }, mk);
+  txt(svg, xs.f(nx) - 4, ys.f(ny) - 40, 'même FC,', { class: 'hand-r', 'text-anchor': 'middle' });
+  txt(svg, xs.f(nx) - 4, ys.f(ny) - 22, 'allure plus rapide', { class: 'hand-r', 'text-anchor': 'middle' });
+  document.getElementById('phr-cap').innerHTML = `<b>${reps.length} répétitions</b>. Centre du nuage : ${u.pace(ox)}/km à ${Math.round(oy)} bpm en 2025, ${u.pace(nx)}/km à ${Math.round(ny)} bpm en 2026.`;
+})();
+
+// Fig 4 : PMC (deux graphiques, un seul axe chacun)
+(() => {
+  const fit = J.fitness.filter((_, i) => i % 2 === 0);
+  const draw = (id, H, lo, hi, ticks, series, band) => {
+    const svg = document.getElementById(id), Wd = 760, L = 34, R = 10, T = 12, B = 20;
+    svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+    const x = lin(0, fit.length - 1, L, Wd - R), y = lin(lo, hi, H - B, T);
+    if (band) el('rect', { x: L, width: Wd - L - R, y: y(band[1]), height: y(band[0]) - y(band[1]), fill: 'rgba(210,63,48,.07)' }, svg);
+    ticks.forEach(v => { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v), stroke: v === 0 ? 'var(--ink)' : 'var(--grid-2)', 'stroke-width': v === 0 ? 1 : .7 }, svg); txt(svg, L - 5, y(v) + 4, v, { 'text-anchor': 'end' }); });
+    series.forEach(s => el('path', { d: fit.map((p, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(p[s.k]).toFixed(1)).join(''), fill: 'none', stroke: s.c, 'stroke-width': s.w || 2 }, svg));
+    let lm = ''; fit.forEach((p, i) => { const m = p.date.slice(0, 7); if (m !== lm) { lm = m; if (['01', '04', '07', '10'].includes(m.slice(5))) txt(svg, x(i), H - 4, u.date(p.date, { month: 'short', year: '2-digit' }), { 'text-anchor': 'middle' }); } });
+    const cross = el('line', { y1: T, y2: H - B, stroke: 'var(--ink-3)', 'stroke-dasharray': '2 2', visibility: 'hidden' }, svg);
+    const hit = el('rect', { x: L, y: T, width: Wd - L - R, height: H - B - T, fill: 'transparent' }, svg);
+    hit.addEventListener('pointermove', e => { const r = svg.getBoundingClientRect(); const i = Math.max(0, Math.min(fit.length - 1, Math.round(((e.clientX - r.left) / r.width * Wd - L) / (Wd - L - R) * (fit.length - 1))));
+      cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible');
+      tip.innerHTML = `${u.date(fit[i].date, { day: 'numeric', month: 'short', year: 'numeric' })}<br>CTL ${fit[i].ctl} · ATL ${fit[i].atl} · TSB ${fit[i].tsb}`; tip.hidden = false; tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px'; });
+    hit.addEventListener('pointerleave', () => { tip.hidden = true; cross.setAttribute('visibility', 'hidden'); });
+    return { x, y, svg };
+  };
+  const a = draw('pmc', 200, 20, 110, [20, 50, 80, 110], [{ k: 'atl', c: 'var(--ink-3)', w: 1.3 }, { k: 'ctl', c: 'var(--ink)', w: 2.2 }]);
+  const races = J.races.filter(r => r.result);
+  races.forEach(r => { const i = fit.findIndex(p => p.date >= r.date); if (i < 0) return; el('line', { x1: a.x(i), x2: a.x(i), y1: 12, y2: 180, stroke: 'var(--red)', 'stroke-dasharray': '2 3' }, a.svg); txt(a.svg, a.x(i) + 4, 24, r.dist, { class: 'hand-r' }); });
+  const b = draw('tsb', 120, -30, 30, [-30, 0, 30], [{ k: 'tsb', c: 'var(--red)', w: 1.8 }], [-30, -25]);
+  txt(b.svg, 760 - 12, b.y(-26) - 2, 'zone de surcharge', { 'text-anchor': 'end', style: 'font:11px var(--f-type);fill:var(--red)' });
+})();
+
+// Observations (texte généré à partir des données)
+(() => {
+  const s = cur.lastSubt; const fast = s.reps.filter(r => r.pace < s.target - 3).length;
+  const last4 = done.slice(-4);
+  const sp4 = last4.reduce((a, w) => a + w.subtPct, 0) / 4;
+  const items = [
+    [`TSB ${f.tsb.toFixed(0)} : charge productive, pas de signal de surcharge.`, ''],
+    [`Sous-seuil ${(sp4 * 100).toFixed(0)} % du temps sur 4 sem. → dans la fourchette NSA.`, ''],
+    [fast ? `${fast} rép. trop rapide(s) le ${u.date(s.date)} : attention à la dérive d'allure !` : `Séance du ${u.date(s.date)} bien régulière.`, fast ? 'red' : ''],
+    [`Découplage SL ${lr.decoupling} % (< 5 %) : la base aérobie tient l'allure marathon.`, ''],
+    [`Marathon prédit ${u.dur(pm.sec)}, objectif ${cur.plan.race.goal} : encore ${Math.round((pm.sec - 11520))} s à trouver. Volume de SL à surveiller.`, 'red'],
+    [`Prochain test 5 km : vers le ${u.date(u.iso(u.addDays(u.d(J.timeTrials.at(-1).date), 42)), { day: 'numeric', month: 'long' })}.`, ''],
+  ];
+  document.getElementById('notes').innerHTML = items.map(([t, c]) => `<p class="hand ${c}">${t}</p>`).join('');
+})();
+
+// Tab 2 : registre
+(() => {
+  const rows = J.plans.map(p => {
+    const wk = J.weeks.filter(w => w.plan === p.id && w.status !== 'planned');
+    const km = wk.reduce((a, w) => a + w.km, 0), n = wk.length || 1;
+    const sp = wk.reduce((a, w) => a + w.subtPct, 0) / n;
+    const fitEnd = J.fitness.filter(x => x.date <= p.end).at(-1);
+    const toSec = t => t.split(':').reverse().reduce((a, v, i) => a + (+v) * 60 ** i, 0);
+    const delta = p.race && p.race.result ? toSec(p.race.result) - toSec(p.race.goal) : null;
+    return `<tr><td class="l">${u.date(p.start, { day: '2-digit', month: '2-digit', year: '2-digit' })} → ${u.date(p.end, { day: '2-digit', month: '2-digit', year: '2-digit' })}</td><td class="l">${p.name}</td>
+      <td>${planWeeksLabel(p)}</td><td>${Math.round(km / n)}</td><td>${(sp * 100).toFixed(0)}%</td><td>${fitEnd ? fitEnd.ctl.toFixed(0) : '–'}</td>
+      <td class="l">${p.race ? p.race.name : '–'}</td><td>${p.race ? p.race.goal : '–'}</td><td>${p.race ? (p.race.result || 'à venir') : '–'}</td>
+      <td class="${delta == null ? '' : delta <= 0 ? 'flag-ok' : 'flag-bad'}">${delta == null ? '' : (delta <= 0 ? '−' : '+') + u.dur(Math.abs(delta))}</td></tr>`;
+  });
+  function planWeeksLabel(p) { return Math.round((u.d(p.end) - u.d(p.start)) / 864e5 / 7) + ' sem.'; }
+  document.getElementById('races').innerHTML = `<tr><th class="l">Période</th><th class="l">Plan</th><th>Durée</th><th>km / sem.</th><th>% SS</th><th>CTL fin</th><th class="l">Course</th><th>Objectif</th><th>Résultat</th><th>Écart</th></tr>` + rows.join('');
+})();
+})();
+</script>

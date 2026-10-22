@@ -1,0 +1,372 @@
+<title>Jog Piste</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800;900&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout : un stade. Tableau d'affichage en tête, l'ovale du plan au centre, la semaine en couloirs, la séance en feuille de résultats. Thème unique sombre (bleu piste). */
+:root {
+  color-scheme: dark;
+  --bg: #071633; --track: #0d2650; --track-2: #12306150; --lane: rgba(255, 255, 255, .18); --chalk: #f4f6fb;
+  --ink: #f4f6fb; --ink-2: #b6c3dc; --ink-3: #7d8db0; --led: #ffc629; --led-dim: #4a3d12;
+  --z-easy: #5b82c9; --z-mp: #1a9e85; --z-subt: #b88800; --z-hard: #d9539a;
+  --good: #38c98a; --warn: #ffb547; --bad: #ff6b6b;
+  --f-disp: "Big Shoulders Display", Impact, "Arial Narrow", sans-serif;
+  --f-cond: "Barlow Semi Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--f-body);
+  background-image: repeating-linear-gradient(90deg, transparent 0 119px, rgba(255,255,255,.025) 119px 120px); }
+.wrap { max-width: 1360px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 40px); padding-block: 20px 60px; display: grid; gap: 22px; }
+.num { font-variant-numeric: tabular-nums; }
+h2 { margin: 0; font: 800 22px/1 var(--f-disp); letter-spacing: .06em; text-transform: uppercase; }
+h2 small { font: 500 13px var(--f-cond); letter-spacing: .04em; color: var(--ink-3); margin-left: 10px; text-transform: none; }
+.card { background: var(--track); border-radius: 4px; padding: 18px 20px 20px; display: grid; gap: 14px; align-content: start; min-width: 0; position: relative;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.card > header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; border-bottom: 2px solid var(--lane); padding-bottom: 10px; }
+.tag { font: 600 12px var(--f-cond); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.sample { font: 600 11px var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--led); border: 1px solid var(--led-dim); padding: 3px 8px; }
+
+/* Tableau d'affichage */
+.board { background: #050c1c; border: 3px solid #1b2b4c; border-radius: 6px; padding: 16px 22px; display: grid; grid-template-columns: auto 1fr; gap: 10px 36px; align-items: center;
+  background-image: radial-gradient(rgba(255,198,41,.07) 1px, transparent 1.2px); background-size: 6px 6px; }
+.board .who { display: grid; gap: 4px; }
+.board .who b { font: 900 34px/1 var(--f-disp); letter-spacing: .04em; text-transform: uppercase; }
+.board .who span { font: 500 14px var(--f-cond); color: var(--ink-2); letter-spacing: .05em; text-transform: uppercase; }
+.cells { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; }
+.cell { padding: 4px 16px; border-left: 1px solid #1b2b4c; display: grid; gap: 2px; }
+.cell .l { font: 600 11.5px var(--f-cond); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.cell .v { font: 800 44px/1 var(--f-disp); color: var(--led); letter-spacing: .02em; text-shadow: 0 0 14px rgba(255,198,41,.35); }
+.cell .v.w { color: var(--chalk); text-shadow: none; }
+.cell .s { font: 500 13px var(--f-cond); color: var(--ink-2); }
+
+.row { display: grid; gap: 22px; }
+.r-oval { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+.r-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.r-3 { grid-template-columns: minmax(0, 5fr) minmax(0, 4fr) minmax(0, 4fr); }
+
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font: 500 12px var(--f-cond); fill: var(--ink-3); }
+
+/* Couloirs */
+.lanes { display: grid; border-top: 2px solid var(--chalk); border-bottom: 2px solid var(--chalk); }
+.lane { display: grid; grid-template-columns: 44px 120px minmax(0, 1fr) 96px; align-items: center; min-height: 46px; border-bottom: 2px solid var(--lane); }
+.lane:last-child { border-bottom: 0; }
+.lane .no { font: 900 30px var(--f-disp); color: var(--chalk); text-align: center; opacity: .9; }
+.lane .dy { font: 600 14px var(--f-cond); text-transform: uppercase; letter-spacing: .05em; }
+.lane .dy small { display: block; color: var(--ink-3); font-weight: 500; font-size: 12px; letter-spacing: 0; text-transform: none; }
+.lane .run { position: relative; height: 22px; display: flex; gap: 2px; align-items: stretch; min-width: 0; }
+.lane .run span { border-radius: 2px; }
+.lane .run.planned span { background: transparent !important; border: 1.5px dashed var(--ink-3); }
+.lane .run.planned.today span { border-color: var(--led); }
+.lane .run em { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font: 600 12.5px var(--f-cond); font-style: normal; color: var(--chalk); white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,.6); pointer-events: none; }
+.lane .km { font: 700 20px var(--f-disp); text-align: right; padding-right: 6px; }
+.lane .km small { font: 500 12px var(--f-cond); color: var(--ink-3); }
+.lane.today { background: linear-gradient(90deg, rgba(255,198,41,.10), transparent 70%); }
+.lane.today .no { color: var(--led); }
+
+/* Feuille de résultats */
+table { width: 100%; border-collapse: collapse; font: 500 15px var(--f-cond); }
+th { font: 600 11.5px var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 0 8px 6px 0; }
+td { padding: 7px 8px 7px 0; border-top: 1px solid var(--lane); }
+td.r, th.r { text-align: right; }
+td .pos { font: 800 20px var(--f-disp); color: var(--chalk); }
+.diff.fast { color: var(--bad); font-weight: 700; }
+.diff.ok { color: var(--good); }
+.hrbar { height: 8px; background: rgba(255,255,255,.08); border-radius: 1px; overflow: hidden; }
+.hrbar b { display: block; height: 100%; background: var(--z-subt); }
+.tablebox { overflow-x: auto; }
+
+.legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font: 500 13px var(--f-cond); color: var(--ink-2); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -2px; }
+
+.gauge-v { font: 900 64px/1 var(--f-disp); }
+.gauge-v small { font: 600 16px var(--f-cond); color: var(--ink-3); margin-left: 6px; }
+.status { display: inline-flex; gap: 6px; align-items: center; font: 700 13px var(--f-cond); letter-spacing: .08em; text-transform: uppercase; padding: 3px 9px; border: 1.5px solid currentColor; width: fit-content; }
+.status.good { color: var(--good); } .status.warn { color: var(--warn); } .status.bad { color: var(--bad); }
+.small { font: 500 13.5px var(--f-cond); color: var(--ink-2); }
+
+.records { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; }
+.rec { background: rgba(0,0,0,.18); padding: 12px 12px 14px; display: grid; gap: 4px; }
+.rec .d { font: 800 15px var(--f-disp); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+.rec .t { font: 800 34px/1 var(--f-disp); color: var(--led); }
+.rec .p { font: 500 13px var(--f-cond); color: var(--ink-2); }
+.rec .bar { height: 4px; background: rgba(255,255,255,.1); }
+.rec .bar b { display: block; height: 100%; background: var(--chalk); }
+
+#tip { position: fixed; pointer-events: none; z-index: 10; background: #050c1c; color: var(--chalk); border: 1px solid var(--led); font: 500 13px/1.4 var(--f-cond); padding: 7px 10px; max-width: 240px; transform: translate(-50%, calc(-100% - 12px)); }
+footer { font: 500 13px var(--f-cond); color: var(--ink-3); }
+button:focus-visible { outline: 2px solid var(--led); }
+
+@media (max-width: 1080px) {
+  .r-oval, .r-3, .r-2 { grid-template-columns: minmax(0, 1fr); }
+  .board { grid-template-columns: minmax(0, 1fr); }
+  .cells { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 12px; }
+}
+@media (max-width: 620px) {
+  .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cell .v { font-size: 34px; }
+  .lane { grid-template-columns: 30px 82px minmax(0, 1fr) 64px; }
+  .lane .no { font-size: 22px; }
+  .records { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+</style>
+
+<div class="wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <span style="font:900 26px var(--f-disp);letter-spacing:.14em">JOG<span style="color:var(--led)">/</span>PISTE</span>
+    <span class="sample">Données d'exemple</span>
+  </div>
+
+  <div class="board" role="region" aria-label="Tableau d'affichage">
+    <div class="who"><b>Athlète exemple</b><span id="b-plan"></span></div>
+    <div class="cells" id="cells"></div>
+  </div>
+
+  <div class="row r-oval">
+    <div class="card">
+      <header><h2>Le plan, un tour de piste<small id="oval-sub"></small></h2><span class="tag">1 segment = 1 semaine</span></header>
+      <svg id="oval" role="img" aria-label="Progression dans le plan en cours, représentée comme un tour de piste"></svg>
+      <div class="legend"><span><i style="background:var(--chalk)"></i>Semaine faite</span><span><i style="background:var(--led)"></i>En cours</span><span><i style="border:1.5px dashed var(--ink-3)"></i>À venir</span><span><i style="background:var(--ink-3)"></i>Semaine allégée</span></div>
+    </div>
+    <div class="card">
+      <header><h2>Charge</h2><span class="tag">ACWR 1 : 4 semaines</span></header>
+      <div style="display:flex;align-items:end;gap:18px;flex-wrap:wrap"><div class="gauge-v num" id="acwr-v"></div><span id="acwr-s"></span></div>
+      <svg id="acwr" role="img" aria-label="Ratio de charge aiguë sur chronique avec la zone recommandée"></svg>
+      <div class="small" id="acwr-n"></div>
+      <svg id="ctl" role="img" aria-label="Forme de fond CTL sur 16 semaines"></svg>
+    </div>
+  </div>
+
+  <div class="card">
+    <header><h2>Couloirs de la semaine<small id="wk-sub"></small></h2>
+      <div class="legend" id="z-legend"></div></header>
+    <div class="lanes" id="lanes"></div>
+  </div>
+
+  <div class="row r-3">
+    <div class="card">
+      <header><h2>Feuille de résultats<small id="sh-sub"></small></h2><span class="tag" id="sh-lac"></span></header>
+      <div class="tablebox"><table id="sheet"></table></div>
+      <div class="small">Rouge = répétition plus rapide que la cible de plus de 3 s/km. En NSA, la régularité prime : finir chaque séance avec de la réserve.</div>
+    </div>
+    <div class="card">
+      <header><h2>Chronos 5 km</h2><span class="tag">Test toutes les 5–7 sem.</span></header>
+      <svg id="tt" role="img" aria-label="Temps des tests 5 km successifs"></svg>
+      <div class="small" id="tt-n"></div>
+    </div>
+    <div class="card">
+      <header><h2>Sous-seuil</h2><span class="tag">Minutes / semaine</span></header>
+      <svg id="subt" role="img" aria-label="Minutes de sous-seuil par semaine sur 16 semaines"></svg>
+      <div class="small" id="subt-n"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <header><h2>Kilomètres par semaine, toutes saisons<small>part sous-seuil en jaune</small></h2><span class="tag" id="km-tot"></span></header>
+    <svg id="km" role="img" aria-label="Kilomètres hebdomadaires sur toutes les saisons"></svg>
+  </div>
+
+  <div class="card">
+    <header><h2>Records et prédictions</h2><span class="tag">Prédit d'après le test du 26 sept.</span></header>
+    <div class="records" id="records"></div>
+  </div>
+
+  <footer>Maquette B · « Piste ». Valeurs générées pour l'exemple. Prédictions Riegel (exposant 1,06), marathon corrigé selon le volume des sorties longues.</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script src="data.js"></script>
+<script>
+(() => {
+const J = window.JOG, u = J.u, NS = 'http://www.w3.org/2000/svg';
+const ZC = { easy: 'var(--z-easy)', mp: 'var(--z-mp)', subt: 'var(--z-subt)', hard: 'var(--z-hard)' };
+const el = (t, a = {}, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const txt = (p, x, y, s, a = {}) => { const t = el('text', { x, y, ...a }, p); t.textContent = s; return t; };
+const lin = (d0, d1, r0, r1) => (v) => r0 + (v - d0) / (d1 - d0) * (r1 - r0);
+const tip = document.getElementById('tip');
+const bindTip = (n, h) => { n.addEventListener('pointermove', e => { tip.innerHTML = h; tip.hidden = false; tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px'; }); n.addEventListener('pointerleave', () => tip.hidden = true); };
+const cur = J.current, cw = cur.week, f = cur.fitness;
+const done = J.weeks.filter(w => w.status === 'done'), last = done[done.length - 1];
+const pm = J.predictions.find(p => p.dist === 'Marathon');
+
+// Tableau d'affichage
+document.getElementById('b-plan').textContent = `${cur.plan.name} · ${u.date(cur.plan.race.date, { day: 'numeric', month: 'long', year: 'numeric' })}`;
+document.getElementById('cells').innerHTML = [
+  { l: 'Compte à rebours', v: 'J-' + cur.daysToRace, s: 'jusqu\'au marathon' },
+  { l: 'Semaine', v: `${cw.wInPlan}<span style="font-size:.5em;color:var(--ink-3)">/${cw.nWeeks}</span>`, s: 'bloc construction', w: true },
+  { l: 'Objectif', v: cur.plan.race.goal.slice(0, 4), s: `soit ${u.pace(3 * 3600 / 42.195 + 12 * 60 / 42.195)}/km`, w: true },
+  { l: 'Prédit', v: u.dur(pm.sec).slice(0, 4), s: `${u.dur(pm.sec)} · ${u.pace(pm.sec / 42.195)}/km` },
+  { l: 'Fraîcheur', v: (f.tsb > 0 ? '+' : '') + Math.round(f.tsb), s: `CTL ${Math.round(f.ctl)} · ATL ${Math.round(f.atl)}`, w: true },
+].map(c => `<div class="cell"><span class="l">${c.l}</span><span class="v num ${c.w ? 'w' : ''}">${c.v}</span><span class="s">${c.s}</span></div>`).join('');
+
+// Ovale : 16 semaines en segments le long d'un stade
+(() => {
+  const svg = document.getElementById('oval');
+  const Wd = 760, H = 330; svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const wk = J.weeks.filter(w => w.plan === cw.plan);
+  const cx = Wd / 2, cy = H / 2 - 4, r = 108, s = 250; // demi-droite = s/2
+  // stade : 4 couloirs
+  for (let k = 0; k < 4; k++) {
+    const rr = r + k * 11;
+    el('path', { d: `M${cx - s / 2},${cy - rr} H${cx + s / 2} A${rr},${rr} 0 0 1 ${cx + s / 2},${cy + rr} H${cx - s / 2} A${rr},${rr} 0 0 1 ${cx - s / 2},${cy - rr} Z`, fill: 'none', stroke: 'var(--lane)', 'stroke-width': 1.5 }, svg);
+  }
+  el('path', { d: `M${cx - s / 2},${cy - r + 20} H${cx + s / 2} A${r - 20},${r - 20} 0 0 1 ${cx + s / 2},${cy + r - 20} H${cx - s / 2} A${r - 20},${r - 20} 0 0 1 ${cx - s / 2},${cy - r + 20} Z`, fill: 'rgba(26,158,133,.12)' }, svg);
+  // tracé de mesure pour placer les segments
+  const R = r + 16;
+  const path = el('path', { d: `M${cx},${cy + R} H${cx - s / 2} A${R},${R} 0 0 1 ${cx - s / 2},${cy - R} H${cx + s / 2} A${R},${R} 0 0 1 ${cx + s / 2},${cy + R} Z`, fill: 'none' }, svg);
+  const Lp = path.getTotalLength(), n = wk.length, gap = 5;
+  wk.forEach((w, i) => {
+    const a = i / n * Lp + gap / 2, b = (i + 1) / n * Lp - gap / 2;
+    const pts = []; for (let t = a; t <= b; t += 4) { const p = path.getPointAtLength(t); pts.push(`${p.x.toFixed(1)},${p.y.toFixed(1)}`); }
+    const pb = path.getPointAtLength(b); pts.push(`${pb.x.toFixed(1)},${pb.y.toFixed(1)}`);
+    const isCur = w.status === 'current', isDone = w.status === 'done';
+    const col = isCur ? 'var(--led)' : isDone ? (w.recov ? 'var(--ink-3)' : 'var(--chalk)') : 'var(--ink-3)';
+    const seg = el('polyline', { points: pts.join(' '), fill: 'none', stroke: col, 'stroke-width': isCur ? 16 : 12, 'stroke-linecap': 'butt', 'stroke-dasharray': isDone || isCur ? '' : '4 3', opacity: isDone || isCur ? 1 : .8 }, svg);
+    const mid = path.getPointAtLength((a + b) / 2);
+    const out = { x: mid.x + (mid.x - cx) * .0, y: mid.y };
+    const dx = mid.x - cx, dy = mid.y - cy, len = Math.hypot(dx, dy) || 1;
+    txt(svg, mid.x + dx / len * 26, mid.y + dy / len * 26 + 4, 'S' + (i + 1), { 'text-anchor': 'middle', style: `font:700 12px var(--f-cond);fill:${isCur ? 'var(--led)' : 'var(--ink-2)'}` });
+    bindTip(seg, `<b>Semaine ${i + 1}</b> · du ${u.date(w.start)}<br>${isDone ? w.km + ' km · charge ' + w.load : 'Prévu ' + w.plannedKm + ' km'}${w.recov ? '<br>Semaine allégée' : ''}${w.taper ? '<br>Affûtage' : ''}`);
+  });
+  // ligne d'arrivée + coureur
+  el('line', { x1: cx, x2: cx, y1: cy + r - 4, y2: cy + r + 40, stroke: 'var(--chalk)', 'stroke-width': 3 }, svg);
+  txt(svg, cx + 6, cy + r + 52 - 6, 'ARRIVÉE · 6 DÉC.', { style: 'font:800 13px var(--f-disp);letter-spacing:.1em;fill:var(--chalk)' });
+  const prog = (cw.wInPlan - 1 + ((u.d(J.today) - u.d(cw.start)) / 864e5 + .5) / 7) / n;
+  const pr = path.getPointAtLength(prog * Lp);
+  el('circle', { cx: pr.x, cy: pr.y, r: 11, fill: 'var(--led)', stroke: 'var(--bg)', 'stroke-width': 3 }, svg);
+  // centre
+  txt(svg, cx, cy - 18, Math.round(prog * 100) + ' %', { 'text-anchor': 'middle', style: 'font:900 54px var(--f-disp);fill:var(--chalk)' });
+  txt(svg, cx, cy + 8, 'DU PLAN PARCOURU', { 'text-anchor': 'middle', style: 'font:700 13px var(--f-cond);letter-spacing:.14em;fill:var(--ink-2)' });
+  const kmDone = wk.filter(w => w.status !== 'planned').reduce((a, w) => a + w.km, 0), kmAll = wk.reduce((a, w) => a + (w.status === 'planned' ? w.plannedKm : w.km), 0);
+  txt(svg, cx, cy + 32, `${Math.round(kmDone)} / ${Math.round(kmAll)} km`, { 'text-anchor': 'middle', style: 'font:600 15px var(--f-cond);fill:var(--ink-2)' });
+  document.getElementById('oval-sub').textContent = `départ le ${u.date(cur.plan.start, { day: 'numeric', month: 'long' })}`;
+})();
+
+// Charge : ACWR + CTL
+(() => {
+  const a = last.acwr;
+  document.getElementById('acwr-v').innerHTML = a.toFixed(2) + '<small>sem. dernière</small>';
+  const st = a < .8 ? ['warn', 'Sous-charge'] : a <= 1.3 ? ['good', 'Zone sûre'] : a <= 1.5 ? ['warn', 'Vigilance'] : ['bad', 'Pic de charge'];
+  document.getElementById('acwr-s').innerHTML = `<span class="status ${st[0]}">${st[1]}</span>`;
+  const svg = document.getElementById('acwr'), Wd = 520, H = 92; svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const wk = done.slice(-12), L = 30, R = 6, T = 6, B = 18;
+  const y = lin(.5, 1.7, H - B, T), bw = (Wd - L - R) / wk.length;
+  el('rect', { x: L, width: Wd - L - R, y: y(1.3), height: y(.8) - y(1.3), fill: 'rgba(56,201,138,.12)' }, svg);
+  [.8, 1.3, 1.5].forEach(v => { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v), stroke: v === 1.5 ? 'var(--bad)' : 'var(--lane)', 'stroke-dasharray': v === 1.5 ? '3 3' : '' }, svg); txt(svg, L - 4, y(v) + 4, v.toFixed(1), { 'text-anchor': 'end' }); });
+  const pts = wk.map((w, i) => [L + i * bw + bw / 2, y(w.acwr)]);
+  el('path', { d: pts.map((p, i) => (i ? 'L' : 'M') + p.join(',')).join(''), fill: 'none', stroke: 'var(--chalk)', 'stroke-width': 2 }, svg);
+  wk.forEach((w, i) => { const c = el('circle', { cx: pts[i][0], cy: pts[i][1], r: i === wk.length - 1 ? 6 : 4, fill: i === wk.length - 1 ? 'var(--led)' : 'var(--chalk)', stroke: 'var(--track)', 'stroke-width': 2 }, svg);
+    bindTip(c, `Sem. du ${u.date(w.start)}<br>ACWR ${w.acwr} · charge ${w.load}`); if (i % 3 === 0) txt(svg, pts[i][0], H - 3, u.date(w.start), { 'text-anchor': 'middle' }); });
+  document.getElementById('acwr-n').textContent = `Bande verte 0,8–1,3 : progression maîtrisée. Monotonie (Foster) ${last.monotony} et contrainte ${last.strain} : des valeurs hautes sont attendues avec une semaine NSA répétitive.`;
+  const s2 = document.getElementById('ctl'), H2 = 120; s2.setAttribute('viewBox', `0 0 ${Wd} ${H2}`);
+  const fit = J.fitness.slice(-112), x2 = lin(0, fit.length - 1, L, Wd - R), y2 = lin(30, 100, H2 - 18, 18);
+  [40, 70, 100].forEach(v => { el('line', { x1: L, x2: Wd - R, y1: y2(v), y2: y2(v), stroke: 'var(--lane)', 'stroke-width': .6 }, s2); txt(s2, L - 4, y2(v) + 4, v, { 'text-anchor': 'end' }); });
+  const dl = fit.map((p, i) => (i ? 'L' : 'M') + x2(i).toFixed(1) + ',' + y2(p.ctl).toFixed(1)).join('');
+  el('path', { d: dl + `L${x2(fit.length - 1)},${y2(30)}L${x2(0)},${y2(30)}Z`, fill: 'rgba(91,130,201,.25)' }, s2);
+  el('path', { d: dl, fill: 'none', stroke: 'var(--z-easy)', 'stroke-width': 2 }, s2);
+  el('circle', { cx: x2(fit.length - 1), cy: y2(f.ctl), r: 5, fill: 'var(--chalk)' }, s2);
+  txt(s2, L, 12, 'FORME DE FOND (CTL) · 16 SEMAINES', { style: 'font:700 11.5px var(--f-cond);letter-spacing:.1em;fill:var(--ink-2)' });
+  txt(s2, x2(fit.length - 1) - 8, y2(f.ctl) - 9, Math.round(f.ctl), { 'text-anchor': 'end', style: 'font:800 16px var(--f-disp);fill:var(--chalk)' });
+  const hit = el('rect', { x: L, y: 18, width: Wd - L - R, height: H2 - 36, fill: 'transparent' }, s2);
+  hit.addEventListener('pointermove', e => { const r = s2.getBoundingClientRect(); const i = Math.max(0, Math.min(fit.length - 1, Math.round(((e.clientX - r.left) / r.width * Wd - L) / (Wd - L - R) * (fit.length - 1)))); tip.innerHTML = `${u.date(fit[i].date)}<br>CTL ${fit[i].ctl} · ATL ${fit[i].atl} · TSB ${fit[i].tsb}`; tip.hidden = false; tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px'; });
+  hit.addEventListener('pointerleave', () => tip.hidden = true);
+})();
+
+// Couloirs
+(() => {
+  document.getElementById('z-legend').innerHTML = J.ZONES.map(z => `<span><i style="background:${ZC[z]}"></i>${J.ZONE_LABEL[z]}</span>`).join('');
+  const maxMin = Math.max(...cur.days.map(d0 => d0.min), 150);
+  const tot = cur.days.reduce((a, d0) => a + d0.km, 0);
+  document.getElementById('wk-sub').textContent = `semaine ${cw.wInPlan} · ${tot.toFixed(0)} km prévus`;
+  document.getElementById('lanes').innerHTML = cur.days.map((d0, i) => {
+    const isT = d0.date === J.today;
+    const segs = d0.min ? J.ZONES.filter(z => d0.z[z]).map(z => `<span style="flex:0 0 calc(${d0.z[z] / maxMin * 100}% - 2px);background:${ZC[z]}"></span>`).join('') : '';
+    const lab = d0.min ? d0.label + (d0.detail && d0.detail.target ? ` · ${u.pace(d0.detail.target)}/km` : '') : 'Repos';
+    return `<div class="lane ${isT ? 'today' : ''}"><div class="no">${i + 1}</div>
+      <div class="dy">${u.dowShort[d0.dow]} ${u.d(d0.date).getDate()}<small>${d0.done ? 'Fait' : isT ? "Aujourd'hui" : 'Prévu'}</small></div>
+      <div class="run ${d0.done ? '' : 'planned'} ${isT ? 'today' : ''}" title="${lab}">${segs}<em>${lab}</em></div>
+      <div class="km num">${d0.km ? d0.km.toFixed(1) : '–'}<small> km</small></div></div>`;
+  }).join('');
+})();
+
+// Feuille de résultats
+(() => {
+  const s = cur.lastSubt;
+  document.getElementById('sh-sub').textContent = `${s.fmt.replace('x', '×')}' · ${u.date(s.date, { weekday: 'short', day: 'numeric', month: 'short' })}`;
+  document.getElementById('sh-lac').textContent = s.lactate ? `Lactate ${s.lactate} mmol/L` : 'Lactate non mesuré';
+  document.getElementById('sheet').innerHTML = `<tr><th>Rép.</th><th class="r">Allure</th><th class="r">Écart</th><th>FC fin</th></tr>` +
+    s.reps.map((r, i) => { const df = r.pace - s.target, cls = df < -3 ? 'fast' : 'ok';
+      return `<tr><td><span class="pos">${i + 1}</span></td><td class="r num">${u.pace(r.pace)}</td><td class="r num diff ${cls}">${df > 0 ? '+' : df < 0 ? '−' : '±'}${Math.abs(df)} s</td>
+      <td><div style="display:flex;gap:8px;align-items:center"><div class="hrbar" style="flex:1"><b style="width:${(r.hr - 150) / 25 * 100}%"></b></div><span class="num">${r.hr}</span></div></td></tr>`; }).join('') +
+    `<tr><td class="small">Cible</td><td class="r num" style="color:var(--led)">${u.pace(s.target)}</td><td></td><td class="small">bande ${J.athlete.subtHrBand.join('–')} bpm</td></tr>`;
+})();
+
+// Chronos 5 km
+(() => {
+  const svg = document.getElementById('tt'), Wd = 400, H = 220, L = 46, R = 14, T = 20, B = 26;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const tt = J.timeTrials, lo = 1160, hi = 1280;
+  const t0 = u.d(tt[0].date).getTime(), t1 = u.d(J.today).getTime();
+  const x = v => L + (u.d(v).getTime() - t0) / (t1 - t0) * (Wd - L - R), y = lin(hi, lo, H - B, T);
+  [1170, 1200, 1230, 1260].forEach(v => { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v), stroke: 'var(--lane)', 'stroke-width': .6 }, svg); txt(svg, L - 6, y(v) + 4, u.dur(v), { 'text-anchor': 'end' }); });
+  let d = ''; tt.forEach((t, i) => { d += (i ? `H${x(t.date)}V${y(t.sec)}` : `M${x(t.date)},${y(t.sec)}`); });
+  el('path', { d, fill: 'none', stroke: 'var(--chalk)', 'stroke-width': 2 }, svg);
+  tt.forEach((t, i) => { const c = el('circle', { cx: x(t.date), cy: y(t.sec), r: 6, fill: t.kind === 'course' ? 'var(--led)' : 'var(--chalk)', stroke: 'var(--track)', 'stroke-width': 2 }, svg);
+    bindTip(c, `${u.date(t.date, { day: 'numeric', month: 'short', year: 'numeric' })}<br>${t.time} · ${t.kind === 'course' ? 'en course' : 'test'}`);
+    if (i === tt.length - 1 || i === 0) txt(svg, x(t.date) + (i ? -8 : 8), y(t.sec) + (i ? -10 : 18), t.time, { 'text-anchor': i ? 'end' : 'start', style: 'font:800 16px var(--f-disp);fill:var(--chalk)' }); });
+  [tt[0].date, '2026-03-01', J.today].forEach(dt => txt(svg, x(dt), H - 6, u.date(dt, { month: 'short', year: '2-digit' }), { 'text-anchor': 'middle' }));
+  document.getElementById('tt-n').textContent = `−${tt[0].sec - tt[tt.length - 1].sec} s en ${tt.length} chronos. Point jaune = course officielle. Prochain test conseillé vers le ${u.date(u.iso(u.addDays(u.d(tt[tt.length - 1].date), 42)), { day: 'numeric', month: 'long' })}.`;
+})();
+
+// Minutes sous-seuil
+(() => {
+  const svg = document.getElementById('subt'), Wd = 400, H = 220, L = 30, R = 6, T = 14, B = 26;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const wk = J.weeks.filter(w => w.plan === cw.plan);
+  const y = lin(0, 120, H - B, T), bw = (Wd - L - R) / wk.length;
+  [0, 40, 80, 120].forEach(v => { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v), stroke: 'var(--lane)', 'stroke-width': .6 }, svg); txt(svg, L - 4, y(v) + 4, v, { 'text-anchor': 'end' }); });
+  wk.forEach((w, i) => {
+    const planned = J.days.filter(d0 => d0.date >= w.start && d0.date < u.iso(u.addDays(u.d(w.start), 7))).reduce((a, d0) => a + d0.z.subt, 0);
+    const v = w.status === 'planned' ? planned : w.z.subt;
+    const r = el('rect', { x: L + i * bw + 2, y: y(v), width: bw - 4, height: y(0) - y(v), rx: 2,
+      fill: w.status === 'done' ? 'var(--z-subt)' : 'transparent', stroke: w.status === 'done' ? 'none' : w.status === 'current' ? 'var(--led)' : 'var(--ink-3)', 'stroke-dasharray': w.status === 'done' ? '' : '3 2' }, svg);
+    bindTip(r, `S${i + 1} · ${Math.round(v)} min${w.status === 'planned' ? ' prévues' : ''}`);
+    txt(svg, L + i * bw + bw / 2, H - 8, i + 1, { 'text-anchor': 'middle', style: 'font-size:10.5px' });
+  });
+  const avg = done.slice(-4).reduce((a, w) => a + w.z.subt, 0) / 4;
+  document.getElementById('subt-n').textContent = `Moyenne 4 semaines : ${Math.round(avg)} min, soit ${u.pct(done.slice(-4).reduce((a, w) => a + w.subtPct, 0) / 4)} du temps de course.`;
+})();
+
+// Km toutes saisons
+(() => {
+  const svg = document.getElementById('km'), wk = J.weeks, Wd = 1280, H = 220, L = 34, R = 6, T = 30, B = 30;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const y = lin(0, 110, H - B, T), bw = (Wd - L - R) / wk.length;
+  [0, 50, 100].forEach(v => { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v), stroke: 'var(--lane)', 'stroke-width': .6 }, svg); txt(svg, L - 4, y(v) + 4, v, { 'text-anchor': 'end' }); });
+  wk.forEach((w, i) => {
+    const xx = L + i * bw + 1, km = w.status === 'planned' ? w.plannedKm : w.km;
+    const subKm = w.min ? km * (w.z.subt / w.min) : 0;
+    const g = el('g', {}, svg);
+    if (w.status === 'planned') el('rect', { x: xx, y: y(km), width: bw - 2, height: y(0) - y(km), fill: 'none', stroke: 'var(--ink-3)', 'stroke-dasharray': '3 2', rx: 1.5 }, g);
+    else {
+      el('rect', { x: xx, y: y(km), width: bw - 2, height: y(subKm) - y(km) - 1, fill: 'var(--z-easy)', rx: 1.5 }, g);
+      el('rect', { x: xx, y: y(subKm), width: bw - 2, height: y(0) - y(subKm), fill: 'var(--z-subt)', rx: 1.5 }, g);
+    }
+    el('rect', { x: xx, y: T, width: bw, height: H - B - T, fill: 'transparent' }, g);
+    bindTip(g, `${w.planName} S${w.wInPlan} · ${u.date(w.start)}<br>${w.status === 'planned' ? 'Prévu ' : ''}${Math.round(km)} km${w.status !== 'planned' ? ` · sous-seuil ≈ ${subKm.toFixed(0)} km` : ''}`);
+  });
+  J.races.forEach(r => { const i = wk.findIndex(w => r.date >= w.start && r.date < u.iso(u.addDays(u.d(w.start), 7))); if (i < 0) return;
+    const xx = L + i * bw + bw / 2; el('line', { x1: xx, x2: xx, y1: T - 14, y2: H - B, stroke: 'var(--led)', 'stroke-dasharray': '2 3' }, svg);
+    txt(svg, xx, T - 18, `${r.dist.toUpperCase()} ${r.result || '?'}`, { 'text-anchor': i > wk.length - 5 ? 'end' : 'middle', style: 'font:800 13px var(--f-disp);letter-spacing:.06em;fill:var(--led)' }); });
+  J.plans.forEach(p => { const i = wk.findIndex(w => w.plan === p.id); const n = wk.filter(w => w.plan === p.id).length; if (n < 4) return;
+    txt(svg, L + i * bw, H - 8, p.name.toUpperCase(), { style: 'font:700 11px var(--f-cond);letter-spacing:.08em;fill:var(--ink-2)' }); });
+  const tot = done.reduce((a, w) => a + w.km, 0);
+  document.getElementById('km-tot').textContent = `${Math.round(tot)} km depuis sept. 2025`;
+})();
+
+// Records
+document.getElementById('records').innerHTML = J.predictions.map(p => `<div class="rec"><span class="d">${p.dist}</span><span class="t num">${u.dur(p.sec)}</span>
+  <span class="p">Record ${p.pr ? u.dur(p.pr) : '—'}${p.dist === 'Marathon' ? ' · objectif ' + cur.plan.race.goal : ''}</span>
+  <div class="bar" title="Préparation spécifique"><b style="width:${p.readiness * 100}%"></b></div><span class="p">Préparation spécifique ${Math.round(p.readiness * 100)} %</span></div>`).join('');
+})();
+</script>

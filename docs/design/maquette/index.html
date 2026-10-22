@@ -1,0 +1,1043 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jog Fjord</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : grille suisse 12 colonnes, beaucoup d'air ; la saison entière en bandeau, le détail en dessous. */
+:root {
+  --bg: #f4f7f9; --surface: #ffffff; --ink: #0f1e2b; --ink-2: #4b5d6c; --ink-3: #7c8b97;
+  --line: #dde5eb; --grid: #e9eef2; --accent: #2a6390;
+  --z-easy: #93b3c9; --z-mp: #5f8db0; --z-subt: #2a6390; --z-hard: #0f3150;
+  --good: #2f7d4f; --warn: #a66a00; --bad: #b3372f; --band: rgba(42, 99, 144, .10);
+  --f-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b141c; --surface: #0f1a24; --ink: #e6eef4; --ink-2: #a4b4c1; --ink-3: #6f8293;
+  --line: #1f2f3d; --grid: #172532; --accent: #8bb8d9;
+  --z-easy: #3b5f7a; --z-mp: #5c8bb0; --z-subt: #8bb8d9; --z-hard: #cfe5f4;
+  --good: #5cbf85; --warn: #e0a440; --bad: #ec7a70; --band: rgba(139, 184, 217, .12); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0b141c; --surface: #0f1a24; --ink: #e6eef4; --ink-2: #a4b4c1; --ink-3: #6f8293;
+  --line: #1f2f3d; --grid: #172532; --accent: #8bb8d9;
+  --z-easy: #3b5f7a; --z-mp: #5c8bb0; --z-subt: #8bb8d9; --z-hard: #cfe5f4;
+  --good: #5cbf85; --warn: #e0a440; --bad: #ec7a70; --band: rgba(139, 184, 217, .12); color-scheme: dark; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-display); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 48px); padding-block: 12px 48px; display: grid; gap: 28px; }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h2 { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.muted { color: var(--ink-3); }
+
+header.top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; justify-content: space-between; }
+.brand { display: flex; align-items: baseline; gap: 14px; }
+.brand b { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+.brand span { color: var(--ink-3); font-size: 14px; }
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.tabs button { font: inherit; font-size: 14px; border: 1px solid transparent; background: none; color: var(--ink-2); padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+.tabs button[aria-pressed="true"] { border-color: var(--line); background: var(--surface); color: var(--ink); font-weight: 600; }
+.tabs button:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sample { font-size: 12px; color: var(--ink-3); border: 1px dashed var(--line); padding: 3px 10px; border-radius: 999px; }
+
+.hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 40px; align-items: end; }
+.hero .eyebrow { color: var(--ink-3); font-size: 14px; }
+.hero h1 { font-size: clamp(34px, 4.6vw, 60px); line-height: 1; font-weight: 800; letter-spacing: -.035em; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p { margin: 14px 0 0; color: var(--ink-2); max-width: 46ch; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--ink); }
+.kpi { padding: 14px 16px 4px 0; display: grid; gap: 2px; align-content: start; }
+.kpi + .kpi { padding-left: 16px; border-left: 1px solid var(--line); }
+.kpi .l { font-size: 12.5px; color: var(--ink-2); }
+.kpi .v { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+.kpi .v small { font-size: 15px; font-weight: 500; color: var(--ink-3); }
+.kpi .s { font-size: 12.5px; color: var(--ink-3); }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; width: fit-content; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.good { color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); }
+.pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.pill.bad { color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
+
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); padding-block: 12px; margin-block: -12px; border-bottom: 1px solid var(--line); }
+.views { display: flex; gap: 2px; flex-wrap: wrap; }
+.views button { font: inherit; font-size: 15px; font-weight: 500; color: var(--ink-2); background: none; border: 0; padding: 8px 14px; border-radius: 8px 8px 0 0; cursor: pointer; }
+.views button:hover { background: var(--grid); color: var(--ink); }
+.views button[aria-selected="true"] { color: var(--ink); font-weight: 700; box-shadow: inset 0 -2px 0 var(--accent); }
+.views button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.settings { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 20px; }
+.fset { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.fset h3 { font-size: 15px; font-weight: 600; margin: 0; }
+.fset p.help { font-size: 12.5px; color: var(--ink-3); margin: 0; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; font-size: 14px; }
+.field small { grid-column: 1 / -1; color: var(--ink-3); font-size: 12px; }
+.field .in { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-3); }
+.field input { font: 500 14px var(--f-mono); width: 76px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); text-align: right; }
+.field input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+.ztable { width: 100%; font-size: 13px; }
+.ztable td, .ztable th { padding: 6px 8px 6px 0; }
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn { font: 600 14px var(--f-display); padding: 9px 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.top-r { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.view { display: grid; gap: 36px; }
+.kpi.link { cursor: pointer; border-radius: 6px; }
+.kpi.link:hover .l { color: var(--accent); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.kpi.link .l::after { content: " →"; color: var(--ink-3); }
+.week.list { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.week.list .day { grid-template-columns: 72px minmax(0, 1fr) auto; align-items: center; min-height: 0; padding: 9px 12px; gap: 4px 12px; }
+.week.list .day .dn { display: grid; gap: 0; }
+.week.list .day .bar { grid-column: 2 / 4; }
+section { display: grid; gap: 14px; min-width: 0; }
+.sec-head { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline; justify-content: space-between; }
+.sec-head p { margin: 0; color: var(--ink-3); font-size: 13.5px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.legend i.line { height: 2px; border-radius: 0; vertical-align: 3px; width: 14px; }
+
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { fill: var(--ink-3); font: 11px var(--f-mono); }
+.chart .grid line { stroke: var(--grid); }
+.chart .axis line { stroke: var(--line); }
+
+.g2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 48px; }
+.g3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+.panel { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.panel h3 { font-size: 16px; font-weight: 600; }
+.panel .big { font-size: 28px; font-weight: 700; letter-spacing: -.02em; }
+.panel .delta { font-size: 13px; color: var(--ink-2); }
+
+.week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.day { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 6px; align-content: start; min-height: 128px; }
+.day.today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.day.rest { background: transparent; }
+.day.rest .lb { color: var(--ink-3); font-weight: 500; }
+.day .dn { font-size: 12px; color: var(--ink-3); display: flex; justify-content: space-between; }
+.day .lb { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.day .mt { font-size: 12px; color: var(--ink-2); }
+.day .bar { height: 4px; border-radius: 2px; background: var(--grid); display: flex; overflow: hidden; gap: 1px; }
+
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-weight: 500; color: var(--ink-3); font-size: 12px; padding: 0 12px 8px 0; border-bottom: 1px solid var(--line); }
+td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--grid); vertical-align: middle; }
+td.r, th.r { text-align: right; }
+.meter { height: 6px; background: var(--grid); border-radius: 3px; overflow: hidden; min-width: 80px; }
+.meter b { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.tablebox { overflow-x: auto; }
+
+.log { max-height: 560px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.log table { font-size: 13.5px; }
+.log th { position: sticky; top: 0; z-index: 1; background: var(--surface); padding: 12px 12px 8px; white-space: nowrap; }
+.log td { padding: 8px 12px; white-space: nowrap; }
+.log tr.is-cur td { background: var(--band); }
+.log tbody tr:hover td { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.zbar { display: flex; gap: 1px; width: 120px; height: 8px; border-radius: 2px; overflow: hidden; }
+.zbar span { display: block; height: 100%; }
+.counters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px 0; }
+.counter { display: grid; gap: 6px; padding: 0 22px; align-content: start; min-width: 0; }
+.counter + .counter { border-left: 1px solid var(--line); }
+.counter .l { font-size: 13px; color: var(--ink-2); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.counter .v { font-size: 44px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+.counter .v small { font-size: 16px; font-weight: 500; color: var(--ink-3); letter-spacing: 0; margin-left: 4px; }
+.counter .s { font-size: 13px; color: var(--ink-2); }
+.counter .d { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-3); }
+.pill.neutral { color: var(--ink-2); background: var(--grid); }
+.sub-h { font-size: 15px; font-weight: 600; color: var(--ink); }
+.subgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 48px; }
+.subgrid > div { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.decision { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 28px 48px; align-items: start; }
+.dec-main { display: grid; gap: 12px; align-content: start; }
+.dec-main .eyebrow { color: var(--ink-3); font-size: 13.5px; }
+#dec-verdict { font-size: clamp(32px, 4.2vw, 54px); line-height: 1; font-weight: 800; letter-spacing: -.035em; }
+#dec-verdict[data-st="good"] { color: var(--good); } #dec-verdict[data-st="warn"] { color: var(--warn); } #dec-verdict[data-st="bad"] { color: var(--bad); }
+#dec-why { margin: 0; color: var(--ink-2); max-width: 52ch; }
+.dec-range { display: grid; gap: 2px; border-top: 2px solid var(--ink); padding-top: 12px; }
+.dec-range .l { font-size: 12.5px; color: var(--ink-2); }
+.dec-range .v { font-size: 34px; font-weight: 700; letter-spacing: -.02em; }
+.dec-range .s { font-size: 12.5px; color: var(--ink-3); max-width: 52ch; }
+.sim { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.sim label { font-size: 14px; }
+.sim input[type=range] { width: 100%; accent-color: var(--accent); }
+.sim-out { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; align-items: center; }
+.signals { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.signals li { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 13.5px; }
+.signals li[data-st="warn"] { border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+.signals li[data-st="bad"] { border-color: color-mix(in srgb, var(--bad) 55%, var(--line)); }
+.signals li .pill { justify-self: start; }
+.signals li small { display: block; color: var(--ink-3); font-size: 12px; margin-top: 2px; }
+.cmp-ctl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.cmp-ctl select, .cmp-dates input { font: 14px var(--f-display); padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); }
+.cmp-dates { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; }
+.cmp-dates fieldset { border: 0; padding: 0; margin: 0; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.cmp-dates legend { font-size: 12.5px; color: var(--ink-2); padding: 0; margin-bottom: 4px; width: 100%; }
+.cmp table { font-size: 14px; }
+.cmp th .muted { font-weight: 400; font-size: 11.5px; }
+.cmp tr.grp td { border-top: 1px solid var(--line); }
+.note { border-left: 2px solid var(--accent); padding: 4px 0 4px 14px; color: var(--ink-2); font-size: 13.5px; max-width: 70ch; }
+#tip { position: fixed; pointer-events: none; z-index: 10; background: var(--ink); color: var(--bg); font: 12px/1.45 var(--f-mono); padding: 8px 10px; border-radius: 6px; max-width: 260px; transform: translate(-50%, calc(-100% - 12px)); }
+footer { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 16px; }
+
+@media (max-width: 980px) {
+  .decision { grid-template-columns: minmax(0, 1fr); }
+  .subgrid { grid-template-columns: minmax(0, 1fr); }
+  .counters { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .counter + .counter { border-left: 0; border-top: 1px solid var(--line); padding-top: 18px; }
+  .hero, .g2 { grid-template-columns: minmax(0, 1fr); }
+  .g3 { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi:nth-child(3) { padding-left: 0; border-left: 0; }
+}
+@media (max-width: 640px) {
+  .signals { grid-template-columns: minmax(0, 1fr); }
+  .week { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi .v { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>Jog</b><span>Athlète exemple · NSA</span></div>
+    <div class="views" role="tablist" aria-label="Vues">
+      <button role="tab" id="t-apercu" data-view="apercu" aria-controls="v-apercu">Aperçu</button>
+      <button role="tab" id="t-charge" data-view="charge" aria-controls="v-charge">Charge</button>
+      <button role="tab" id="t-progression" data-view="progression" aria-controls="v-progression">Progression</button>
+      <button role="tab" id="t-historique" data-view="historique" aria-controls="v-historique">Historique</button>
+      <button role="tab" id="t-reglages" data-view="reglages" aria-controls="v-reglages">Paramètres</button>
+    </div>
+    <div class="top-r">
+      <span class="sample">Données d'exemple</span>
+    </div>
+  </header>
+
+  <main class="view" role="tabpanel" aria-labelledby="t-apercu" id="v-apercu" data-view="apercu">
+  <section class="decision" aria-labelledby="dec-verdict">
+    <div class="dec-main">
+      <div class="eyebrow" id="h-eyebrow"></div>
+      <h1 id="dec-verdict"></h1>
+      <p id="dec-why"></p>
+      <div class="dec-range"><span class="l">Fourchette raisonnable pour les 7 prochains jours</span><span class="v num" id="dec-range"></span><span class="s" id="dec-base"></span></div>
+      <div class="sim">
+        <label for="sim-km">Et si je cours <b id="sim-val" class="num"></b> sur les 7 prochains jours ?</label>
+        <input type="range" id="sim-km" step="1">
+        <div class="sim-out" id="sim-out" aria-live="polite"></div>
+      </div>
+    </div>
+    <ul class="signals" id="dec-signals" aria-label="Signaux de la décision"></ul>
+  </section>
+    <section>
+      <div class="sec-head"><h2>Volume réalisé</h2><p>Fenêtres arrêtées à hier soir</p></div>
+      <div class="counters" id="counters"></div>
+    </section>
+    <div class="g2">
+  <section>
+    <div class="sec-head"><h2 id="wk-title">Semaine en cours</h2><p id="wk-sub"></p></div>
+    <div class="week list" id="week"></div>
+  </section>
+    <section>
+      <div class="sec-head"><h2>Forme et fatigue</h2>
+        <div class="legend"><span><i class="line" style="background:var(--accent)"></i>Forme de fond (CTL)</span><span><i class="line" style="background:var(--ink-3)"></i>Fatigue (ATL)</span></div></div>
+      <svg class="chart" id="pmc" role="img" aria-label="Forme de fond et fatigue"></svg>
+      <svg class="chart" id="tsb" role="img" aria-label="Fraîcheur, différence entre forme et fatigue"></svg>
+      <div class="note" id="pmc-note"></div>
+    </section>
+    </div>
+  </main>
+
+  <main class="view" role="tabpanel" aria-labelledby="t-charge" id="v-charge" data-view="charge" hidden>
+  <section>
+    <div class="sec-head"><h2>Charge</h2><p>La progressivité du volume et le volume de travail sous-seuil</p></div>
+    <div class="subgrid">
+      <div>
+        <div class="sec-head"><span class="sub-h">Progressivité : 7 jours face à 30 jours</span>
+          <div class="tabs" role="group" aria-label="Fenêtre affichée">
+            <button id="w-16" data-win="112" aria-pressed="true">16 sem.</button>
+            <button id="w-52" data-win="365" aria-pressed="false">12 mois</button>
+          </div></div>
+        <svg class="chart" id="roll" role="img" aria-label="Volume sur 7 jours glissants et moyenne hebdomadaire sur 30 jours"></svg>
+        <svg class="chart" id="ratio" role="img" aria-label="Ratio 7 jours sur 30 jours, zone 0,8 à 1,3"></svg>
+        <div class="legend"><span><i style="background:var(--z-easy)"></i>7 derniers jours</span><span><i class="line" style="background:var(--ink)"></i>Moyenne hebdo des 30 derniers jours</span><span><i style="background:var(--band)"></i>Ratio 0,8–1,3 : progression maîtrisée</span></div>
+      </div>
+      <div>
+        <div class="sec-head"><span class="sub-h">Minutes de sous-seuil par semaine</span><p>L'unité de travail de la NSA</p></div>
+        <svg class="chart" id="subtmin" role="img" aria-label="Minutes de sous-seuil par semaine sur 26 semaines"></svg>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="sec-head"><h2>Discipline NSA</h2><p id="disc-sub">Part du temps en sous-seuil par semaine</p></div>
+    <div class="subgrid">
+      <div><svg class="chart" id="subtpct" role="img" aria-label="Pourcentage hebdomadaire de temps en sous-seuil"></svg></div>
+      <div><div class="note" id="nsa-note"></div></div>
+    </div>
+  </section>
+  </main>
+
+  <main class="view" role="tabpanel" aria-labelledby="t-progression" id="v-progression" data-view="progression" hidden>
+  <section>
+    <div class="sec-head"><h2>Comparer deux périodes</h2>
+      <div class="cmp-ctl">
+        <label for="cmp-preset" class="muted">Comparer</label>
+        <select id="cmp-preset">
+          <option value="prev">12 dernières semaines / 12 précédentes</option>
+          <option value="year">12 dernières semaines / même période il y a un an</option>
+          <option value="custom">Dates personnalisées</option>
+        </select>
+      </div></div>
+    <div class="cmp-dates">
+      <fieldset><legend>Période A (référence)</legend><input type="date" id="cmp-a1" aria-label="Début de la période A"><span>→</span><input type="date" id="cmp-a2" aria-label="Fin de la période A"></fieldset>
+      <fieldset><legend>Période B (comparée)</legend><input type="date" id="cmp-b1" aria-label="Début de la période B"><span>→</span><input type="date" id="cmp-b2" aria-label="Fin de la période B"></fieldset>
+      <span class="muted" id="cmp-msg" role="status"></span>
+    </div>
+    <div class="tablebox cmp"><table id="cmp-table"></table></div>
+    <p class="muted" style="font-size:12.5px;margin:0">Valeurs ramenées à la semaine pour comparer des périodes de durées différentes. Vert : meilleur sur la période B ; orange : moins bon.</p>
+  </section>
+  <section>
+    <div class="sec-head"><h2>Progression</h2><p>Chaque courbe isole un signal ; tendance sur 14 mois</p></div>
+    <div class="g3" id="prog"></div>
+  </section>
+    <div class="g2">
+    <section>
+      <div class="sec-head"><h2>Allure × FC par répétition</h2>
+        <nav class="tabs" aria-label="Période de comparaison">
+          <button id="c-year" aria-pressed="true" data-cmp="year">vs il y a un an</button>
+          <button id="c-prev" aria-pressed="false" data-cmp="prev">vs 12 semaines précédentes</button>
+        </nav></div>
+      <svg class="chart" id="phr" role="img" aria-label="FC de fin de répétition en fonction de l'allure, pour chaque répétition sous-seuil, sur deux périodes"></svg>
+      <div class="legend" id="phr-legend"></div>
+      <div class="note" id="phr-note"></div>
+    </section>
+    <section>
+      <div class="sec-head"><h2>Dernière séance sous-seuil</h2><p id="ls-sub"></p></div>
+      <svg class="chart" id="reps" role="img" aria-label="Allure par répétition comparée à la moyenne de la séance"></svg>
+      <div class="legend"><span><i style="background:var(--band);border:1px solid var(--accent)"></i>Moyenne de la séance ±3 s/km</span><span><i style="background:var(--z-subt)"></i>Allure de la répétition</span><span><i style="background:var(--bad);border-radius:50%"></i>Hors sous-seuil (plus rapide que le seuil ou FC trop haute)</span></div>
+    </section>
+    </div>
+  <section>
+    <div class="sec-head"><h2>Niveau estimé</h2><p id="lvl-sub"></p></div>
+    <div class="tablebox"><table id="pred"></table></div>
+  </section>
+  </main>
+
+  <main class="view" role="tabpanel" aria-labelledby="t-historique" id="v-historique" data-view="historique" hidden>
+  <section>
+    <div class="sec-head">
+      <h2>Saisons et volume hebdomadaire</h2>
+      <div class="legend" id="zone-legend"></div>
+      <nav class="tabs" aria-label="Période">
+        <button id="r-12" aria-pressed="false" data-range="12">12 semaines</button>
+        <button id="r-26" aria-pressed="false" data-range="26">26 semaines</button>
+        <button id="r-all" aria-pressed="true" data-range="all">Toutes les saisons</button>
+      </nav>
+    </div>
+    <svg class="chart" id="season" role="img" aria-label="Kilomètres par semaine, répartis par zone d'intensité, avec les résultats de course"></svg>
+  </section>
+  <section>
+    <div class="sec-head"><h2>Journal hebdomadaire</h2><p id="log-sub"></p></div>
+    <div class="tablebox log"><table id="log"></table></div>
+  </section>
+  </main>
+
+  <main class="view" role="tabpanel" aria-labelledby="t-reglages" id="v-reglages" data-view="reglages" hidden>
+    <section>
+      <div class="sec-head"><h2>Paramètres de l'athlète et de la méthode</h2><p>Enregistrés dans ce navigateur ; toute la page est recalculée</p></div>
+      <form id="cfg-form" class="settings" novalidate></form>
+      <div class="actions">
+        <button class="btn primary" type="submit" form="cfg-form" id="cfg-save">Enregistrer et recalculer</button>
+        <button class="btn" type="button" id="cfg-reset">Revenir aux valeurs par défaut</button>
+        <span class="muted" id="cfg-msg" role="status"></span>
+      </div>
+    </section>
+  </main>
+
+  <footer>Maquette A · « Fjord », v4. Toutes les valeurs sont générées pour l'exemple. CTL/ATL selon le modèle impulsion-réponse (charge type TRIMP), ratio de progressivité = volume des 7 derniers jours ÷ moyenne hebdo des 30 derniers jours, monotonie = moyenne ÷ écart-type de la charge quotidienne (Foster), contrainte = charge × monotonie.</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script src="data.js"></script>
+<script>
+(() => {
+const J = window.JOG, u = J.u, NS = 'http://www.w3.org/2000/svg';
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const ZC = { easy: 'var(--z-easy)', mp: 'var(--z-mp)', subt: 'var(--z-subt)', hard: 'var(--z-hard)' };
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const lin = (d0, d1, r0, r1) => (v) => r0 + (v - d0) / (d1 - d0) * (r1 - r0);
+const tip = document.getElementById('tip');
+const showTip = (e, html) => { tip.innerHTML = html; tip.hidden = false; tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px'; };
+const hideTip = () => { tip.hidden = true; };
+const bindTip = (node, html) => { node.addEventListener('pointermove', (e) => showTip(e, html)); node.addEventListener('pointerleave', hideTip); };
+// ---------- Paramètres (localStorage) et recalculs dérivés
+const CFG_DEF = { hrMax: 188, hrRest: 46, lt2Hr: 172, lt2Pace: '3:58', easyCap: 140, subtHrLo: 160, subtHrHi: 168, subtPctLo: 20, subtPctHi: 25,
+  refHr: 164, ctlDays: 42, atlDays: 7, z1: 68, z2: 78, z3: 85, z4: 92 };
+let CFG = { ...CFG_DEF };
+try { Object.assign(CFG, JSON.parse(localStorage.getItem('fjord-cfg') || '{}')); } catch (e) {}
+const SS_LO = CFG.subtPctLo / 100, SS_HI = CFG.subtPctHi / 100;
+Object.assign(J.athlete, { hrMax: CFG.hrMax, hrRest: CFG.hrRest, hrEasyCap: CFG.easyCap, lt2Hr: CFG.lt2Hr, subtHrBand: [CFG.subtHrLo, CFG.subtHrHi] });
+J.weeks.forEach(w => { const e = J.days.filter(d => d.done && d.type === 'easy' && d.date >= w.start && d.date < u.iso(u.addDays(u.d(w.start), 7)));
+  w.easyCompliance = e.length ? e.filter(d => d.hr <= CFG.easyCap).length / e.length : 1; });
+J.paceAtHr = J.weeks.filter(w => w.status !== 'planned').map(w => {
+  const xs = J.subtSessions.filter(s => s.date >= w.start && s.date < u.iso(u.addDays(u.d(w.start), 7)));
+  if (!xs.length) return null;
+  const v = xs.map(s => s.reps.reduce((a, r) => a + r.pace + (r.hr - CFG.refHr) * 1.1, 0) / s.reps.length);
+  return { date: w.start, v: Math.round(v.reduce((a, b) => a + b, 0) / v.length) };
+}).filter(Boolean);
+(() => { let ctl = 38, atl = 40; J.fitness = J.fitness.map(p => { const tsb = ctl - atl; ctl += (p.load - ctl) / CFG.ctlDays; atl += (p.load - atl) / CFG.atlDays;
+  return { ...p, ctl: +ctl.toFixed(1), atl: +atl.toFixed(1), tsb: +tsb.toFixed(1) }; }); J.current.fitness = J.fitness[J.fitness.length - 1]; })();
+
+const cur = J.current, cw = cur.week, f = cur.fitness;
+
+// ---------- Utilitaires partagés
+const unit = 'km'; let win = 112;
+const vt = (p, x, y, s, a = {}) => { const t = el('text', { x, y, ...a }, p); t.textContent = s; return t; };
+const doneDays = J.days.filter(d => d.done);
+const byDate = new Map(doneDays.map(d => [d.date, d]));
+const yesterday = u.iso(u.addDays(u.d(J.today), -1));
+const shift = (iso, n) => u.iso(u.addDays(u.d(iso), n));
+const val = (d) => unit === 'km' ? d.km : d.min / 60;
+const U = () => unit === 'km' ? 'km' : 'h';
+const fmtV = (v, dec) => unit === 'km' ? v.toFixed(dec ?? (v >= 100 ? 0 : 1)).replace('.', ',') : (v >= 10 && dec === undefined ? v.toFixed(0) : u.hm(v * 60));
+function agg(from, to) {
+  let km = 0, min = 0, n = 0;
+  for (const d of doneDays) if (d.date >= from && d.date <= to) { km += d.km; min += d.min; if (d.min) n++; }
+  return { km, min, n, v: unit === 'km' ? km : min / 60 };
+}
+const deltaPill = (a, b, label) => {
+  if (!b) return `<span class="pill neutral">pas d'historique</span>`;
+  const p = (a - b) / b;
+  return `<span class="pill ${Math.abs(p) > .3 ? 'warn' : 'neutral'}">${p >= 0 ? '+' : '−'}${Math.abs(p * 100).toFixed(0)} %</span> ${label}`;
+};
+
+const rollCache = new Map();
+const weekRatio = (w) => rollAt(w.status === 'current' ? yesterday : shift(w.start, 6)).r;
+const nf = (v, d = 0) => v.toFixed(d).replace('.', ',').replace('-', '−');
+function rollAt(dt) { // volume des 7 derniers jours face à la moyenne hebdo des 30 derniers jours, jour dt inclus
+  if (rollCache.has(dt)) return rollCache.get(dt);
+  let s7 = 0, s30 = 0;
+  for (let k = 0; k < 30; k++) { const d = byDate.get(shift(dt, -k)); const v = d ? d.km : 0; s30 += v; if (k < 7) s7 += v; }
+  const chronic = s30 / 30 * 7, res = { dt, s7, chronic, r: chronic ? s7 / chronic : 1 };
+  rollCache.set(dt, res); return res;
+}
+const LT2 = (([m, sec]) => +m * 60 + +sec)(String(CFG.lt2Pace).split(':'));
+const normPace = (s) => s.reps.reduce((a, r) => a + r.pace + (r.hr - CFG.refHr) * 1.1, 0) / s.reps.length;
+
+// ---------- Légende zones
+document.getElementById('zone-legend').innerHTML = J.ZONES.map(z => `<span><i style="background:${ZC[z]}"></i>${J.ZONE_LABEL[z]}</span>`).join('');
+
+// ---------- Hero
+const done = J.weeks.filter(w => w.status === 'done');
+const last = done[done.length - 1];
+const ctl6 = J.fitness[J.fitness.length - 43].ctl;
+const p0 = J.paceAtHr[0].v, p1 = J.paceAtHr[J.paceAtHr.length - 1].v;
+const tsbState = f.tsb < -25 ? ['bad', 'Surcharge'] : f.tsb < -10 ? ['good', 'Charge productive'] : f.tsb < 5 ? ['good', 'Équilibre'] : ['warn', 'Fraîcheur, sous-charge'];
+const sp = last.subtPct;
+const inBand = (w) => w.subtPct >= SS_LO - .01 && w.subtPct <= SS_HI + .01;
+
+// ---------- Saison
+let range = 'all';
+try { range = localStorage.getItem('fjord-range') || 'all'; } catch (e) {}
+if (!['12', '26', 'all'].includes(range)) range = 'all';
+function weeksInRange() {
+  const i = J.weeks.indexOf(cw);
+  const n = range === '12' ? 12 : range === '26' ? 26 : i + 1;
+  return J.weeks.slice(Math.max(0, i - n + 1), i + 1);
+}
+function drawSeason() {
+  const svg = document.getElementById('season'); svg.innerHTML = '';
+  const wk = weeksInRange();
+  const Wd = 1200, H = 270, L = 34, R = 8, T = 34, B = 26;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const maxH = Math.ceil(Math.max(...wk.map(w => w.km)) * 1.1 / 20) * 20;
+  const x = (i) => L + i * (Wd - L - R) / wk.length, bw = (Wd - L - R) / wk.length - 2;
+  const y = lin(0, maxH, H - B, T);
+  const g = el('g', { class: 'grid' }, svg);
+  for (let h = 0; h <= maxH; h += 20) { el('line', { x1: L, x2: Wd - R, y1: y(h), y2: y(h) }, g); const t = el('text', { x: L - 8, y: y(h) + 4, 'text-anchor': 'end' }, svg); t.textContent = h; }
+  { const t = el('text', { x: L - 8, y: T - 8, 'text-anchor': 'end' }, svg); t.textContent = 'km'; }
+  // résultats de course passés
+  J.races.filter(r => r.result && r.date < J.today).forEach(r => {
+    const ri = wk.findIndex(w => r.date >= w.start && r.date < u.iso(u.addDays(u.d(w.start), 7)));
+    if (ri < 0) return;
+    const cx = x(ri) + bw / 2;
+    el('line', { x1: cx, x2: cx, y1: T - 18, y2: y(0), stroke: 'var(--ink)', 'stroke-width': 1, 'stroke-dasharray': '2 3' }, svg);
+    const t = el('text', { x: cx, y: T - 22, 'text-anchor': ri > wk.length - 4 ? 'end' : ri < 3 ? 'start' : 'middle', style: 'fill:var(--ink);font:600 12px var(--f-display)' }, svg);
+    t.textContent = `${r.dist} · ${r.result}`;
+  });
+  wk.forEach((w, i) => {
+    const gg = el('g', {}, svg);
+    let acc = 0;
+    J.ZONES.forEach(z => {
+      const h = w.min ? w.km * w.z[z] / w.min : 0; if (!h) return;
+      const y0 = y(acc), y1 = y(acc + h);
+      el('rect', { x: x(i), y: y1 + 1, width: bw, height: Math.max(0, y0 - y1 - 1), fill: ZC[z], rx: 1.5 }, gg);
+      acc += h;
+    });
+    const hit = el('rect', { x: x(i) - 1, y: T, width: bw + 2, height: H - B - T, fill: 'transparent' }, gg);
+    bindTip(hit, `<b>Sem. du ${u.date(w.start)}</b><br>${w.status === 'current' ? 'En cours · ' : ''}${u.hm(w.min)} · ${w.km} km<br>` +
+      (`Sous-seuil ${Math.round(w.z.subt)}' (${u.pct(w.subtPct)})<br>Ratio 7 j / 30 j ${nf(weekRatio(w), 2)}`));
+  });
+  // aujourd'hui
+  const ti = wk.indexOf(cw);
+  if (ti >= 0) { const tx = x(ti) + bw * (((u.d(J.today) - u.d(cw.start)) / 864e5 + .5) / 7); el('line', { x1: tx, x2: tx, y1: T - 4, y2: y(0), stroke: 'var(--accent)', 'stroke-width': 2 }, svg);
+    const t = el('text', { x: tx + 6, y: T + 6, style: 'fill:var(--accent);font:600 11px var(--f-mono)' }, svg); t.textContent = "aujourd'hui"; }
+  // mois
+  let lastM = '';
+  wk.forEach((w, i) => { const m = w.start.slice(0, 7); if (m !== lastM && u.d(w.start).getDate() <= 7) { lastM = m; const t = el('text', { x: x(i), y: H - B + 18, style: 'font-size:10.5px' }, svg); t.textContent = u.date(w.start, { month: 'short' }) + (m.endsWith('-01') || i === 0 ? ' ' + m.slice(2, 4) : ''); } });
+}
+const rangeBtns = document.querySelectorAll('nav[aria-label="Période"] button');
+rangeBtns.forEach(b => {
+  b.setAttribute('aria-pressed', b.dataset.range === range);
+  b.addEventListener('click', () => { range = b.dataset.range; try { localStorage.setItem('fjord-range', range); } catch (e) {}
+    rangeBtns.forEach(c => c.setAttribute('aria-pressed', c === b)); drawSeason(); drawLog(); });
+});
+drawSeason();
+
+// ---------- Ligne générique avec crosshair
+function lineChart(svgId, series, opts) {
+  const svg = document.getElementById(svgId); svg.innerHTML = '';
+  const Wd = opts.w || 600, H = opts.h || 220, L = opts.L || 36, R = 12, T = 14, B = 24;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const pts = series[0].data, n = pts.length;
+  const all = series.flatMap(s => s.data.map(p => p.v));
+  const lo = opts.min ?? Math.min(...all), hi = opts.max ?? Math.max(...all);
+  const x = lin(0, n - 1, L, Wd - R), y = lin(lo, hi, H - B, T);
+  const g = el('g', { class: 'grid' }, svg);
+  (opts.ticks || [lo, (lo + hi) / 2, hi]).forEach(v => { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v) }, g); const t = el('text', { x: L - 6, y: y(v) + 4, 'text-anchor': 'end' }, svg); t.textContent = opts.fmt ? opts.fmt(v) : v; });
+  if (opts.band) el('rect', { x: L, width: Wd - L - R, y: y(opts.band[1]), height: y(opts.band[0]) - y(opts.band[1]), fill: 'var(--band)' }, svg);
+  if (opts.zero !== undefined) el('line', { x1: L, x2: Wd - R, y1: y(opts.zero), y2: y(opts.zero), stroke: 'var(--ink-3)' }, svg);
+  series.forEach(s => {
+    const dstr = s.data.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
+    if (s.area) el('path', { d: dstr + `L${x(n - 1)},${y(opts.areaBase ?? lo)}L${x(0)},${y(opts.areaBase ?? lo)}Z`, fill: s.color, opacity: .12 }, svg);
+    el('path', { d: dstr, fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-linejoin': 'round' }, svg);
+    const lp = s.data[n - 1];
+    el('circle', { cx: x(n - 1), cy: y(lp.v), r: 4, fill: s.color, stroke: 'var(--bg)', 'stroke-width': 2 }, svg);
+  });
+  // ticks X
+  let lastM = '';
+  pts.forEach((p, i) => { const m = p.date.slice(0, 7); if (m !== lastM && (m.endsWith('-01') || m.endsWith('-04') || m.endsWith('-07') || m.endsWith('-10'))) { lastM = m; const t = el('text', { x: x(i), y: H - 6, 'text-anchor': 'middle' }, svg); t.textContent = u.date(p.date, { month: 'short', year: '2-digit' }); } else if (m !== lastM) lastM = m; });
+  const cross = el('line', { y1: T, y2: H - B, stroke: 'var(--ink-3)', 'stroke-dasharray': '2 2', visibility: 'hidden' }, svg);
+  const hit = el('rect', { x: L, y: T, width: Wd - L - R, height: H - B - T, fill: 'transparent' }, svg);
+  hit.addEventListener('pointermove', (e) => {
+    const r = svg.getBoundingClientRect(); const px = (e.clientX - r.left) / r.width * Wd;
+    const i = Math.max(0, Math.min(n - 1, Math.round((px - L) / (Wd - L - R) * (n - 1))));
+    cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible');
+    showTip(e, `<b>${u.date(pts[i].date, { day: 'numeric', month: 'short', year: 'numeric' })}</b><br>` + series.map(s => `${s.name} : ${opts.fmt ? opts.fmt(s.data[i].v) : s.data[i].v}`).join('<br>'));
+  });
+  hit.addEventListener('pointerleave', () => { cross.setAttribute('visibility', 'hidden'); hideTip(); });
+  return { x, y, svg };
+}
+const fit = J.fitness.filter((_, i) => i % 2 === 0);
+lineChart('pmc', [
+  { name: 'CTL', color: 'var(--accent)', area: true, data: fit.map(p => ({ date: p.date, v: p.ctl })) },
+  { name: 'ATL', color: 'var(--ink-3)', data: fit.map(p => ({ date: p.date, v: p.atl })) },
+], { min: 20, max: 110, ticks: [20, 50, 80, 110], h: 200, areaBase: 20 });
+lineChart('tsb', [{ name: 'TSB', color: 'var(--ink-2)', data: fit.map(p => ({ date: p.date, v: p.tsb })) }],
+  { min: -30, max: 30, ticks: [-30, -10, 0, 10, 30], h: 130, band: [-30, -10], zero: 0, fmt: v => (v > 0 ? '+' : '') + Math.round(v) });
+
+// ---------- Explication forme / fatigue
+document.getElementById('pmc-note').innerHTML =
+  `<p style="margin:0 0 8px"><b>Forme de fond (CTL)</b> : moyenne de la charge quotidienne sur ${CFG.ctlDays} jours. Elle monte lentement quand on s'entraîne avec régularité, et c'est elle qui reflète la condition physique construite.</p>` +
+  `<p style="margin:0 0 8px"><b>Fatigue (ATL)</b> : même calcul sur ${CFG.atlDays} jours. Elle réagit vite aux grosses séances et retombe vite au repos.</p>` +
+  `<p style="margin:0 0 8px"><b>Fraîcheur (TSB)</b> = forme de fond − fatigue, à la veille. Entre −10 et −25 (zone teintée), on charge et on progresse. Sous −25, la fatigue dépasse nettement ce que la forme absorbe : à surveiller. Au-dessus de +5, on est frais, mais si ça dure le stimulus baisse.</p>` +
+  `<p style="margin:0">Aujourd'hui : forme ${f.ctl.toFixed(0)}, fatigue ${f.atl.toFixed(0)}, fraîcheur ${(f.tsb > 0 ? '+' : '') + f.tsb.toFixed(0)}, soit <b>${tsbState[1].toLowerCase()}</b>. La charge est calculée à partir de la durée et de l'intensité de chaque séance ; seule la tendance compte, pas la valeur absolue.</p>`;
+
+// ---------- % sous-seuil par semaine
+(() => {
+  const svg = document.getElementById('subtpct');
+  const wk = J.weeks.filter(w => w.status === 'done').slice(-30);
+  const Wd = 600, H = 220, L = 36, R = 8, T = 10, B = 24;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const y = lin(0, .35, H - B, T), bw = (Wd - L - R) / wk.length - 3;
+  const g = el('g', { class: 'grid' }, svg);
+  [0, .1, .2, .3].forEach(v => { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v) }, g); const t = el('text', { x: L - 6, y: y(v) + 4, 'text-anchor': 'end' }, svg); t.textContent = Math.round(v * 100) + '%'; });
+  el('rect', { x: L, width: Wd - L - R, y: y(SS_HI), height: y(SS_LO) - y(SS_HI), fill: 'var(--band)' }, svg);
+  const t = el('text', { x: Wd - R, y: y(SS_HI) - 5, 'text-anchor': 'end', style: 'fill:var(--accent)' }, svg); t.textContent = `cible ${CFG.subtPctLo}–${CFG.subtPctHi} %`;
+  wk.forEach((w, i) => {
+    const xx = L + i * (Wd - L - R) / wk.length;
+    const inBand = w.subtPct >= SS_LO - .01 && w.subtPct <= SS_HI + .01;
+    const r = el('rect', { x: xx, y: y(w.subtPct), width: bw, height: y(0) - y(w.subtPct), rx: 2, fill: inBand ? 'var(--z-subt)' : 'var(--z-easy)' }, svg);
+    bindTip(r, `<b>Sem. du ${u.date(w.start)}</b><br>${u.pct(w.subtPct)} du temps · ${w.subtSessions} séances`);
+    if (i % 6 === 0) { const tt = el('text', { x: xx, y: H - 6 }, svg); tt.textContent = u.date(w.start); }
+  });
+  const last8 = wk.slice(-8);
+  const comp = last8.reduce((a, w) => a + w.easyCompliance, 0) / last8.length;
+  const mono = (last8.reduce((a, w) => a + w.monotony, 0) / last8.length).toFixed(1);
+  document.getElementById('nsa-note').innerHTML = `Footings sous le plafond de ${J.athlete.hrEasyCap} bpm : <b>${u.pct(comp)}</b> sur 8 semaines. Monotonie de Foster moyenne <b>${mono}</b> : élevée par construction en NSA (semaines répétitives), à lire avec la charge et non comme un signal d'alerte isolé. Les barres claires sont les semaines hors cible.`;
+})();
+
+// ---------- Progression : 3 petits multiples
+(() => {
+  const box = document.getElementById('prog');
+  const items = [
+    { id: 'p-pace', t: `Allure sous-seuil à ${CFG.refHr} bpm`, d: J.paceAtHr, fmt: u.pace, unit: '/km', better: 'down', note: 'Normalisée sur la FC de fin de répétition' },
+    { id: 'p-ef', t: 'Efficacité en footing', d: J.efEasy, fmt: v => v.toFixed(2), unit: 'm/min/bpm', better: 'up', note: 'Vitesse ÷ FC moyenne' },
+    { id: 'p-dec', t: 'Découplage en sortie longue', d: J.longRuns.map(r => ({ date: r.date, v: r.decoupling })), fmt: v => v.toFixed(1) + '%', unit: '', better: 'down', note: 'Dérive FC/allure 2e moitié vs 1re ; < 5 % = base solide' },
+  ];
+  box.innerHTML = items.map(it => {
+    const a = it.d[0].v, b = it.d[it.d.length - 1].v;
+    const good = it.better === 'down' ? b < a : b > a;
+    return `<div class="panel"><h3>${it.t}</h3><div><span class="big num">${it.fmt(b)}</span> <span class="muted">${it.unit}</span></div>
+      <div class="delta"><span class="pill ${good ? 'good' : 'warn'}">${it.id === 'p-pace' ? '−' + (a - b) + ' s/km' : it.fmt(b - a).replace(/^(?!-)/, '+')}</span> depuis ${u.date(it.d[0].date, { month: 'long', year: 'numeric' })}</div>
+      <svg class="chart" id="${it.id}"></svg><div class="muted" style="font-size:12.5px">${it.note}</div></div>`;
+  }).join('');
+  const smooth = (arr, k = 3) => arr.map((p, i) => ({ date: p.date, v: arr.slice(Math.max(0, i - k), i + 1).reduce((a, q) => a + q.v, 0) / Math.min(i + 1, k + 1) }));
+  const pace = smooth(J.paceAtHr);
+  lineChart('p-pace', [{ name: 'Allure', color: 'var(--accent)', data: pace }], { h: 150, w: 400, min: 240, max: 270, ticks: [240, 255, 270], fmt: u.pace, L: 40 });
+  lineChart('p-ef', [{ name: 'EF', color: 'var(--accent)', data: smooth(J.efEasy) }], { h: 150, w: 400, min: 1.2, max: 1.45, ticks: [1.2, 1.3, 1.4], fmt: v => v.toFixed(2), L: 40 });
+  lineChart('p-dec', [{ name: 'Découplage', color: 'var(--accent)', data: smooth(J.longRuns.map(r => ({ date: r.date, v: r.decoupling })), 2) }], { h: 150, w: 400, min: 0, max: 10, ticks: [0, 5, 10], band: [0, 5], fmt: v => v.toFixed(1) + '%', L: 40 });
+})();
+
+// ---------- 7 derniers jours réalisés
+(() => {
+  const last7 = J.days.filter(d0 => d0.done && d0.date >= u.iso(u.addDays(u.d(J.today), -7))).reverse();
+  const km = last7.reduce((a, d0) => a + d0.km, 0), n = last7.filter(d0 => d0.min).length, ss = last7.reduce((a, d0) => a + d0.z.subt, 0);
+  document.getElementById('wk-title').textContent = '7 derniers jours';
+  document.getElementById('wk-sub').textContent = `${n} séances · ${km.toFixed(0)} km · ${Math.round(ss)} min de sous-seuil`;
+  document.getElementById('week').innerHTML = last7.map(d0 => {
+    const tot = d0.min || 1;
+    const bar = d0.min ? J.ZONES.filter(z => d0.z[z]).map(z => `<span style="width:${d0.z[z] / tot * 100}%;background:${ZC[z]}"></span>`).join('') : '';
+    const det = d0.min ? `${u.hm(d0.min)} · ${d0.km} km${d0.hr ? ` · ${d0.hr} bpm` : ''}${d0.type === 'subt' ? ` · ${u.pace(d0.detail.reps.reduce((a, r) => a + r.pace, 0) / d0.detail.reps.length)}/km en rép.` : ''}` : '';
+    return `<div class="day ${d0.min ? '' : 'rest'}">
+      <div class="dn"><span>${u.dowShort[d0.dow]} ${u.d(d0.date).getDate()}</span></div>
+      <div class="lb">${d0.min ? d0.label : 'Repos'}</div><div class="mt num">${det}</div>${bar ? `<div class="bar">${bar}</div>` : ''}</div>`;
+  }).join('');
+})();
+
+// ---------- Répétitions
+(() => {
+  const s0 = cur.lastSubt, svg = document.getElementById('reps');
+  const s = { ...s0, target: Math.round(s0.reps.reduce((a, r) => a + r.pace, 0) / s0.reps.length) };
+  document.getElementById('ls-sub').textContent = `${u.date(s.date, { weekday: 'long', day: 'numeric', month: 'long' })} · ${s.fmt.replace('x', '×')}' · récup ${s.rest}'`;
+  const Wd = 600, H = 220, L = 40, R = 40, T = 16, B = 30;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const lo = Math.min(s.target - 12, LT2 - 3, ...s.reps.map(r => r.pace - 2)), hi = s.target + 8;
+  const y = lin(hi, lo, H - B, T); // plus rapide = plus haut
+  const n = s.reps.length, bw = (Wd - L - R) / n;
+  const g = el('g', { class: 'grid' }, svg);
+  [lo, s.target, hi].forEach(v => { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v) }, g); const t = el('text', { x: L - 6, y: y(v) + 4, 'text-anchor': 'end' }, svg); t.textContent = u.pace(v); });
+  el('rect', { x: L, width: Wd - L - R, y: y(s.target - 3), height: y(s.target + 3) - y(s.target - 3), fill: 'var(--band)', stroke: 'var(--accent)', 'stroke-width': .5 }, svg);
+  s.reps.forEach((r, i) => {
+    const cx = L + i * bw + bw / 2;
+    const off = r.pace < LT2 || r.hr > CFG.subtHrHi;
+    el('line', { x1: cx, x2: cx, y1: y(s.target), y2: y(r.pace), stroke: 'var(--z-subt)', 'stroke-width': 2 }, svg);
+    const c = el('circle', { cx, cy: y(r.pace), r: 6, fill: off ? 'var(--bad)' : 'var(--z-subt)', stroke: 'var(--bg)', 'stroke-width': 2 }, svg);
+    const t = el('text', { x: cx, y: H - 14, 'text-anchor': 'middle' }, svg); t.textContent = '#' + (i + 1);
+    const t2 = el('text', { x: cx, y: H - 2, 'text-anchor': 'middle', style: 'fill:var(--ink-2)' }, svg); t2.textContent = r.hr;
+    bindTip(c, `Rép. ${i + 1} · ${u.pace(r.pace)}/km (${r.pace - s.target > 0 ? '+' : ''}${r.pace - s.target} s vs moyenne)<br>FC fin ${r.hr} bpm${off ? `<br>Hors sous-seuil : ${r.pace < LT2 ? 'plus rapide que l\'allure seuil' : 'FC au-dessus de ' + CFG.subtHrHi + ' bpm'}` : ''}`);
+  });
+  const t = el('text', { x: Wd - R + 6, y: H - 2 }, svg); t.textContent = 'bpm';
+  el('line', { x1: L, x2: Wd - R, y1: y(LT2), y2: y(LT2), stroke: 'var(--bad)', 'stroke-dasharray': '4 3' }, svg);
+  vt(svg, Wd - R + 4, y(LT2) + 4, `seuil ${CFG.lt2Pace}`, { style: 'fill:var(--bad)' });
+})();
+
+// ---------- Allure × FC par répétition
+let cmp = 'year';
+try { cmp = localStorage.getItem('fjord-cmp') || 'year'; } catch (e) {}
+if (!['year', 'prev'].includes(cmp)) cmp = 'year';
+function periods() {
+  const end = cw.start;
+  const from = u.iso(u.addDays(u.d(end), -84));
+  if (cmp === 'prev') {
+    const pf = u.iso(u.addDays(u.d(from), -84));
+    return [
+      { name: `12 semaines précédentes (${u.date(pf)} – ${u.date(u.iso(u.addDays(u.d(from), -1)))})`, from: pf, to: from },
+      { name: `12 dernières semaines (${u.date(from)} – ${u.date(u.iso(u.addDays(u.d(end), -1)))})`, from, to: end },
+    ];
+  }
+  const refFrom = u.iso(u.addDays(u.d(from), -364)), refTo = u.iso(u.addDays(u.d(end), -364));
+  const f0 = refFrom < J.days[0].date ? J.days[0].date : refFrom;
+  return [
+    { name: `Il y a un an (${u.date(f0)} – ${u.date(u.iso(u.addDays(u.d(refTo), -1)), { day: 'numeric', month: 'short', year: 'numeric' })})`, from: f0, to: refTo },
+    { name: `12 dernières semaines (${u.date(from)} – ${u.date(u.iso(u.addDays(u.d(end), -1)))})`, from, to: end },
+  ];
+}
+function drawPhr() {
+  const svg = document.getElementById('phr'); svg.innerHTML = '';
+  const Wd = 600, H = 330, L = 40, R = 14, T = 16, B = 36;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const P = periods();
+  const groups = P.map(p => J.subtSessions.filter(s => s.date >= p.from && s.date < p.to)
+    .flatMap(s => s.reps.map((r, i) => ({ s, i, pace: r.pace, hr: r.hr }))));
+  const all = groups.flat();
+  const pLo = Math.floor((Math.min(...all.map(r => r.pace)) - 3) / 5) * 5, pHi = Math.ceil((Math.max(...all.map(r => r.pace)) + 3) / 5) * 5;
+  const x = lin(pHi, pLo, L, Wd - R), y = lin(154, 172, H - B, T); // plus rapide à droite
+  const g = el('g', { class: 'grid' }, svg);
+  for (let v = pHi; v >= pLo; v -= 5) { el('line', { x1: x(v), x2: x(v), y1: T, y2: H - B }, g); const t = el('text', { x: x(v), y: H - B + 16, 'text-anchor': 'middle' }, svg); t.textContent = u.pace(v); }
+  [155, 160, 165, 170].forEach(v => { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v) }, g); const t = el('text', { x: L - 6, y: y(v) + 4, 'text-anchor': 'end' }, svg); t.textContent = v; });
+  const [b0, b1] = J.athlete.subtHrBand;
+  el('rect', { x: L, width: Wd - L - R, y: y(b1), height: y(b0) - y(b1), fill: 'var(--band)' }, svg);
+  const tx = el('text', { x: Wd - R, y: H - 4, 'text-anchor': 'end' }, svg); tx.textContent = 'allure de la répétition (/km), plus rapide →';
+  const ty = el('text', { x: L, y: T - 4 }, svg); ty.textContent = 'FC fin de rép. (bpm)';
+  const COL = ['var(--z-easy)', 'var(--z-subt)'];
+  groups.forEach((reps, gi) => reps.forEach((r, k) => {
+    const cx = x(r.pace) + ((k * 37) % 9 - 4) / 3, cy = y(r.hr);
+    const m = gi === 0 ? el('circle', { cx, cy, r: 4, fill: COL[0], 'fill-opacity': .85, stroke: 'var(--bg)', 'stroke-width': 1 }, svg)
+      : el('rect', { x: cx - 3.6, y: cy - 3.6, width: 7.2, height: 7.2, rx: 1, fill: COL[1], 'fill-opacity': .85, stroke: 'var(--bg)', 'stroke-width': 1 }, svg);
+    bindTip(m, `<b>${u.date(r.s.date, { day: 'numeric', month: 'short', year: 'numeric' })}</b> · ${r.s.fmt.replace('x', '×')}' · rép. ${r.i + 1}<br>${u.pace(r.pace)}/km · ${r.hr} bpm`);
+  }));
+  // centres des nuages + flèche
+  const ctr = groups.map(rs => [rs.reduce((a, r) => a + r.pace, 0) / rs.length, rs.reduce((a, r) => a + r.hr, 0) / rs.length]);
+  const defs = el('defs', {}, svg), mk = el('marker', { id: 'arr', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto' }, defs);
+  el('path', { d: 'M0,0 L10,5 L0,10 z', fill: 'var(--ink)' }, mk);
+  el('line', { x1: x(ctr[0][0]), y1: y(ctr[0][1]), x2: x(ctr[1][0]) - 8, y2: y(ctr[1][1]), stroke: 'var(--ink)', 'stroke-width': 2, 'marker-end': 'url(#arr)' }, svg);
+  ctr.forEach((c, i) => el(i ? 'rect' : 'circle', i ? { x: x(c[0]) - 7, y: y(c[1]) - 7, width: 14, height: 14, rx: 2, fill: COL[1], stroke: 'var(--ink)', 'stroke-width': 2 } : { cx: x(c[0]), cy: y(c[1]), r: 7, fill: COL[0], stroke: 'var(--ink)', 'stroke-width': 2 }, svg));
+  const norm = rs => rs.reduce((a, r) => a + r.pace + (r.hr - CFG.refHr) * 1.1, 0) / rs.length;
+  const gain = Math.round(norm(groups[0]) - norm(groups[1]));
+  document.getElementById('phr-legend').innerHTML = P.map((p, i) => `<span><i style="background:${COL[i]};${i ? '' : 'border-radius:50%'}"></i>${p.name} · ${groups[i].length} rép.</span>`).join('') +
+    '<span><i style="background:var(--band)"></i>Bande FC sous-seuil</span>';
+  document.getElementById('phr-note').innerHTML = `Centre du nuage : <b>${u.pace(ctr[0][0])}/km à ${Math.round(ctr[0][1])} bpm</b> → <b>${u.pace(ctr[1][0])}/km à ${Math.round(ctr[1][1])} bpm</b>. ` +
+    `Ramené à ${CFG.refHr} bpm, l'écart est de <b>${gain >= 0 ? gain + ' s/km plus rapide' : -gain + ' s/km plus lent'}</b>. Un nuage qui glisse vers la droite sans monter, c'est la même FC pour une allure plus rapide.`;
+}
+document.querySelectorAll('nav[aria-label="Période de comparaison"] button').forEach(b => {
+  b.setAttribute('aria-pressed', b.dataset.cmp === cmp);
+  b.addEventListener('click', () => { cmp = b.dataset.cmp; try { localStorage.setItem('fjord-cmp', cmp); } catch (e) {}
+    document.querySelectorAll('nav[aria-label="Période de comparaison"] button').forEach(c => c.setAttribute('aria-pressed', c === b)); drawPhr(); });
+});
+drawPhr();
+
+// ---------- Journal hebdomadaire (suit la période choisie en haut)
+function drawLog() {
+  const rows = weeksInRange().filter(w => w.status !== 'planned').slice().reverse();
+  const lbl = { '12': '12 semaines', '26': '26 semaines', all: 'toutes les saisons' }[range];
+  document.getElementById('log-sub').textContent = `${rows.length} semaines · ${lbl} · la plus récente en haut`;
+  const pill = (cls, t) => `<span class="pill ${cls}">${t}</span>`;
+  document.getElementById('log').innerHTML = `<thead><tr><th>Semaine</th><th class="r">km</th><th class="r">Durée</th><th>Répartition</th><th class="r">Sous-seuil</th><th class="r">Séances SS</th><th class="r">Charge</th><th class="r">Ratio 7 j / 30 j</th><th class="r">Monotonie</th><th class="r">Contrainte</th><th class="r">Footings ≤ ${J.athlete.hrEasyCap} bpm</th></tr></thead><tbody>` +
+    rows.map(w => {
+      const isC = w.status === 'current', tot = w.min || 1;
+      const zb = `<div class="zbar">${J.ZONES.filter(z => w.z[z]).map(z => `<span style="width:${w.z[z] / tot * 100}%;background:${ZC[z]}"></span>`).join('')}</div>`;
+      const ss = isC ? '<span class="muted">en cours</span>' : pill(inBand(w) ? 'good' : 'warn', Math.round(w.subtPct * 100) + ' %');
+      const wr = weekRatio(w), wrs = nf(wr, 2);
+      const ac = wr > 1.5 ? pill('bad', wrs) : (wr > 1.3 || wr < .8) ? pill('warn', wrs) : wrs;
+      const comp = isC ? '–' : w.easyCompliance < .9 ? pill('warn', Math.round(w.easyCompliance * 100) + ' %') : Math.round(w.easyCompliance * 100) + ' %';
+      return `<tr class="${isC ? 'is-cur' : ''}"><td>${u.date(w.start, { day: 'numeric', month: 'short', year: '2-digit' })}</td>
+        <td class="r num">${nf(w.km, 1)}</td><td class="r num">${u.hm(w.min)}</td><td>${zb}</td>
+        <td class="r num">${ss}</td><td class="r num">${w.subtSessions}</td><td class="r num">${isC ? '–' : w.load}</td><td class="r num">${ac}</td>
+        <td class="r num">${isC ? '–' : nf(w.monotony, 2)}</td><td class="r num">${isC ? '–' : w.strain}</td><td class="r num">${comp}</td></tr>`;
+    }).join('') + '</tbody>';
+}
+drawLog();
+
+// ---------- Niveau estimé : équivalences depuis le dernier test, sans objectif de course
+(() => {
+  const ref = J.timeTrials[J.timeTrials.length - 1];
+  document.getElementById('lvl-sub').textContent = `Équivalences de Riegel depuis le test ${ref.dist} du ${u.date(ref.date, { day: 'numeric', month: 'long' })} (${ref.time}). C'est un niveau, pas une prédiction : la performance sur longue distance dépend aussi du volume.`;
+  const prDates = { '5 km': ref.date, '10 km': '2026-06-21', 'Semi': '2026-03-08' };
+  document.getElementById('pred').innerHTML = `<tr><th>Distance</th><th class="r">Équivalence actuelle</th><th class="r">Allure</th><th class="r">Record</th><th>Date du record</th><th class="r">Écart au record</th></tr>` +
+    J.predictions.map(p => {
+      const eq = ref.sec * Math.pow(p.km / 5, 1.06), df = p.pr ? eq - p.pr : null;
+      return `<tr><td><b>${p.dist}</b></td><td class="r num">${u.dur(eq)}</td><td class="r num">${u.pace(eq / p.km)}/km</td><td class="r num">${p.pr ? u.dur(p.pr) : '–'}</td>
+        <td>${p.pr ? u.date(prDates[p.dist], { day: 'numeric', month: 'short', year: 'numeric' }) : '<span class="muted">pas encore couru</span>'}</td>
+        <td class="r num">${df == null ? '–' : Math.abs(df) < 1 ? 'au niveau' : df < 0 ? `<span class="pill good">−${u.dur(-df)}</span>` : `+${u.dur(df)}`}</td></tr>`;
+    }).join('');
+})();
+
+// ---------- Volume réalisé (compteurs) et progressivité (7 j vs 30 j)
+function drawCounters() {
+  const y0 = J.today.slice(0, 4) + '-01-01';
+  const P = [
+    { l: `Année ${J.today.slice(0, 4)}`, from: y0, spark: 'week' },
+    { l: '30 derniers jours', from: shift(yesterday, -29), prev: [shift(yesterday, -59), shift(yesterday, -30)], note: 'vs les 30 jours d\'avant' },
+    { l: '7 derniers jours', from: shift(yesterday, -6), prev: [shift(yesterday, -13), shift(yesterday, -7)], note: 'vs la semaine d\'avant' },
+  ];
+  const box = document.getElementById('counters'); box.innerHTML = '';
+  P.forEach(p => {
+    const a = agg(p.from, yesterday);
+    const other = unit === 'km' ? `${u.hm(a.min)} · ${a.n} séances` : `${Math.round(a.km).toLocaleString('fr-FR')} km · ${a.n} séances`;
+    const nd = (u.d(yesterday) - u.d(p.from)) / 864e5 + 1;
+    const delta = p.prev ? deltaPill(a.v, agg(p.prev[0], p.prev[1]).v, p.note) : `<span class="pill neutral">${fmtV(a.v / nd * 7, 1)} ${U()}/sem.</span> en moyenne`;
+    const div = document.createElement('div'); div.className = 'counter';
+    div.innerHTML = `<span class="l"><span>${p.l}</span><span class="muted num">${u.date(p.from)} – ${u.date(yesterday)}</span></span>
+      <span class="v num">${unit === 'km' ? Math.round(a.km).toLocaleString('fr-FR') : Math.round(a.min / 60)}<small>${U()}</small></span>
+      <span class="s">${other}</span><span class="d">${delta}</span>`;
+    const svg = el('svg', { class: 'chart', viewBox: '0 0 300 56', role: 'img', 'aria-label': 'Détail de la période' });
+    div.appendChild(svg); box.appendChild(div);
+    const bars = [];
+    if (p.spark === 'week') J.weeks.filter(w => w.start >= shift(p.from, -6) && w.status !== 'planned').forEach(w => { const v = unit === 'km' ? w.km : w.min / 60; bars.push({ v, lab: `Sem. du ${u.date(w.start)}<br>${fmtV(v)} ${U()}` }); });
+    else for (let dt = p.from; dt <= yesterday; dt = shift(dt, 1)) { const d = byDate.get(dt); bars.push({ v: d ? val(d) : 0, sub: d && d.type === 'subt', lab: `${u.date(dt, { weekday: 'short', day: 'numeric', month: 'short' })}<br>${d && d.min ? d.label + ' · ' + fmtV(val(d)) + ' ' + U() : 'Repos'}` }); }
+    const max = Math.max(...bars.map(b => b.v), 1), bw = 300 / bars.length;
+    bars.forEach((b, i) => {
+      const h = b.v / max * 48;
+      el('rect', { x: i * bw + .5, y: 54 - h, width: Math.max(1, bw - (bars.length > 20 ? 1 : 3)), height: h, rx: 1.5, fill: b.sub ? 'var(--z-subt)' : 'var(--z-easy)' }, svg);
+      bindTip(el('rect', { x: i * bw, y: 0, width: bw, height: 56, fill: 'transparent' }, svg), b.lab);
+    });
+    el('line', { x1: 0, x2: 300, y1: 54.5, y2: 54.5, stroke: 'var(--line)' }, svg);
+  });
+}
+
+function drawRoll() {
+  const first = shift(J.days[0].date, 29), all = [];
+  for (let dt = first; dt <= yesterday; dt = shift(dt, 1)) all.push(rollAt(dt));
+  const data = all.slice(-win);
+  const s1 = document.getElementById('roll'); s1.innerHTML = '';
+  const Wd = 600, H = 220, L = 40, R = 12, T = 18, B = 22; s1.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const step = unit === 'km' ? 20 : 2;
+  const maxV = Math.ceil(Math.max(...data.map(p => Math.max(p.s7, p.chronic))) * 1.08 / step) * step;
+  const x = lin(0, data.length - 1, L, Wd - R), y = lin(0, maxV, H - B, T);
+  const g = el('g', { class: 'grid' }, s1);
+  const tstep = step * (maxV / step > 6 ? 2 : 1);
+  for (let v = 0; v <= maxV; v += tstep) { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v) }, g); vt(s1, L - 6, y(v) + 4, v, { 'text-anchor': 'end' }); }
+  vt(s1, L - 6, T - 6, U() + '/7 j', { 'text-anchor': 'end' });
+  const bw = (Wd - L - R) / data.length;
+  data.forEach((p, i) => el('rect', { x: x(i) - bw / 2 + .2, y: y(p.s7), width: Math.max(.6, bw - .4), height: y(0) - y(p.s7), fill: 'var(--z-easy)' }, s1));
+  el('path', { d: data.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.chronic).toFixed(1)}`).join(''), fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2 }, s1);
+  const lp = data[data.length - 1];
+  el('circle', { cx: x(data.length - 1), cy: y(lp.chronic), r: 4, fill: 'var(--ink)', stroke: 'var(--bg)', 'stroke-width': 2 }, s1);
+  let lm = ''; data.forEach((p, i) => { const m = p.dt.slice(0, 7); if (m !== lm) { lm = m; if (i > 3 && (win < 200 || ['01', '04', '07', '10'].includes(m.slice(5)))) vt(s1, x(i), H - 4, u.date(p.dt, win > 200 ? { month: 'short', year: '2-digit' } : { month: 'short' }), { 'text-anchor': 'middle' }); } });
+  const s2 = document.getElementById('ratio'); s2.innerHTML = '';
+  const H2 = 120; s2.setAttribute('viewBox', `0 0 ${Wd} ${H2}`);
+  const y2 = lin(.4, 1.8, H2 - 14, 12), clamp = (v) => Math.max(.4, Math.min(1.8, v));
+  el('rect', { x: L, width: Wd - L - R, y: y2(1.3), height: y2(.8) - y2(1.3), fill: 'var(--band)' }, s2);
+  [.6, 1, 1.4, 1.8].forEach(v => { el('line', { x1: L, x2: Wd - R, y1: y2(v), y2: y2(v), stroke: 'var(--grid)' }, s2); vt(s2, L - 6, y2(v) + 4, v.toFixed(1).replace('.', ','), { 'text-anchor': 'end' }); });
+  el('line', { x1: L, x2: Wd - R, y1: y2(1.5), y2: y2(1.5), stroke: 'var(--bad)', 'stroke-dasharray': '3 3' }, s2);
+  vt(s2, Wd - R, y2(1.5) - 4, 'vigilance 1,5', { 'text-anchor': 'end', style: 'fill:var(--bad)' });
+  vt(s2, L + 4, y2(1.8) + 12, 'ratio 7 j / 30 j', { style: 'fill:var(--ink-2)' });
+  el('path', { d: data.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y2(clamp(p.r)).toFixed(1)}`).join(''), fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2 }, s2);
+  data.forEach((p, i) => { if (p.r > 1.3) el('circle', { cx: x(i), cy: y2(clamp(p.r)), r: 2.5, fill: p.r > 1.5 ? 'var(--bad)' : 'var(--warn)' }, s2); });
+  el('circle', { cx: x(data.length - 1), cy: y2(clamp(lp.r)), r: 5, fill: 'var(--accent)', stroke: 'var(--bg)', 'stroke-width': 2 }, s2);
+  vt(s2, x(data.length - 1) - 9, y2(clamp(lp.r)) - 8, lp.r.toFixed(2).replace('.', ','), { 'text-anchor': 'end', style: 'fill:var(--ink);font:600 12px var(--f-mono)' });
+  [[s1, H], [s2, H2]].forEach(([s, HH]) => {
+    const cross = el('line', { y1: 8, y2: HH - 14, stroke: 'var(--ink-3)', 'stroke-dasharray': '2 2', visibility: 'hidden' }, s);
+    const hit = el('rect', { x: L, y: 0, width: Wd - L - R, height: HH, fill: 'transparent' }, s);
+    hit.addEventListener('pointermove', e => { const r = s.getBoundingClientRect(); const i = Math.max(0, Math.min(data.length - 1, Math.round(((e.clientX - r.left) / r.width * Wd - L) / (Wd - L - R) * (data.length - 1)))); const p = data[i];
+      cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible');
+      showTip(e, `<b>${u.date(p.dt, { weekday: 'short', day: 'numeric', month: 'short' })}</b><br>7 derniers jours : ${fmtV(p.s7)} ${U()}<br>Moyenne hebdo sur 30 j : ${fmtV(p.chronic)} ${U()}<br>Ratio : ${p.r.toFixed(2).replace('.', ',')}`); });
+    hit.addEventListener('pointerleave', () => { hideTip(); cross.setAttribute('visibility', 'hidden'); });
+  });
+}
+
+document.querySelectorAll('[aria-label="Fenêtre affichée"] button').forEach(b => b.addEventListener('click', () => {
+  win = +b.dataset.win; document.querySelectorAll('[aria-label="Fenêtre affichée"] button').forEach(c => c.setAttribute('aria-pressed', c === b)); drawRoll(); }));
+drawCounters(); drawRoll();
+
+
+// ---------- Décision volume : signaux mesurés (montre GPS + ceinture cardio)
+const mean = (a) => a.length ? a.reduce((x, y) => x + y, 0) / a.length : NaN;
+(() => {
+  const R = rollAt(yesterday);
+  const sess = J.subtSessions;
+  const last3 = sess.slice(-3), prev6 = sess.slice(-9, -3);
+  const resp = Math.round(mean(last3.map(normPace)) - mean(prev6.map(normPace)));
+  const offReps = last3.flatMap(s => s.reps).filter(r => r.pace < LT2 || r.hr > CFG.subtHrHi).length;
+  const easy14 = doneDays.filter(d => d.type === 'easy' && d.date >= shift(yesterday, -13));
+  const comp = easy14.length ? easy14.filter(d => d.hr <= CFG.easyCap).length / easy14.length : 1;
+  const lr = J.longRuns[J.longRuns.length - 1];
+  const full = J.weeks.filter(w => w.status === 'done');
+  const ref = full[full.length - 1];
+  let palier = 0; for (let i = full.length - 1; i >= 0 && Math.abs(full[i].km / ref.km - 1) <= .1; i--) palier++;
+  const S = [
+    { k: 'prog', l: 'Progressivité', v: `ratio 7 j / 30 j ${nf(R.r, 2)}`, st: R.r > 1.5 ? 'bad' : (R.r > 1.3 || R.r < .8) ? 'warn' : 'good',
+      h: R.r > 1.3 ? 'Les 7 derniers jours dépassent nettement la moyenne du mois.' : R.r < .8 ? 'Semaine nettement plus légère que la moyenne du mois.' : 'Volume récent cohérent avec le mois écoulé.' },
+    { k: 'tsb', l: 'Fraîcheur', v: `${f.tsb > 0 ? '+' : ''}${nf(f.tsb)}`, st: f.tsb < -25 ? 'bad' : f.tsb > 5 ? 'warn' : 'good',
+      h: f.tsb < -25 ? 'Fatigue nettement au-dessus de ce que la forme absorbe.' : f.tsb > 5 ? 'Très frais : il y a de la marge pour charger.' : 'Fatigue d\'entraînement normale.' },
+    { k: 'resp', l: 'Réponse à l\'effort', v: resp > 0 ? `${resp} s/km plus lent à FC égale` : `${-resp} s/km plus rapide à FC égale`, st: resp > 3 ? 'bad' : resp > 1 ? 'warn' : 'good',
+      h: `Allure normalisée à ${CFG.refHr} bpm, 3 dernières séances sous-seuil comparées aux 6 précédentes.` },
+    { k: 'off', l: 'Répétitions hors sous-seuil', v: `${offReps} sur ${last3.reduce((a, s) => a + s.reps.length, 0)}`, st: offReps >= 3 ? 'bad' : offReps ? 'warn' : 'good',
+      h: `Plus rapides que l'allure seuil (${CFG.lt2Pace}/km) ou FC de fin au-dessus de ${CFG.subtHrHi} bpm, 3 dernières séances.` },
+    { k: 'easy', l: 'Footings sous le plafond', v: `${Math.round(comp * 100)} % sur 14 jours`, st: comp < .75 ? 'bad' : comp < .9 ? 'warn' : 'good',
+      h: `FC moyenne ≤ ${CFG.easyCap} bpm. Des footings trop rapides empiètent sur la récupération.` },
+    { k: 'dec', l: 'Découplage, dernière sortie longue', v: `${nf(lr.decoupling, 1)} %`, st: lr.decoupling > 8 ? 'bad' : lr.decoupling > 5 ? 'warn' : 'good',
+      h: `${u.date(lr.date, { weekday: 'short', day: 'numeric', month: 'short' })}, ${nf(lr.km, 1)} km. Sous 5 %, la base aérobie tient la durée.` },
+    { k: 'palier', l: 'Palier de volume', v: `${palier} sem. autour de ${Math.round(ref.km)} km`, st: palier >= 2 ? 'good' : 'warn',
+      h: palier >= 2 ? 'Volume tenu assez longtemps pour envisager une hausse.' : 'Volume atteint récemment : le consolider avant de monter.' },
+  ];
+  const coreBad = S.filter(s => ['prog', 'tsb', 'resp', 'dec'].includes(s.k) && s.st === 'bad');
+  const warns = S.filter(s => s.st !== 'good');
+  const verdict = coreBad.length ? 'down' : warns.length ? 'hold' : 'up';
+  const V = { up: ['Augmenter le volume', 'good', [1.05, 1.10]], hold: ['Maintenir le volume', 'warn', [.95, 1.05]], down: ['Alléger le volume', 'bad', [.75, .9]] }[verdict];
+  const usePalier = verdict !== 'down' && palier >= 2;
+  const base = usePalier ? ref.km : R.chronic;
+  const lo = Math.round(base * V[2][0]), hi = Math.round(base * V[2][1]);
+  document.getElementById('h-eyebrow').textContent = `Décision volume · données arrêtées au ${u.date(yesterday, { weekday: 'long', day: 'numeric', month: 'long' })} au soir`;
+  const vEl = document.getElementById('dec-verdict'); vEl.textContent = V[0]; vEl.dataset.st = V[1];
+  document.getElementById('dec-why').textContent = verdict === 'up' ? 'Tous les signaux sont au vert : la charge actuelle est absorbée.'
+    : verdict === 'down' ? `À surveiller en priorité : ${coreBad.map(s => s.l.toLowerCase()).join(', ')}.`
+    : `Rien d'alarmant, mais mieux vaut consolider avant de monter. ${warns.length > 1 ? 'Points' : 'Point'} à surveiller : ${warns.map(s => s.l.toLowerCase()).join(', ')}.`;
+  document.getElementById('dec-range').textContent = `${lo}–${hi} km`;
+  document.getElementById('dec-base').textContent = `${usePalier ? `Référence : le palier de ${nf(base, 0)} km tenu ${palier} semaines (moyenne des 30 derniers jours : ${nf(R.chronic, 0)} km par 7 jours).` : `Référence : la moyenne des 30 derniers jours, ${nf(base, 0)} km par 7 jours.`} C'est une borne calculée sur le réalisé, pas un plan.`;
+  document.getElementById('dec-signals').innerHTML = S.map(s => `<li data-st="${s.st}"><span class="pill ${s.st}">${{ good: 'OK', warn: 'À surveiller', bad: 'Alerte' }[s.st]}</span>
+    <div><b>${s.l}</b> <span class="num">${s.v}</span><small>${s.h}</small></div></li>`).join('');
+
+  // Simulateur « et si… »
+  const sim = document.getElementById('sim-km'), out = document.getElementById('sim-out'), lab = document.getElementById('sim-val');
+  sim.min = Math.round(base * .5); sim.max = Math.round(base * 1.6); sim.value = Math.round((lo + hi) / 2);
+  const last23 = agg(shift(yesterday, -22), yesterday).km;
+  const last30 = doneDays.filter(d => d.date >= shift(yesterday, -29));
+  const lpk = last30.reduce((a, d) => a + d.load, 0) / last30.reduce((a, d) => a + d.km, 0);
+  const run = () => {
+    const km = +sim.value; lab.textContent = `${km} km`;
+    const r = km / ((last23 + km) / 30 * 7);
+    let ctl = f.ctl, atl = f.atl; for (let i = 0; i < 7; i++) { const L = km * lpk / 7; ctl += (L - ctl) / CFG.ctlDays; atl += (L - atl) / CFG.atlDays; }
+    const tsb = ctl - atl;
+    const rs = r > 1.5 ? 'bad' : (r > 1.3 || r < .8) ? 'warn' : 'good', ts = tsb < -25 ? 'bad' : tsb > 5 ? 'warn' : 'good';
+    const inR = km >= lo && km <= hi;
+    out.innerHTML = `<span>Ratio 7 j / 30 j <span class="pill ${rs}">${nf(r, 2)}</span></span><span>Fraîcheur dans 7 jours <span class="pill ${ts}">${tsb > 0 ? '+' : ''}${nf(tsb)}</span></span>` +
+      `<span class="muted">${inR ? 'Dans la fourchette proposée.' : km > hi ? `${km - hi} km au-dessus de la fourchette.` : `${lo - km} km sous la fourchette.`} Estimation à intensité inchangée.</span>`;
+  };
+  sim.addEventListener('input', run); run();
+})();
+
+// ---------- Minutes de sous-seuil par semaine
+(() => {
+  const svg = document.getElementById('subtmin');
+  const wk = J.weeks.filter(w => w.status === 'done').slice(-26);
+  const Wd = 600, H = 220, L = 36, R = 8, T = 14, B = 24;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const max = Math.ceil(Math.max(...wk.map(w => w.z.subt)) * 1.1 / 20) * 20;
+  const y = lin(0, max, H - B, T), bw = (Wd - L - R) / wk.length;
+  const g = el('g', { class: 'grid' }, svg);
+  for (let v = 0; v <= max; v += 40) { el('line', { x1: L, x2: Wd - R, y1: y(v), y2: y(v) }, g); vt(svg, L - 6, y(v) + 4, v, { 'text-anchor': 'end' }); }
+  vt(svg, L - 6, T - 4, 'min', { 'text-anchor': 'end' });
+  const avg = wk.slice(-4).reduce((a, w) => a + w.z.subt, 0) / 4;
+  wk.forEach((w, i) => {
+    const r = el('rect', { x: L + i * bw + 1.5, y: y(w.z.subt), width: bw - 3, height: y(0) - y(w.z.subt), rx: 2, fill: 'var(--z-subt)' }, svg);
+    bindTip(r, `<b>Sem. du ${u.date(w.start)}</b><br>${Math.round(w.z.subt)} min de sous-seuil · ${w.subtSessions} séances`);
+    if (i % 5 === 0) vt(svg, L + i * bw, H - 6, u.date(w.start));
+  });
+  el('line', { x1: L, x2: Wd - R, y1: y(avg), y2: y(avg), stroke: 'var(--ink)', 'stroke-dasharray': '4 3' }, svg);
+  vt(svg, Wd - R, y(avg) - 5, `moyenne 4 sem. : ${Math.round(avg)} min`, { 'text-anchor': 'end', style: 'fill:var(--ink)' });
+})();
+
+// ---------- Comparer deux périodes
+(() => {
+  const ids = ['cmp-a1', 'cmp-a2', 'cmp-b1', 'cmp-b2'].map(i => document.getElementById(i));
+  const preset = document.getElementById('cmp-preset');
+  const first = J.days[0].date;
+  ids.forEach(i => { i.min = first; i.max = yesterday; });
+  function applyPreset() {
+    const b2 = yesterday, b1 = shift(yesterday, -83);
+    let a1, a2;
+    if (preset.value === 'prev') { a2 = shift(b1, -1); a1 = shift(b1, -84); }
+    else if (preset.value === 'year') { a1 = shift(b1, -364); a2 = shift(b2, -364); }
+    else return;
+    if (a1 < first) a1 = first;
+    [a1, a2, b1, b2].forEach((v, i) => ids[i].value = v);
+  }
+  function M(from, to) {
+    const ds = doneDays.filter(d => d.date >= from && d.date <= to);
+    const n = Math.max(1, Math.round((u.d(to) - u.d(from)) / 864e5) + 1), wks = n / 7;
+    const min = ds.reduce((a, d) => a + d.min, 0), subt = ds.reduce((a, d) => a + d.z.subt, 0);
+    const ss = J.subtSessions.filter(s => s.date >= from && s.date <= to);
+    const easy = ds.filter(d => d.type === 'easy');
+    const lrs = J.longRuns.filter(r => r.date >= from && r.date <= to);
+    const fit = J.fitness.filter(p => p.date >= from && p.date <= to);
+    const tt = J.timeTrials.filter(t => t.date >= from && t.date <= to);
+    const rolls = []; for (let d = from < shift(first, 29) ? shift(first, 29) : from; d <= to; d = shift(d, 1)) rolls.push(rollAt(d).r);
+    return {
+      n, km: ds.reduce((a, d) => a + d.km, 0) / wks, h: min / 60 / wks, ses: ds.filter(d => d.min).length / wks,
+      subt: subt / wks, subtPct: min ? subt / min : NaN, pace: mean(ss.map(normPace)),
+      hrEnd: mean(ss.map(s => s.reps[s.reps.length - 1].hr)),
+      ef: mean(easy.map(d => (1000 / d.pace * 60) / d.hr)), comp: easy.length ? easy.filter(d => d.hr <= CFG.easyCap).length / easy.length : NaN,
+      dec: mean(lrs.map(r => r.decoupling)), ctl: mean(fit.map(p => p.ctl)), ctlMax: fit.length ? Math.max(...fit.map(p => p.ctl)) : NaN,
+      rMax: rolls.length ? Math.max(...rolls) : NaN, tt: tt.length ? Math.min(...tt.map(t => t.sec)) : NaN,
+    };
+  }
+  const ROWS = [
+    ['Volume', 'km', 'km / sem.', v => nf(v, 1), 1, 'Volume moyen'],
+    ['Volume', 'h', 'h / sem.', v => u.hm(v * 60), 1],
+    ['Volume', 'ses', 'séances / sem.', v => nf(v, 1), 0],
+    ['Sous-seuil', 'subt', 'min / sem.', v => Math.round(v), 1],
+    ['Sous-seuil', 'subtPct', '% du temps', v => nf(v * 100, 0) + ' %', 0],
+    ['Sous-seuil', 'pace', `allure à ${CFG.refHr} bpm`, v => u.pace(v) + '/km', -1],
+    ['Sous-seuil', 'hrEnd', 'FC fin de dernière rép.', v => Math.round(v) + ' bpm', 0],
+    ['Endurance', 'ef', 'efficacité en footing', v => nf(v, 2), 1],
+    ['Endurance', 'comp', `footings ≤ ${CFG.easyCap} bpm`, v => nf(v * 100, 0) + ' %', 1],
+    ['Endurance', 'dec', 'découplage sortie longue', v => nf(v, 1) + ' %', -1],
+    ['Charge', 'ctl', 'forme de fond moyenne', v => nf(v, 0), 1],
+    ['Charge', 'ctlMax', 'forme de fond maximale', v => nf(v, 0), 1],
+    ['Charge', 'rMax', 'pic du ratio 7 j / 30 j', v => nf(v, 2), 0],
+    ['Performance', 'tt', 'meilleur test 5 km', v => u.dur(v), -1],
+  ];
+  function draw() {
+    const [a1, a2, b1, b2] = ids.map(i => i.value);
+    const msg = document.getElementById('cmp-msg');
+    if (!a1 || !a2 || !b1 || !b2 || a1 > a2 || b1 > b2) { msg.textContent = 'Chaque période doit avoir une date de début antérieure à sa date de fin.'; return; }
+    msg.textContent = '';
+    const A = M(a1, a2), B = M(b1, b2);
+    const fmtR = (x, y) => `${u.date(x, { day: 'numeric', month: 'short', year: '2-digit' })} → ${u.date(y, { day: 'numeric', month: 'short', year: '2-digit' })}`;
+    document.getElementById('cmp-table').innerHTML = `<thead><tr><th></th><th>Mesure</th><th class="r">Période A<div class="muted">${fmtR(a1, a2)} · ${A.n} j${A.n < B.n - 6 ? ' · historique partiel' : ''}</div></th><th class="r">Période B<div class="muted">${fmtR(b1, b2)} · ${B.n} j</div></th><th class="r">Écart</th></tr></thead><tbody>` +
+      ROWS.map(([grp, k, l, fm, dir], i) => {
+        const a = A[k], b = B[k], ok = isFinite(a) && isFinite(b);
+        let d = '–';
+        if (ok) {
+          const diff = b - a, better = dir === 0 ? null : dir * diff > 0;
+          const txt = k === 'pace' ? `${diff > 0 ? '+' : '−'}${Math.abs(Math.round(diff))} s/km` : k === 'tt' ? `${diff > 0 ? '+' : '−'}${u.dur(Math.abs(diff))}` : k === 'h' ? `${diff >= 0 ? '+' : '−'}${u.hm(Math.abs(diff) * 60)}` : `${diff >= 0 ? '+' : '−'}${String(fm(Math.abs(diff))).replace(/ ?(%|bpm)$/, '')}${/%$/.test(String(fm(1))) ? ' pt' : ''}`;
+          d = (Math.abs(diff) < 1e-9 || /^[+−]0([ ,.]0+)?( |$)/.test(txt) && !/[1-9]/.test(txt)) ? '=' : better == null ? `<span class="pill neutral">${txt}</span>` : `<span class="pill ${better ? 'good' : 'warn'}">${txt}</span>`;
+        }
+        const first = i === 0 || ROWS[i - 1][0] !== grp;
+        return `<tr class="${first ? 'grp' : ''}"><td class="muted">${first ? grp : ''}</td><td>${l}</td><td class="r num">${isFinite(a) ? fm(a) : '–'}</td><td class="r num">${isFinite(b) ? fm(b) : '–'}</td><td class="r num">${d}</td></tr>`;
+      }).join('') + '</tbody>';
+    try { localStorage.setItem('fjord-cmp-p', JSON.stringify({ p: preset.value, v: ids.map(i => i.value) })); } catch (e) {}
+  }
+  try { const s0 = JSON.parse(localStorage.getItem('fjord-cmp-p') || 'null'); if (s0) { preset.value = s0.p; if (s0.p === 'custom') s0.v.forEach((v, i) => ids[i].value = v); } } catch (e) {}
+  if (preset.value !== 'custom') applyPreset();
+  preset.addEventListener('change', () => { applyPreset(); draw(); });
+  ids.forEach(i => i.addEventListener('change', () => { preset.value = 'custom'; draw(); }));
+  draw();
+})();
+
+// ---------- Onglets
+document.getElementById('disc-sub').textContent = `Part du temps en sous-seuil par semaine, cible ${CFG.subtPctLo}–${CFG.subtPctHi} %`;
+const VIEWS = ['apercu', 'charge', 'progression', 'historique', 'reglages'];
+const tabs = [...document.querySelectorAll('.views [role="tab"]')];
+function showView(v, focus) {
+  if (!VIEWS.includes(v)) v = 'apercu';
+  document.querySelectorAll('main.view').forEach(m => m.hidden = m.dataset.view !== v);
+  tabs.forEach(t => { const on = t.dataset.view === v; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; if (on && focus) t.focus(); });
+  try { localStorage.setItem('fjord-view', v); } catch (e) {}
+  hideTip();
+}
+tabs.forEach((t, i) => {
+  t.addEventListener('click', () => showView(t.dataset.view));
+  t.addEventListener('keydown', e => { const k = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (k) { e.preventDefault(); showView(tabs[(i + k + tabs.length) % tabs.length].dataset.view, true); } });
+});
+document.querySelectorAll('.kpi[data-go]').forEach(k => { k.classList.add('link'); k.tabIndex = 0;
+  k.addEventListener('click', () => showView(k.dataset.go)); k.addEventListener('keydown', e => { if (e.key === 'Enter') showView(k.dataset.go); }); });
+let startView = 'apercu'; try { startView = localStorage.getItem('fjord-view') || 'apercu'; } catch (e) {}
+showView(startView);
+
+// ---------- Formulaire de paramètres
+(() => {
+  const F = [
+    { t: 'Fréquence cardiaque', help: 'Bases de calcul des zones et des plafonds.', f: [
+      ['hrMax', 'FC max', 'bpm', 'Mesurée en test ou en fin de course courte.'], ['hrRest', 'FC repos', 'bpm'], ['easyCap', 'Plafond des footings', 'bpm', 'Au-dessus, un footing compte comme trop rapide.']] },
+    { t: 'Seuil', help: 'Seuil estimé à la FC et à l\'allure (test de 30 min ou course de 10 km à 1 h), la limite au-dessus de laquelle on sort du sous-seuil.', f: [
+      ['lt2Hr', 'FC au seuil', 'bpm'], ['lt2Pace', 'Allure au seuil', '/km', 'Format m:ss.', 'text'], ['refHr', 'FC de référence pour l\'allure normalisée', 'bpm', 'Sert au suivi « allure à FC constante ».']] },
+    { t: 'Méthode NSA', help: 'Repères utilisés pour juger le réalisé.', f: [
+      ['subtPctLo', 'Part de sous-seuil, minimum', '%'], ['subtPctHi', 'Part de sous-seuil, maximum', '%'],
+      ['subtHrLo', 'FC de fin de répétition, bas', 'bpm'], ['subtHrHi', 'FC de fin de répétition, haut', 'bpm']] },
+    { t: 'Zones', help: 'Limite haute de chaque zone, en % de la FC max. La zone 5 va jusqu\'à la FC max.', zones: true, f: [
+      ['z1', 'Zone 1, récupération', '%'], ['z2', 'Zone 2, endurance', '%'], ['z3', 'Zone 3, tempo', '%'], ['z4', 'Zone 4, seuil', '%']] },
+    { t: 'Modèle de charge', help: 'Constantes de temps du modèle forme / fatigue.', f: [
+      ['ctlDays', 'Forme de fond (CTL)', 'jours'], ['atlDays', 'Fatigue (ATL)', 'jours']] },
+  ];
+  const form = document.getElementById('cfg-form');
+  form.innerHTML = F.map(g => `<fieldset class="fset" style="border:1px solid var(--line)"><legend class="visually-hidden"></legend><h3>${g.t}</h3><p class="help">${g.help}</p>` +
+    g.f.map(([k, l, unitL, help, type, step]) => `<label class="field" for="cfg-${k}"><span>${l}</span><span class="in"><input id="cfg-${k}" name="${k}" type="${type || 'number'}" ${type === 'text' ? 'inputmode="numeric" pattern="\\d:\\d{2}"' : `step="${step || 1}"`} value="${CFG[k]}">${unitL}</span>${help ? `<small>${help}</small>` : ''}</label>`).join('') +
+    (g.zones ? '<table class="ztable" id="zt"></table>' : '') + '</fieldset>').join('');
+  const zt = () => { const v = (k) => +form.elements[k].value, m = v('hrMax');
+    const b = [0, v('z1'), v('z2'), v('z3'), v('z4'), 100];
+    document.getElementById('zt').innerHTML = '<tr><th>Zone</th><th class="r">% FC max</th><th class="r">bpm</th></tr>' +
+      [1, 2, 3, 4, 5].map(i => `<tr><td>Z${i}</td><td class="r num">${b[i - 1]}–${b[i]} %</td><td class="r num">${Math.round(m * b[i - 1] / 100)}–${Math.round(m * b[i] / 100)}</td></tr>`).join(''); };
+  form.addEventListener('input', zt); zt();
+  const msg = document.getElementById('cfg-msg');
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const next = {};
+    for (const k of Object.keys(CFG_DEF)) { const raw = form.elements[k].value.trim();
+      if (k === 'lt2Pace') { if (!/^\d:\d{2}$/.test(raw)) { msg.textContent = 'Allure au seuil : utilisez le format m:ss, par exemple 4:02.'; form.elements[k].focus(); return; } next[k] = raw; }
+      else { const n = +raw; if (!raw || !isFinite(n) || n <= 0) { msg.textContent = `Valeur manquante ou invalide : ${form.querySelector(`label[for="cfg-${k}"] span`).textContent}.`; form.elements[k].focus(); return; } next[k] = n; } }
+    if (next.subtPctLo >= next.subtPctHi || next.subtHrLo >= next.subtHrHi || !(next.z1 < next.z2 && next.z2 < next.z3 && next.z3 < next.z4 && next.z4 < 100)) { msg.textContent = 'Chaque borne basse doit être inférieure à la borne haute, et les zones doivent croître.'; return; }
+    try { localStorage.setItem('fjord-cfg', JSON.stringify(next)); localStorage.setItem('fjord-view', 'reglages'); } catch (err) { msg.textContent = 'Impossible d\'enregistrer dans ce navigateur (stockage bloqué).'; return; }
+    location.reload();
+  });
+  document.getElementById('cfg-reset').addEventListener('click', () => { try { localStorage.removeItem('fjord-cfg'); localStorage.setItem('fjord-view', 'reglages'); } catch (e) {} location.reload(); });
+})();
+})();
+</script>
+</body>
+</html>
