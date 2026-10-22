@@ -44,60 +44,54 @@ enum JSONValue: Codable, Equatable {
     }
 }
 
-/// Un cas doré : une entrée, une sortie attendue ou une erreur attendue.
-struct CasOracle: Codable, Equatable {
+/// Un cas doré : une entrée, puis une sortie attendue (`sortie`) ou une erreur attendue (`erreur`, son message).
+/// `sortie` présent à null vaut `.null` ; absent, il vaut nil. Un cas sans l'un ni l'autre est mal formé.
+struct CasOracle: Decodable, Equatable {
     let nom: String
     let fn: String
     let entree: JSONValue
     let sortie: JSONValue?
     let erreur: String?
+
+    init(nom: String, fn: String, entree: JSONValue, sortie: JSONValue?, erreur: String?) {
+        self.nom = nom
+        self.fn = fn
+        self.entree = entree
+        self.sortie = sortie
+        self.erreur = erreur
+    }
+
+    private enum Cles: String, CodingKey {
+        case nom, fn, entree, sortie, erreur
+    }
+
+    init(from decoder: Decoder) throws {
+        let conteneur = try decoder.container(keyedBy: Cles.self)
+        nom = try conteneur.decode(String.self, forKey: .nom)
+        fn = try conteneur.decode(String.self, forKey: .fn)
+        entree = try conteneur.decode(JSONValue.self, forKey: .entree)
+        sortie = conteneur.contains(.sortie) ? try conteneur.decode(JSONValue.self, forKey: .sortie) : nil
+        erreur = try conteneur.decodeIfPresent(String.self, forKey: .erreur)
+    }
 }
 
 /// Contenu d'un fichier `<module>.json` du dossier Oracle.
-struct FichierOracle: Codable, Equatable {
+struct FichierOracle: Decodable, Equatable {
     let module: String
     let cas: [CasOracle]
 }
 
-enum ErreurOracle: Error, Equatable {
-    case moduleIntrouvable(String)
-}
-
-#if ORACLE_PRESENT
-private let bundleOracle = Bundle.module
-#endif
-
-/// Noms des modules présents dans le dossier Oracle du bundle de test (vide si absent).
-func modulesOracleDisponibles() -> [String] {
-#if ORACLE_PRESENT
-    let urls = bundleOracle.urls(forResourcesWithExtension: "json", subdirectory: "Oracle") ?? []
-    return urls.map { $0.deletingPathExtension().lastPathComponent }.sorted()
-#else
-    return []
-#endif
-}
-
-/// Charge `Oracle/<module>.json` depuis le bundle de test.
-func chargerOracle(_ module: String) throws -> FichierOracle {
-#if ORACLE_PRESENT
-    guard let url = bundleOracle.url(forResource: module, withExtension: "json", subdirectory: "Oracle") else {
-        throw ErreurOracle.moduleIntrouvable(module)
-    }
-    let donnees = try Data(contentsOf: url)
-    return try JSONDecoder().decode(FichierOracle.self, from: donnees)
-#else
-    throw ErreurOracle.moduleIntrouvable(module)
-#endif
-}
+/// Tolérance absolue sur les nombres (LISEZMOI de l'oracle : 1e-9).
+let toleranceOracle = 1e-9
 
 /// Compare deux valeurs JSON et renvoie la liste des différences, avec leur chemin.
 ///
 /// - `a` : la valeur attendue (oracle) ; `b` : la valeur obtenue.
-/// - Une clé absente vaut `null`.
-/// - Deux nombres sont égaux s'ils diffèrent de moins de `tolerance` en absolu,
-///   ou de moins de `tolerance` fois la plus grande magnitude (au-delà de 1).
-/// - `"Infinity"` et `"-Infinity"` sont des chaînes, comparées telles quelles.
-func comparer(_ a: JSONValue, _ b: JSONValue, tolerance: Double = 1e-9) -> [String] {
+/// - Deux nombres sont égaux s'ils diffèrent de moins de `tolerance` en absolu. Un nombre fini ne vaut jamais
+///   un infini ni NaN ; un NaN s'écrit null, un infini « Infinity » / « -Infinity » (chaînes, comparées telles quelles).
+/// - Objets : mêmes clés, à une exception. Une clé absente d'un côté équivaut à `null` de l'autre (champs `T | null`
+///   optionnels encodés sans clé) ; une clé absente d'un côté et non nulle de l'autre est une différence.
+func comparer(_ a: JSONValue, _ b: JSONValue, tolerance: Double = toleranceOracle) -> [String] {
     var differences: [String] = []
     comparerRecursif(a, b, chemin: "$", tolerance: tolerance, differences: &differences)
     return differences
@@ -116,7 +110,7 @@ private func comparerRecursif(
     case let (.bool(x), .bool(y)) where x == y:
         return
     case let (.number(x), .number(y)):
-        if abs(x - y) > tolerance * max(1, abs(x), abs(y)) {
+        if !nombresEgaux(x, y, tolerance: tolerance) {
             differences.append("\(chemin) : attendu \(x), obtenu \(y)")
         }
     case let (.string(x), .string(y)) where x == y:
@@ -131,12 +125,26 @@ private func comparerRecursif(
         }
     case let (.object(x), .object(y)):
         for cle in Set(x.keys).union(y.keys).sorted() {
-            comparerRecursif(x[cle] ?? .null, y[cle] ?? .null, chemin: "\(chemin).\(cle)",
-                             tolerance: tolerance, differences: &differences)
+            switch (x[cle], y[cle]) {
+            case let (valeurA?, valeurB?):
+                comparerRecursif(valeurA, valeurB, chemin: "\(chemin).\(cle)", tolerance: tolerance, differences: &differences)
+            case (nil, nil):
+                continue
+            default:
+                // Une seule clé présente : équivalente seulement si sa valeur est null.
+                comparerRecursif(x[cle] ?? .null, y[cle] ?? .null, chemin: "\(chemin).\(cle)",
+                                 tolerance: tolerance, differences: &differences)
+            }
         }
     default:
         differences.append("\(chemin) : attendu \(libelle(a)), obtenu \(libelle(b))")
     }
+}
+
+private func nombresEgaux(_ x: Double, _ y: Double, tolerance: Double) -> Bool {
+    if x == y { return true }
+    guard x.isFinite, y.isFinite else { return false }
+    return abs(x - y) <= tolerance
 }
 
 private func libelle(_ valeur: JSONValue) -> String {

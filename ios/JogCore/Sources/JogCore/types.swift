@@ -73,7 +73,8 @@ public struct NombreOuNaN: Codable, Sendable, Equatable {
     }
 }
 
-/// `T | null` : toujours écrit, nil s'écrit null.
+/// `T | null` : toujours écrit, nil s'écrit null. Pour un `Double`, NaN s'écrit aussi null (il se relit nil) et
+/// ±Infinity s'écrivent en chaînes « Infinity » / « -Infinity », comme `NombreOuNaN`.
 @propertyWrapper
 public struct ChampNul<T: Codable & Sendable & Equatable>: Codable, Sendable, Equatable {
     public var wrappedValue: T?
@@ -82,15 +83,25 @@ public struct ChampNul<T: Codable & Sendable & Equatable>: Codable, Sendable, Eq
 
     public init(from decoder: Decoder) throws {
         let conteneur = try decoder.singleValueContainer()
-        wrappedValue = conteneur.decodeNil() ? nil : try conteneur.decode(T.self)
+        if conteneur.decodeNil() {
+            wrappedValue = nil
+        } else if T.self == Double.self {
+            wrappedValue = try NombreJSON(from: decoder).valeur as? T
+        } else {
+            wrappedValue = try conteneur.decode(T.self)
+        }
     }
 
     public func encode(to encoder: Encoder) throws {
-        var conteneur = encoder.singleValueContainer()
-        if let valeur = wrappedValue {
-            try conteneur.encode(valeur)
+        if let valeur = wrappedValue as? Double {
+            try NombreJSON(valeur: valeur).encode(to: encoder)
         } else {
-            try conteneur.encodeNil()
+            var conteneur = encoder.singleValueContainer()
+            if let valeur = wrappedValue {
+                try conteneur.encode(valeur)
+            } else {
+                try conteneur.encodeNil()
+            }
         }
     }
 }

@@ -193,3 +193,124 @@ private func typeDeSeance(_ pivot: ActivitePivot) throws -> TypeSeance {
     // 07 règle 1 et D-014 : « Test » (mot entier) dans le nom fait un test.
     #expect(try typeDeSeance(pivotSynthetique(duree: 1200, nom: "Test chrono 5000 m")) == .test)
 }
+
+// MARK: - 07 règle 2 : bornes de durée et de récupération, tours exclus, format (données synthétiques)
+
+/// Pivot à 1 Hz : FC 170 pendant chaque tour, 120 ailleurs. Vitesse 3 m/s (333 s/km) : le repli sur le flux ne trouve
+/// aucune répétition, si bien qu'un résultat vide vient bien du chemin par tours.
+private func pivotAvecTours(duree: Int, tours: [Tour]) -> ActivitePivot {
+    pivotSynthetique(duree: duree, fc: { t in tours.contains { t >= $0.iDebut && t <= $0.iFin } ? 170 : 120 }, tours: tours)
+}
+
+/// Trois tours manuels de `duree` échantillons, séparés de `repos` échantillons, à partir de `debut`. Un repos de `r`
+/// secondes à 1 Hz donne un écart de `r` secondes entre deux tours.
+private func troisTours(debut: Int, duree: Int, repos: Int) -> [Tour] {
+    (0..<3).map { k in
+        let a = debut + k * (duree + repos)
+        return Tour(iDebut: a, iFin: a + duree - 1, declenchement: .manuel)
+    }
+}
+
+/// Répétitions de la séance par le chemin des tours (paramètres synthétiques : fin de répétition ≥ 155 bpm).
+private func repetitionsDe(_ pivot: ActivitePivot) throws -> Repetitions {
+    try detecterRepetitions(try miseEnForme(pivot), pivot.tours, parametresSynthetiques)
+}
+
+@Test func regle2UneRepetitionDeCentVingtSecondesEstAdmiseEtRepos120EstAccepte() throws {
+    // 07 règle 2 : durée minimale de 2 min incluse, récupération de 2 min incluse (≤ 120 s).
+    let pivot = pivotAvecTours(duree: 1020, tours: troisTours(debut: 300, duree: 120, repos: 120))
+    let reps = try repetitionsDe(pivot)
+    #expect(reps.repetitions.count == 3)
+    #expect(reps.repetitions.map(\.duree_s) == [120, 120, 120])
+    #expect(reps.repetitions.map(\.debut_s) == [300, 540, 780])
+    #expect(reps.recup_s == 120)
+    #expect(reps.format == "3×2′")
+}
+
+@Test func regle2UnTourDe119SecondesNEstPasUneRepetition() throws {
+    // 07 règle 2 : sous 2 min, un tour n'est pas une répétition : aucune série ne reste.
+    let pivot = pivotAvecTours(duree: 1020, tours: troisTours(debut: 300, duree: 119, repos: 120))
+    #expect(try repetitionsDe(pivot).repetitions.isEmpty)
+}
+
+@Test func regle2UnTourAuDelaDeDeuxMinutesEstAdmisAvecSonFormat() throws {
+    // 07 règle 2 : au-delà du minimum, le tour compte. 150 s = 2,5 min, arrondies à la minute à mi-chemin vers le haut
+    // (D-015) : format « 3×3′ », sans écart à la médiane.
+    let pivot = pivotAvecTours(duree: 1110, tours: troisTours(debut: 300, duree: 150, repos: 120))
+    let reps = try repetitionsDe(pivot)
+    #expect(reps.repetitions.count == 3)
+    #expect(reps.repetitions.allSatisfy { $0.duree_s == 150 })
+    #expect(reps.format == "3×3′")
+}
+
+@Test func regle2UnReposDe121SecondesCoupeLaSerie() throws {
+    // 07 règle 2 : au-delà de 2 min de récupération, les tours ne forment plus une série de trois : aucune répétition.
+    let pivot = pivotAvecTours(duree: 1023, tours: troisTours(debut: 300, duree: 120, repos: 121))
+    let reps = try repetitionsDe(pivot)
+    #expect(reps.repetitions.isEmpty)
+    #expect(reps.format == nil)
+    #expect(reps.recup_s == nil)
+}
+
+@Test func regle2LEchauffementEtLeRetourAuCalmeNeSontPasDesRepetitions() throws {
+    // 07 règle 2 (précision contrats.md) : le tour qui contient le premier échantillon est l'échauffement ; le dernier
+    // tour, s'il contient le dernier échantillon, est le retour. Tous deux ont FC et durée de répétition : ils sont exclus.
+    let echauffement = Tour(iDebut: 0, iFin: 299, declenchement: .manuel)
+    let retour = Tour(iDebut: 900, iFin: 1019, declenchement: .manuel)
+    let tours = [echauffement] + troisTours(debut: 300, duree: 120, repos: 120) + [retour]
+    let reps = try repetitionsDe(pivotAvecTours(duree: 1020, tours: tours))
+    #expect(reps.repetitions.count == 3)
+    #expect(reps.repetitions.map(\.debut_s) == [300, 540, 780])
+}
+
+@Test func regle2UnTourSuiviDUnTourFinEstUnRetourExclu() throws {
+    // 07 règle 2 (contrats.md) : le dernier tour qui n'est pas « fin » est le retour s'il est suivi d'un tour « fin ».
+    let retour = Tour(iDebut: 920, iFin: 1060, declenchement: .manuel)
+    let fin = Tour(iDebut: 1061, iFin: 1079, declenchement: .fin)
+    let tours = troisTours(debut: 300, duree: 120, repos: 120) + [retour, fin]
+    let reps = try repetitionsDe(pivotAvecTours(duree: 1080, tours: tours))
+    #expect(reps.repetitions.count == 3)
+}
+
+@Test func regle2LesTourinconnuSontDesToursDeTravailEtLesTourNonActifsNon() throws {
+    // 07 règle 2 : déclenchement « inconnu » admis ; intensité « repos » exclue, « actif » admise.
+    let inconnus = troisTours(debut: 300, duree: 120, repos: 120).map { tour -> Tour in
+        var copie = tour
+        copie.declenchement = .inconnu
+        return copie
+    }
+    #expect(try repetitionsDe(pivotAvecTours(duree: 1020, tours: inconnus)).repetitions.count == 3)
+
+    var repos = troisTours(debut: 300, duree: 120, repos: 120)
+    repos[1].intensite = .repos
+    #expect(try repetitionsDe(pivotAvecTours(duree: 1020, tours: repos)).repetitions.isEmpty)
+
+    var actifs = troisTours(debut: 300, duree: 120, repos: 120)
+    actifs[1].intensite = .actif
+    #expect(try repetitionsDe(pivotAvecTours(duree: 1020, tours: actifs)).repetitions.count == 3)
+}
+
+@Test func regle2LeFormatTolereQuinzePourCentDeLaMediane() throws {
+    // 07 règle 2 : format « 3×6′ » si chaque durée est à ±15 % de la médiane (360 s : marge 54 s). Un écart de 40 s
+    // reste dans la marge ; un écart de 60 s, non : le format liste alors les durées, « 6′-6′-7′ ».
+    let uniforme = [
+        Tour(iDebut: 300, iFin: 659, declenchement: .manuel),
+        Tour(iDebut: 700, iFin: 1059, declenchement: .manuel),
+        Tour(iDebut: 1100, iFin: 1499, declenchement: .manuel),
+    ]
+    #expect(try repetitionsDe(pivotAvecTours(duree: 1700, tours: uniforme)).format == "3×6′")
+
+    let disperse = [
+        Tour(iDebut: 300, iFin: 659, declenchement: .manuel),
+        Tour(iDebut: 700, iFin: 1059, declenchement: .manuel),
+        Tour(iDebut: 1100, iFin: 1519, declenchement: .manuel),
+    ]
+    #expect(try repetitionsDe(pivotAvecTours(duree: 1700, tours: disperse)).format == "6′-6′-7′")
+}
+
+@Test func unFluxDeColonnesIncoherentesLeveUneErreurClaire() {
+    // Colonnes de longueurs différentes : miseEnForme lève ErreurFluxIncoherent au lieu de lire hors bornes.
+    var pivot = pivotSynthetique(duree: 120)
+    pivot.flux.dist_m.removeLast()
+    #expect(throws: ErreurFluxIncoherent.self) { _ = try miseEnForme(pivot) }
+}

@@ -19,10 +19,10 @@ private func executerVue(_ cas: CasOracle) throws -> JSONValue {
     #expect(differences.isEmpty, messageDifferences(differences))
 }
 
-/// Le harnais lit les 34 cas de l'oracle (30 calculerVue, 4 calculerVueBrute) : aucun n'est sauté.
-@Test func harnaisLitLes34CasDeVue() throws {
+/// Répartition des cas de l'oracle vue par fonction (30 calculerVue, 4 calculerVueBrute) : le total est couvert
+/// par HarnaisOracle.
+@Test func harnaisLitLesCasDeVueParFonction() throws {
     let cas = try chargerCasOracle("vue").cas
-    #expect(cas.count == 34)
     #expect(cas.filter { $0.fn == "calculerVue" }.count == 30)
     #expect(cas.filter { $0.fn == "calculerVueBrute" }.count == 4)
 }

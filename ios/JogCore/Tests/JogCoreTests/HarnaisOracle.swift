@@ -36,16 +36,28 @@ extension JSONValue {
         return .number(valeur)
     }
 
-    /// Décode la valeur dans un type Decodable (par un aller-retour JSON, sans perte).
+    /// Décode la valeur dans un type Decodable (par un aller-retour JSON, sans perte). Un échec de décodage est
+    /// un défaut du cas (ErreurHarnais), jamais une erreur attendue du moteur.
     func decoder<T: Decodable>(_: T.Type) throws -> T {
-        let donnees = try JSONEncoder().encode(self)
-        return try JSONDecoder().decode(T.self, from: donnees)
+        do {
+            let donnees = try JSONEncoder().encode(self)
+            return try JSONDecoder().decode(T.self, from: donnees)
+        } catch let erreur as DecodingError {
+            throw ErreurHarnais("entrée non décodable en \(T.self) : \(erreur)")
+        }
     }
 
-    /// Valeur JSON d'un type Encodable (NaN dans les types du moteur s'écrit null).
+    /// Valeur JSON d'un type Encodable (NaN dans les types du moteur s'écrit null). Un échec de codage est un défaut
+    /// du harnais ou un type qui viole la convention de sérialisation : ErreurHarnais.
     init(encodant valeur: some Encodable) throws {
-        let donnees = try JSONEncoder().encode(valeur)
-        self = try JSONDecoder().decode(JSONValue.self, from: donnees)
+        do {
+            let donnees = try JSONEncoder().encode(valeur)
+            self = try JSONDecoder().decode(JSONValue.self, from: donnees)
+        } catch let erreur as EncodingError {
+            throw ErreurHarnais("sortie non encodable : \(erreur)")
+        } catch let erreur as DecodingError {
+            throw ErreurHarnais("sortie non relisible : \(erreur)")
+        }
     }
 }
 
@@ -101,20 +113,30 @@ func argDecode<T: Decodable>(_ valeur: JSONValue, _ type: T.Type) throws -> T {
 
 /// Rejoue les cas d'un module de l'oracle et rend les différences, nommées par cas (une par ligne).
 /// Un cas `sortie` réussit si `executer` rend une valeur égale à la sortie (tolérance 1e-9 sur les nombres).
-/// Un cas `erreur` réussit si `executer` lève une erreur (une erreur du harnais ne compte pas).
+/// Un cas `erreur` réussit si `executer` lève une erreur du moteur (une erreur du harnais ne compte pas).
 func rejouer(module: String, executer: (CasOracle) throws -> JSONValue) -> [String] {
-    let fichier: FichierOracle
+    let cas: [CasOracle]
     do {
-        fichier = try chargerCasOracle(module)
+        cas = try chargerCasOracle(module).cas
     } catch {
         return ["module « \(module) » introuvable dans Tests/Oracle : \(error)"]
     }
+    return verifierCas(cas, executer: executer)
+}
+
+/// Vérifie une liste de cas (le cœur de `rejouer`, sans lecture de fichier). Rend les différences, une par ligne.
+func verifierCas(_ liste: [CasOracle], executer: (CasOracle) throws -> JSONValue) -> [String] {
     var differences: [String] = []
-    for cas in fichier.cas {
+    for cas in liste {
+        // Un cas sans sortie ni erreur attendue est mal formé : il ne peut ni réussir ni servir de contrôle.
+        guard cas.sortie != nil || cas.erreur != nil else {
+            differences.append("\(cas.nom) : défaut du harnais : ni sortie ni erreur attendue")
+            continue
+        }
         do {
             let obtenu = try executer(cas)
-            if cas.erreur != nil {
-                differences.append("\(cas.nom) : une erreur était attendue, obtenu \(obtenu)")
+            if let erreur = cas.erreur {
+                differences.append("\(cas.nom) : une erreur était attendue (« \(erreur) »), obtenu \(obtenu)")
             } else {
                 for difference in comparer(cas.sortie ?? .null, obtenu) {
                     differences.append("\(cas.nom) — \(difference)")
@@ -131,9 +153,7 @@ func rejouer(module: String, executer: (CasOracle) throws -> JSONValue) -> [Stri
     return differences
 }
 
-/// Dossier Tests/Oracle, lu à partir des sources de test (#filePath). Le manifeste ne peut pas vérifier l'existence
-/// de ce dossier dans cet environnement (condition ORACLE_PRESENT toujours fausse) : la ressource n'est donc pas
-/// copiée dans le bundle, et chargerOracle échoue. Le harnais lit directement les fichiers du dépôt.
+/// Dossier Tests/Oracle, lu à partir des sources de test (#filePath) : le paquet n'en copie pas les fichiers.
 private let dossierOracleSources = URL(fileURLWithPath: #filePath)
     .deletingLastPathComponent()
     .deletingLastPathComponent()
@@ -152,10 +172,13 @@ func messageDifferences(_ differences: [String]) -> Comment? {
     return Comment(rawValue: "\(differences.count) différence(s) ; les premières :\n\(details)")
 }
 
-/// Le harnais lit bien tous les cas de chaque module : le nombre égale celui du LISEZMOI de l'oracle.
+/// Le harnais lit tous les cas de chaque module : le nombre égale celui du LISEZMOI de l'oracle (Tests/Oracle/LISEZMOI.md,
+/// « Fichiers (nombre de cas) »). Un cas non lu ferait passer un module sans le tester.
 @Test(arguments: [
-    ("dates", 150), ("arrondi", 116), ("format", 122), ("parametres", 38),
-    ("validationParametres", 65), ("riegel", 14), ("jours", 13),
+    ("dates", 150), ("arrondi", 116), ("format", 122), ("parametres", 38), ("validationParametres", 65),
+    ("riegel", 14), ("jours", 13), ("seance-miseEnForme", 18), ("seance-intrinseque", 50), ("seance-marquage", 60),
+    ("seance-classement", 25), ("series", 62), ("decision", 251), ("progression", 134), ("selecteurs", 63),
+    ("suggestionHrMax", 55), ("vue", 34),
 ] as [(String, Int)])
 func harnaisLitTousLesCasDeLOracle(module: String, attendu: Int) throws {
     #expect(try chargerCasOracle(module).cas.count == attendu)
@@ -185,4 +208,38 @@ func harnaisLitTousLesCasDeLOracle(module: String, attendu: Int) throws {
         "alt_m": .null,
         "vitesse_ms": .array([.number(1)]),
     ])).isEmpty)
+}
+
+/// `T | null` sur un Double (ChampNul) : NaN s'écrit null et se relit nil (null est absence de valeur) ; ±Infinity
+/// s'écrivent « Infinity » / « -Infinity » et se relisent ; 1,5 est un nombre ordinaire. Testé dans une structure réelle.
+@Test func champNulDoubleAllerRetour() throws {
+    let cas: [(valeur: Double?, ecrit: JSONValue)] = [
+        (.nan, .null),
+        (.infinity, .string("Infinity")),
+        (-.infinity, .string("-Infinity")),
+        (1.5, .number(1.5)),
+        (nil, .null),
+    ]
+    for (valeur, ecrit) in cas {
+        let signal = Signal(cle: .reponse, nom: "Réponse", etat: .ok, valeur: valeur, valeurTexte: "", explication: "")
+        let json = try JSONValue(encodant: signal)
+        guard case let .object(objet) = json else {
+            Issue.record("objet JSON attendu")
+            return
+        }
+        #expect(objet["valeur"] == ecrit, "écriture de \(String(describing: valeur))")
+
+        let relu = try json.decoder(Signal.self).valeur
+        if let valeur, !valeur.isNaN {
+            #expect(relu == valeur, "relecture de \(valeur)")
+        } else {
+            #expect(relu == nil, "NaN ou absence se relisent nil")
+        }
+    }
+}
+
+/// Un décodage de cas invalide est un défaut du harnais (ErreurHarnais), jamais une erreur attendue du moteur.
+@Test func entreeNonDecodableEstUnDefautDuHarnais() {
+    #expect(throws: ErreurHarnais.self) { _ = try JSONValue.string("pas un nombre").decoder(Int.self) }
+    #expect(throws: ErreurHarnais.self) { _ = try argDecode(.string("x"), Signal.self) }
 }

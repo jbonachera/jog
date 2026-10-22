@@ -1,16 +1,8 @@
 // swift-tools-version: 6.0
 import PackageDescription
-import Foundation
 
-// Les cas dorés (Tests/Oracle/*.json) sont produits par le lot 0.2. Le dossier
-// peut être absent au début : la ressource n'est déclarée que s'il existe,
-// sinon SwiftPM refuserait le paquet. La condition de compilation ORACLE_PRESENT
-// indique au code de test que Bundle.module contient le dossier.
-let dossierOracle = URL(fileURLWithPath: #filePath)
-    .deletingLastPathComponent()
-    .appendingPathComponent("Tests/Oracle")
-let oraclePresent = FileManager.default.fileExists(atPath: dossierOracle.path)
-
+// Les cas dorés (Tests/Oracle/*.json) ne sont pas copiés dans le bundle de test : le harnais les lit à partir de
+// #filePath, donc le dossier est exclu de la cible pour que SwiftPM ne le signale pas comme fichiers non gérés.
 let package = Package(
     name: "JogCore",
     platforms: [
@@ -29,10 +21,9 @@ let package = Package(
             name: "JogCoreTests",
             dependencies: ["JogCore"],
             path: "Tests",
+            exclude: ["Oracle"],
             sources: ["JogCoreTests"],
-            resources: oraclePresent ? [.copy("Oracle")] : [],
             swiftSettings: [.swiftLanguageMode(.v6)]
-                + (oraclePresent ? [.define("ORACLE_PRESENT")] : [])
         ),
     ],
     swiftLanguageModes: [.v6]

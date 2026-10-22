@@ -21,11 +21,3 @@ func moyenneDesFinies<S: Sequence>(_ valeurs: S) -> Double? where S.Element == D
     }
     return nombre == 0 ? nil : somme / Double(nombre)
 }
-
-/// Écriture d'un nombre comme le ferait une chaîne de gabarit JavaScript (168, et non 168.0), pour les libellés.
-func texteNombreProgression(_ valeur: Double) -> String {
-    if valeur.isFinite, valeur == valeur.rounded(.towardZero), abs(valeur) < 1e15 {
-        return String(Int(valeur))
-    }
-    return "\(valeur)"
-}

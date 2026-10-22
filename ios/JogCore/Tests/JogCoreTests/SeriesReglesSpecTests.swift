@@ -35,6 +35,17 @@ private func semaine(_ lundi: DateCivile, _ statut: StatutSemaine, _ km: Double)
     #expect(points[0].atl == 50)
 }
 
+@Test func d002LaFormeDeFondDuJour1SuitLaFormuleDeCtl() throws {
+    // D-002 : CTL₀ = ATL₀ = moyenne des 28 premiers jours = 100 ÷ 28 = 25/7. Au jour 1, CTL(1) = CTL₀ + (L₁ − CTL₀) ÷ 42
+    // avec L₁ = 100 : 25/7 + (675/7) ÷ 42 = 575/98 (≈ 5,8673). ATL(1) = CTL₀ + (100 − CTL₀) ÷ 7 = 850/49.
+    let charges = [100.0] + Array(repeating: 0.0, count: 27)
+    let points = try serieCharge(try joursSynthetiques(Array(repeating: 0.0, count: 28), charges: charges),
+                                 OptionsCharge(ctlDays: 42, atlDays: 7))
+    #expect(abs(points[0].ctl - 575.0 / 98.0) < 1e-12)
+    #expect(abs(points[0].atl - 850.0 / 49.0) < 1e-12)
+    #expect(points[0].tsb == 0)
+}
+
 @Test func d002ChangerLeJour1RecalculeToutLaSerie() throws {
     // D-002 : « si des activités plus anciennes sont importées, le jour 1 change et toute la série est recalculée ».
     // Le jour 1 porte la moyenne CTL₀ = ATL₀ des 28 premiers jours : une charge différente le jour 1 change chaque point.
@@ -44,10 +55,12 @@ private func semaine(_ lundi: DateCivile, _ statut: StatutSemaine, _ km: Double)
     charges[0] = 100
     let apres = try serieCharge(try joursSynthetiques(kms, charges: charges), OptionsCharge(ctlDays: 42, atlDays: 7))
 
-    for i in 0..<40 {
-        #expect(avant[i].ctl != apres[i].ctl, "CTL au jour \(i + 1)")
-    }
-    #expect(avant[1].tsb != apres[1].tsb)
+    // Sans charge, CTL₀ = 0 : la série reste nulle. Avec 100 le jour 1, CTL₀ = 100 ÷ 28 = 25/7, et CTL(1) = 575/98.
+    #expect(avant[0].ctl == 0)
+    #expect(abs(apres[0].ctl - 575.0 / 98.0) < 1e-12)
+    // TSB(2) = CTL(1) − ATL(1) = 575/98 − 850/49 = −1125/98.
+    #expect(avant[1].tsb == 0)
+    #expect(abs(apres[1].tsb - (-1125.0 / 98.0)) < 1e-12)
 }
 
 // MARK: - 04 : ratio de progressivité

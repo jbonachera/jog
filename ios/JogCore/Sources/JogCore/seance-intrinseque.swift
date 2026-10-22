@@ -12,7 +12,7 @@ private enum Categorie: Int {
 
 /// Séance intrinsèque : étapes ① et ②a (ADR 0006).
 public func calculerSeanceIntrinseque(_ pivot: ActivitePivot, _ p: ParamsDates) throws -> SeanceIntrinseque {
-    let g = miseEnForme(pivot)
+    let g = try miseEnForme(pivot)
     let reps = try detecterRepetitions(g, pivot.tours, p)
     let (categories, segmentsMp) = classer(g, reps, p)
     let marquage = marquer(pivot.competition, pivot.nom)

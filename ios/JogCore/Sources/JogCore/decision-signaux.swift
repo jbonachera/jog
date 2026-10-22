@@ -124,7 +124,10 @@ private func signalReponse(_ ctx: ContexteSignaux) throws -> Signal {
         }
     }
 
-    let avant = Array(valeurs[(valeurs.count - (recentes + precedentes))..<(valeurs.count - recentes)])
+    // Comme `slice(-(recentes + precedentes), -recentes)` : bornes ramenées à 0, vide si elles se croisent.
+    let fin = max(0, valeurs.count - recentes)
+    let debut = max(0, valeurs.count - (recentes + precedentes))
+    let avant = debut < fin ? Array(valeurs[debut..<fin]) : []
     let ecart = moyenneDesValeurs(dernieres.map { $0.norm }) - moyenneDesValeurs(avant.map { $0.norm })
     let valeur = try arrondir(ecart, PRECISION.reponseEffort)
     let texte: String
@@ -322,13 +325,4 @@ private func moyenneDesValeurs(_ valeurs: [Double]) -> Double {
     var somme = 0.0
     for v in valeurs { somme += v }
     return somme / Double(valeurs.count)
-}
-
-/// Écriture d'un nombre comme JavaScript l'écrit dans un gabarit (« 164 », « 164.5 »), pour les phrases qui citent
-/// une valeur brute (refHr).
-private func texteNombreJS(_ valeur: Double) -> String {
-    if valeur == valeur.rounded(.towardZero), abs(valeur) < 9e18 {
-        return String(Int(valeur))
-    }
-    return "\(valeur)"
 }

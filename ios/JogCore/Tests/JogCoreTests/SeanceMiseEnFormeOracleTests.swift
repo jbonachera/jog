@@ -13,7 +13,7 @@ private func executerSeanceMiseEnForme(_ cas: CasOracle) throws -> JSONValue {
     switch cas.fn {
     case "miseEnForme":
         let pivot = try argDecode(try arg(args, 0), ActivitePivot.self)
-        return try JSONValue(encodant: miseEnForme(pivot))
+        return try JSONValue(encodant: try miseEnForme(pivot))
     case "moyenneGlissante":
         let valeurs = try tableauDeNombresOracle(try arg(args, 0))
         let t = try tableauDeNombresOracle(try arg(args, 1))

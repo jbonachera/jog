@@ -14,11 +14,6 @@ public func mediane(_ valeurs: [Double]) -> Double? {
     return (triees[milieu - 1] + triees[milieu]) / 2
 }
 
-/// Math.round de JavaScript : arrondi à l'entier le plus proche, les moitiés vers +∞.
-func mathRoundJS(_ x: Double) -> Double {
-    (x + 0.5).rounded(.down)
-}
-
 /// Répétitions d'une séance (07, règle 2).
 ///
 /// Repli sur le flux : on ne bascule sur la détection dans le flux que si le chemin par tours ne donne **aucune**
@@ -201,12 +196,6 @@ private func formatRepetitions(_ repetitions: [Repetition]) throws -> String? {
 
 private func minutesArrondies(_ secondes: Double) throws -> Double {
     try arrondir(secondes / 60, 1)
-}
-
-/// Écriture d'un nombre comme `String(number)` en JavaScript, pour les minutes arrondies au dixième.
-private func texteNombreJS(_ x: Double) -> String {
-    if x == x.rounded(.towardZero) && abs(x) < 1e15 { return String(Int(x)) }
-    return String(x)
 }
 
 // Durée d'une plage, en secondes : somme des poids de ses échantillons.

@@ -80,7 +80,8 @@ func comparer(_ vue: Vue, _ a: PeriodeDates, _ b: PeriodeDates, _ paramsAuJour: 
         let valeurA = valeursA.valeur(d.cle)
         let valeurB = valeursB.valeur(d.cle)
         let ecart: Double? = if let a = valeurA, let b = valeurB { b - a } else { nil }
-        let affiche = try ecartAffiche(valeurA, valeurB, PRECISIONS[d.cle]!)
+        guard let precision = PRECISIONS[d.cle] else { throw ErreurPrecisionAbsente(cle: d.cle) }
+        let affiche = try ecartAffiche(valeurA, valeurB, precision)
         return Mesure(
             cle: d.cle, groupe: d.groupe, nom: nomDeMesure(d, vue), sens: d.sens, a: valeurA, b: valeurB,
             ecart: ecart, ecartAffiche: affiche, etat: etat(d.sens, affiche)
@@ -119,7 +120,7 @@ private func verifier(_ nom: ErreurPeriodeInvalide.Periode, _ periode: PeriodeDa
 
 /// Le nom d'une mesure : la ligne d'allure porte la FC de référence (03, P1 : « allure à 164 bpm »).
 private func nomDeMesure(_ d: DefinitionMesure, _ vue: Vue) -> String {
-    d.cle == .allure ? "allure à \(texteNombreProgression(vue.parametresEnVigueur.globaux.refHr)) bpm" : d.nom
+    d.cle == .allure ? "allure à \(texteNombreJS(vue.parametresEnVigueur.globaux.refHr)) bpm" : d.nom
 }
 
 /// Un écart nul affiche « = » (égal). Une valeur absente, ou une mesure sans sens, est neutre.
@@ -180,8 +181,8 @@ private func valeursDePeriode(_ vue: Vue, _ periode: PeriodeBornee, _ paramsAuJo
         footings: try pourcentPlafond(footings, paramsAuJour),
         decouplage: moyenneDesFinies(sorties.lazy.map { $0.decouplage?.valeur }),
         formeMoy: moyenneDesFinies(ctl),
-        formeMax: ctl.max(),
-        picRatio: ratios.max(),
+        formeMax: mathMaxJS(ctl),
+        picRatio: mathMaxJS(ratios),
         test5: meilleurTemps(chronos5)
     )
 }

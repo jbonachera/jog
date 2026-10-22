@@ -88,8 +88,3 @@ private func executerDecision(_ cas: CasOracle) throws -> JSONValue {
     let differences = rejouer(module: "decision", executer: executerDecision)
     #expect(differences.isEmpty, messageDifferences(differences))
 }
-
-/// Le harnais lit tous les cas du module : le nombre égale celui du LISEZMOI de l'oracle.
-@Test func harnaisLitTousLesCasDe_Decision() throws {
-    #expect(try chargerCasOracle("decision").cas.count == 251)
-}

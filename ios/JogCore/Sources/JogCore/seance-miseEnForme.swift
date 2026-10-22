@@ -1,9 +1,29 @@
 // Étape ① de la séance (ADR 0006, D-013) : grille d'analyse, FC rééchantillonnée, distance cumulée, vitesse et FC
 // lissée. Traduit de src/core/seance/miseEnForme.ts. Sommes dans l'ordre des échantillons, comme en TypeScript.
 
-/// Met en forme le pivot : toutes les étapes ① de ADR 0006.
-public func miseEnForme(_ pivot: ActivitePivot) -> GrilleSeance {
+/// Colonnes du flux de longueurs différentes : le pivot est incohérent (l'oracle n'en produit pas).
+public struct ErreurFluxIncoherent: Error, Sendable, Equatable {
+    public let colonne: String
+    public let longueur: Int
+    public let attendue: Int
+}
+
+/// Vérifie une fois, à l'entrée, que les colonnes lues par ① ont la longueur de `t_s` : les boucles ne testent pas les bornes.
+private func verifierColonnes(_ flux: Flux) throws {
+    let attendue = flux.t_s.count
+    func verifier(_ colonne: String, _ longueur: Int) throws {
+        if longueur != attendue { throw ErreurFluxIncoherent(colonne: colonne, longueur: longueur, attendue: attendue) }
+    }
+    try verifier("dist_m", flux.dist_m.count)
+    if let fc = flux.fc_bpm { try verifier("fc_bpm", fc.count) }
+    if let vitesse = flux.vitesse_ms { try verifier("vitesse_ms", vitesse.count) }
+}
+
+/// Met en forme le pivot : toutes les étapes ① de ADR 0006. Lève ErreurFluxIncoherent si une colonne du flux n'a pas
+/// la longueur de `t_s`.
+public func miseEnForme(_ pivot: ActivitePivot) throws -> GrilleSeance {
     let flux = pivot.flux
+    try verifierColonnes(flux)
     let n = flux.t_s.count
     let t = flux.t_s.map { Double($0) }
 
@@ -19,7 +39,7 @@ public func miseEnForme(_ pivot: ActivitePivot) -> GrilleSeance {
     if let mesures = flux.fc_bpm {
         var derniere = Double.nan
         for i in 0..<n {
-            let mesure = i < mesures.count ? Double(mesures[i]) : Double.nan
+            let mesure = Double(mesures[i])
             if !mesure.isNaN { derniere = mesure }
             fcMesuree[i] = derniere
         }

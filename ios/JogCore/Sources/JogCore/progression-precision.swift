@@ -20,6 +20,11 @@ let PRECISIONS: [CleMesure: Precision] = [
     .test5: Precision(pas: 1, echelle: 1),
 ]
 
+/// La table des précisions couvre toutes les mesures : l'erreur ne signale qu'une table incomplète.
+struct ErreurPrecisionAbsente: Error, Equatable {
+    let cle: CleMesure
+}
+
 /// La valeur telle qu'elle s'affiche, en unité affichée (minutes pour les heures).
 func arrondiAffiche(_ valeur: Double, _ precision: Precision) throws -> Double {
     try arrondir(valeur * precision.echelle, precision.pas)

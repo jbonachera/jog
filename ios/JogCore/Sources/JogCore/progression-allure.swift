@@ -21,6 +21,6 @@ func allureNormSemaine(_ seancesDeLaSemaine: [SeanceVue], _ g: Globaux) -> Doubl
 func horsSousSeuil(_ r: Repetition, _ p: ParamsDates) -> HorsSousSeuil {
     var raisons: [String] = []
     if r.allure_skm < p.lt2Pace { raisons.append("plus rapide que l’allure seuil") }
-    if r.fcFin > p.subtHrHi { raisons.append("FC de fin au-dessus de \(texteNombreProgression(p.subtHrHi)) bpm") }
+    if r.fcFin > p.subtHrHi { raisons.append("FC de fin au-dessus de \(texteNombreJS(p.subtHrHi)) bpm") }
     return HorsSousSeuil(horsSousSeuil: !raisons.isEmpty, raisons: raisons)
 }
