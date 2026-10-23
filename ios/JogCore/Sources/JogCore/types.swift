@@ -152,6 +152,8 @@ public enum Source: String, Codable, Sendable, Equatable {
     case stravaArchive = "strava-archive"
     case fit
     case intervalsIcu = "intervals-icu"
+    /// Séance de l'app Exercice d'Apple, lue par HealthKit (migration-ios, décision 5).
+    case healthkit
 }
 
 public enum Marquage: String, Codable, Sendable, Equatable {
@@ -269,6 +271,8 @@ public enum RaisonIgnoree: String, Codable, Sendable, Equatable {
     case doublon
     case pasUneCourse = "pas-une-course"
     case illisible
+    /// Séance d'une autre app que l'app Exercice (filtre HealthKit, migration-ios, décision 5).
+    case autreSource = "autre-source"
 }
 
 // MARK: - Paramètres (06, D-006)

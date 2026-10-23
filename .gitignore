@@ -4,3 +4,4 @@ export_*.zip
 local-data/
 tests/local/out/
 tests/e2e/out/
+.DS_Store
