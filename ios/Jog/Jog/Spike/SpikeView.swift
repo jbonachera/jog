@@ -151,6 +151,9 @@ struct SpikeView: View {
                 Text(seance.source)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Text(seance.resume)
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
             }
         }
         .contentShape(Rectangle())

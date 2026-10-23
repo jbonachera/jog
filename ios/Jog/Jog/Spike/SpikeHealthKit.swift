@@ -9,6 +9,8 @@ struct SeanceSpike: Identifiable, Sendable {
     let fin: Date
     let distanceMetres: Double?
     let source: String
+    /// Type d'activité HealthKit et nombre de tours / segments / étapes, pour repérer les séances au seuil.
+    let resume: String
 }
 
 enum SpikeErreur: LocalizedError, Sendable {
@@ -40,13 +42,22 @@ actor SpikeHK {
         ]
     }
 
+    private static func resume(_ s: HKWorkout) -> String {
+        let ev = s.workoutEvents ?? []
+        let tours = ev.filter { $0.type == .lap }.count, segments = ev.filter { $0.type == .segment }.count
+        let marqueurs = ev.filter { $0.type == .marker }.count
+        let nom = s.metadata?[HKMetadataKeyWorkoutBrandName] as? String
+        return "type \(s.workoutActivityType.rawValue) · tours \(tours) · segments \(segments) · marqueurs \(marqueurs) · étapes \(s.workoutActivities.count)" + (nom.map { " · \($0)" } ?? "")
+    }
+
     func demanderAutorisation() async throws {
         guard HKHealthStore.isHealthDataAvailable() else { throw SpikeErreur.indisponible }
         try await store.requestAuthorization(toShare: [], read: typesLecture)
     }
 
-    func seancesRecentes(limite: Int = 40) async throws -> [SeanceSpike] {
-        let predicat = HKSamplePredicate.workout(HKQuery.predicateForWorkouts(with: .running))
+    func seancesRecentes(limite: Int = 400) async throws -> [SeanceSpike] {
+        // Tous types d'activité : une séance au seuil peut être enregistrée autrement qu'en « course ».
+        let predicat = HKSamplePredicate.workout(HKQuery.predicateForWorkouts(with: .greaterThanOrEqualTo, duration: 0))
         let descripteur = HKSampleQueryDescriptor(
             predicates: [predicat],
             sortDescriptors: [SortDescriptor(\.startDate, order: .reverse)],
@@ -60,7 +71,8 @@ actor SpikeHK {
                 debut: seance.startDate,
                 fin: seance.endDate,
                 distanceMetres: seance.statistics(for: typeDistance)?.sumQuantity()?.doubleValue(for: .meter()),
-                source: "\(seance.sourceRevision.source.name) (\(seance.sourceRevision.source.bundleIdentifier))"
+                source: "\(seance.sourceRevision.source.name) (\(seance.sourceRevision.source.bundleIdentifier))",
+                resume: Self.resume(seance)
             )
         }
     }
