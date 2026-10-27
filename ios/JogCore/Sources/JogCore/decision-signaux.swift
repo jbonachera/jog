@@ -294,7 +294,8 @@ private func signalPalier(_ ctx: ContexteSignaux) throws -> Signal {
 
 /// Séances sous-seuil utilisables (04), à J−1 au plus, dans l'ordre de la Vue. Une séance sans aucune répétition d'allure
 /// finie (allure normalisée finie, D-004) n'est comptée ni par le signal 3 ni par le signal 4 : elle est exclue des deux décomptes.
-/// Les répétitions estimées sur la FC (D-021) n'entrent jamais dans ces signaux : elles ne sont pas des séances sous-seuil.
+/// Les répétitions estimées sur la vitesse et la FC (D-021) n'entrent jamais dans ces signaux : ce ne sont pas des séances
+/// sous-seuil (elles sont classées séance qualité).
 private func seancesSousSeuil(_ e: EntreesDecision, _ veille: DateCivile) -> [Seance] {
     e.seances.filter { s in
         s.type == .sousSeuil && s.repetitionsEstimees != true && s.date <= veille

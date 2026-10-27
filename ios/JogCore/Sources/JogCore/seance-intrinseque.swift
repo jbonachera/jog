@@ -15,19 +15,33 @@ private enum Categorie: Int {
 public func calculerSeanceIntrinseque(
     _ pivot: ActivitePivot, _ p: ParamsDates, marquageUtilisateur: MarquageUtilisateur? = nil
 ) throws -> SeanceIntrinseque {
+    try calculerSeanceIntrinsequeAvec(
+        pivot, p, marquageUtilisateur: marquageUtilisateur, estimateur: repetitionsParEstimation
+    )
+}
+
+/// Corps de `calculerSeanceIntrinseque`, avec l'estimateur des répétitions en paramètre (test du repli, D-021).
+func calculerSeanceIntrinsequeAvec(
+    _ pivot: ActivitePivot, _ p: ParamsDates, marquageUtilisateur: MarquageUtilisateur?,
+    estimateur: (GrilleSeance, ParamsDates) throws -> Repetitions?
+) throws -> SeanceIntrinseque {
     let g = try miseEnForme(pivot)
     let intervalles = analyseDesIntervallesAutorisee(source: pivot.source, appSource: pivot.appSource)
-    var reps = try detecterRepetitions(g, pivot.tours, p, intervalles: intervalles)
+    // Les répétitions détectées (tours ou flux) sont les seules qui entrent dans la classification (charge, minutes,
+    // signaux) : elles ne dépendent jamais de l'estimation (D-021, décision du pilote).
+    let detectees = try detecterRepetitions(g, pivot.tours, p, intervalles: intervalles)
     // D-021 : une séance HealthKit sans tour de travail (ni manuel ni étape), et sans répétition détectée dans le flux,
-    // est estimée sur la FC. Une séance avec tours garde son chemin par les tours, même sans série.
+    // est estimée sur la vitesse et la FC. Une séance avec tours garde son chemin par les tours, même sans série. Une
+    // erreur de l'estimation écarte l'estimation seulement : la séance reste, sans répétitions estimées.
+    var reps = detectees
     var estimees: Bool?
     let sansTourDeTravail = !pivot.tours.contains(where: estTourDeTravail)
-    if pivot.source == .healthkit && sansTourDeTravail && reps.repetitions.isEmpty,
-       let estimation = try repetitionsParEstimation(g, p) {
+    if pivot.source == .healthkit && sansTourDeTravail && detectees.repetitions.isEmpty,
+       let estimation = try? estimateur(g, p) {
         reps = estimation
         estimees = true
     }
-    let (categories, segmentsMp) = classer(g, reps, p)
+    let (categories, segmentsMp) = classer(g, detectees, p)
     let marquage = marquerSeance(marquageUtilisateur, competition: pivot.competition, nom: pivot.nom)
     let enCourse = marquage == .course || marquage == .test
 

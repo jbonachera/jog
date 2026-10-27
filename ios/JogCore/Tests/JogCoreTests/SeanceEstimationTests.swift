@@ -304,33 +304,94 @@ private func intervalleSecondes(_ g: GrilleSeance, _ plage: Plage) -> (debut: Do
     }
 }
 
-@Test func d021LeVerdictNeDependPasDesRepetitionsEstimees() throws {
-    // D-021 : les répétitions estimées n'entrent ni dans la réponse à l'effort (signal 3), ni dans les répétitions hors
-    // sous-seuil (signal 4), ni dans le nuage (P3). Même Vue avec et sans elles : signaux identiques.
+@Test func d021LaVueNeDependPasDesRepetitionsEstimeesQueParLeTypeEtLesFootings() throws {
+    // D-021 (décision du pilote) : la même séance, une fois estimée (type séance qualité) et une fois sans estimation (son
+    // type de classement sans répétitions), dans la même Vue. Tout est identique sauf la séance elle-même (type,
+    // répétitions, format, récupération) et P4. Font exception, parce qu'ils lisent le type seul : le signal des footings
+    // et les footings des semaines (une séance sans estimation est un footing), le type des jours, et le type dominant des
+    // barres des compteurs. Volumes, charge, minutes, signaux 1 à 4 et 6, verdict, fourchette et simulateur sont identiques.
     let J: DateCivile = "2026-10-20"
-    // Neuf séances sous-seuil (minimum du signal 3), dans les 21 derniers jours.
-    let sousSeuil = try [1, 3, 5, 7, 9, 11, 13, 15, 17].enumerated().map { (k, jour) in
+    // La séance est la plus récente de la Vue (J−1) : P4 la lit.
+    let pivot = pivotAutreApp(fractionne(), date: "2026-10-19")
+    let avec = try calculerSeanceIntrinseque(pivot, parametres)
+    let sans = try calculerSeanceIntrinsequeAvec(pivot, parametres, marquageUtilisateur: nil) { _, _ in nil }
+    #expect(avec.repetitionsEstimees == true)
+    #expect(sans.repetitionsEstimees == nil)
+    // Volume, charge, minutes : identiques avec ou sans estimation (classification sur les seules répétitions détectées).
+    #expect(avec.minutes == sans.minutes)
+    #expect(avec.charge == sans.charge)
+    #expect(avec.mp_min == sans.mp_min)
+    #expect(avec.segmentsMp == sans.segmentsMp)
+    #expect(avec.duree_min == sans.duree_min)
+    #expect(avec.km == sans.km)
+    #expect(avec.decouplage == sans.decouplage)
+    #expect(avec.fcPic == sans.fcPic)
+
+    // Neuf séances sous-seuil (minimum du signal 3), dans les 21 derniers jours, et quatre footings.
+    let sousSeuil = try [3, 5, 7, 9, 11, 13, 15, 17, 19].enumerated().map { (k, jour) in
         sousSeuilSynthetique("ss\(k)", try dateDe(J, -jour), allure: 300 + Double(k))
     }
     let footings = try [2, 4, 6, 8].enumerated().map { (k, jour) in
         footingSynthetique("f\(k)", try dateDe(J, -jour))
     }
-    let qualites = try classeesEnSeance([
-        pivotAutreApp(fractionne(), date: "2026-10-10"),
-        pivotAutreApp(fractionne(nombre: 5), date: "2026-10-08"),
-    ])
-    let sans = try calculerVue(EntreeVue(intrinseques: sousSeuil + footings, parametres: parametresDefaut(), J: J, derniereSynchro: nil))
-    let avec = try calculerVue(EntreeVue(intrinseques: sousSeuil + footings + qualites, parametres: parametresDefaut(), J: J, derniereSynchro: nil))
+    let vueAvec = try calculerVue(EntreeVue(intrinseques: sousSeuil + footings + [avec], parametres: parametresDefaut(), J: J, derniereSynchro: nil))
+    let vueSans = try calculerVue(EntreeVue(intrinseques: sousSeuil + footings + [sans], parametres: parametresDefaut(), J: J, derniereSynchro: nil))
+    #expect(vueAvec.seances.last?.type == .seanceQualite)
+    #expect(vueSans.seances.last?.type != .seanceQualite)
 
-    #expect(avec.seances.filter { $0.type == .seanceQualite }.count == 2)
-    for cle in [CleSignal.reponse, .horsSousSeuil] {
-        let attendu = sans.decision.signaux.first { $0.cle == cle }
-        #expect(avec.decision.signaux.first { $0.cle == cle } == attendu, "signal \(cle)")
-        #expect(attendu?.etat != .insuffisant, "signal \(cle) : la Vue de référence doit le calculer")
+    // Décision : verdict, fourchette, simulateur et signaux, sauf le signal des footings (type seul).
+    #expect(vueAvec.decision.verdict == vueSans.decision.verdict)
+    #expect(vueAvec.decision.phrase == vueSans.decision.phrase)
+    #expect(vueAvec.decision.fourchette == vueSans.decision.fourchette)
+    #expect(vueAvec.decision.simulateur == vueSans.decision.simulateur)
+    let signauxAvec = vueAvec.decision.signaux.filter { $0.cle != .footings }
+    let signauxSans = vueSans.decision.signaux.filter { $0.cle != .footings }
+    #expect(signauxAvec == signauxSans)
+    #expect(vueAvec.decision.signaux.count == vueSans.decision.signaux.count)
+
+    // Série de charge : identique. Compteurs : volumes identiques ; seul le type dominant des barres suit le type.
+    #expect(vueAvec.serieCharge == vueSans.serieCharge)
+    #expect(vueAvec.compteurs.annee.km == vueSans.compteurs.annee.km)
+    #expect(vueAvec.compteurs.jours30.km == vueSans.compteurs.jours30.km)
+    #expect(vueAvec.compteurs.jours7.nbSeances == vueSans.compteurs.jours7.nbSeances)
+    #expect(sansTypeDeBarre(vueAvec.compteurs) == sansTypeDeBarre(vueSans.compteurs))
+
+    // Jours : tout sauf le type de chaque jour, qui porte le type de la séance.
+    var joursAvec = vueAvec.jours
+    joursAvec.types = vueSans.jours.types
+    #expect(joursAvec == vueSans.jours)
+
+    // Semaines : minutes, charge, volume, part et nombre sous-seuil identiques ; les footings suivent le type.
+    #expect(vueAvec.semaines.count == vueSans.semaines.count)
+    for (semaineAvec, semaineSans) in zip(vueAvec.semaines, vueSans.semaines) {
+        #expect(semaineAvec.lundi == semaineSans.lundi)
+        #expect(semaineAvec.statut == semaineSans.statut)
+        #expect(semaineAvec.km == semaineSans.km)
+        #expect(semaineAvec.min == semaineSans.min)
+        #expect(semaineAvec.minutes == semaineSans.minutes)
+        #expect(semaineAvec.partSS == semaineSans.partSS)
+        #expect(semaineAvec.nbSS == semaineSans.nbSS)
+        #expect(semaineAvec.charge == semaineSans.charge)
     }
-    let nuageAvec = try nuage(avec, .annee)
-    let nuageSans = try nuage(sans, .annee)
-    #expect(nuageAvec.recente.nombre == nuageSans.recente.nombre)
+
+    // Séances : tout sauf le type, les répétitions, le format, la récupération et l'indication d'estimation de la séance.
+    #expect(vueAvec.seances.count == vueSans.seances.count)
+    for (a, b) in zip(vueAvec.seances, vueSans.seances) {
+        var normalisee = a
+        normalisee.type = b.type
+        normalisee.repetitions = b.repetitions
+        normalisee.format = b.format
+        normalisee.recup_s = b.recup_s
+        normalisee.repetitionsEstimees = b.repetitionsEstimees
+        #expect(normalisee == b)
+    }
+
+    // P4 lit la séance qualité : seule la dernière séance diffère.
+    #expect(derniereSeanceSousSeuil(vueAvec, { _ in parametres })?.estimees == true)
+    #expect(derniereSeanceSousSeuil(vueSans, { _ in parametres })?.estimees == nil)
+    let nuageAvec = try nuage(vueAvec, .annee)
+    let nuageSans = try nuage(vueSans, .annee)
+    #expect(nuageAvec == nuageSans)
     #expect(nuageAvec.recente.nombre > 0)
 }
 
@@ -407,6 +468,125 @@ private func intervalleSecondes(_ g: GrilleSeance, _ plage: Plage) -> (debut: Do
     #expect(jsonSans.champs?["repetitionsEstimees"] == JSONValue.null)
 }
 
+// MARK: - Invalidation, repli, robustesse (revue D-021)
+
+/// Erreur fictive de l'estimateur, pour le test du repli.
+private struct ErreurEstimationFictive: Error {}
+
+@Test func d021LaCleDeSeanceChangeAvecLaVersionDuDetecteur() throws {
+    // D-021 : la version du détecteur entre dans la clé de mémorisation de ②a : une autre version, une autre clé.
+    let empreinte = EmpreinteActivite(cleSource: "a", empreinteBrute: "empreinte-a", versionAdaptateur: "healthkit-1.1.0", appSource: "net.workoutdoors.workoutdoors")
+    #expect(cleDeSeance(empreinte, parametres) == cleDeSeance(empreinte, parametres, versionEstimation: VERSION_ESTIMATION))
+    #expect(cleDeSeance(empreinte, parametres, versionEstimation: 1) != cleDeSeance(empreinte, parametres, versionEstimation: 2))
+    #expect(cleDeSeance(empreinte, parametres, versionEstimation: 1) != cleDeSeance(empreinte, parametres, versionEstimation: 0))
+}
+
+@Test func d021LEmpreinteDeLaVueChangeAvecLaVersionDuDetecteur() throws {
+    // D-021 (revue) : le démarrage rapide ne sert pas une Vue calculée avec un autre détecteur : l'empreinte des entrées
+    // change avec la version, même si REGLES_VERSION ne bouge pas.
+    let parametres = parametresDefaut()
+    let activites = [EmpreinteActivite(cleSource: "a", empreinteBrute: "e", versionAdaptateur: "1.0.0")]
+    let v1 = try empreinteEntrees(activites: activites, parametres: parametres, derniereSynchro: nil, versionEstimation: 1)
+    #expect(try empreinteEntrees(activites: activites, parametres: parametres, derniereSynchro: nil) == v1)
+    #expect(try empreinteEntrees(activites: activites, parametres: parametres, derniereSynchro: nil, versionEstimation: 2) != v1)
+}
+
+@Test func d021UneErreurDeLEstimationNEcartePasLaSeance() throws {
+    // D-021 (revue) : une erreur dans l'estimation écarte l'estimation seulement. La séance reste, classée comme sans
+    // estimation, avec les mêmes minutes et la même charge, et sans répétition estimée.
+    let pivot = pivotAutreApp(fractionne())
+    let sans = try calculerSeanceIntrinsequeAvec(pivot, parametres, marquageUtilisateur: nil) { _, _ in nil }
+    let repli = try calculerSeanceIntrinsequeAvec(pivot, parametres, marquageUtilisateur: nil) { _, _ in
+        throw ErreurEstimationFictive()
+    }
+    #expect(repli == sans)
+    #expect(repli.repetitionsEstimees == nil)
+    #expect(repli.repetitions.isEmpty)
+    #expect(repli.charge == sans.charge)
+    #expect(try classerSeances([repli])[0].type != .seanceQualite)
+}
+
+@Test func d021UneCoupureAuMilieuDUnBlocNeChangePasLeNombreDeBlocs() throws {
+    // D-021 (revue) : une pause de montre de 10 s au milieu du troisième bloc (trou sous trouMax_s, fusionné) : six blocs.
+    var morceaux = fractionne()
+    let indiceBloc = 5
+    let bloc = morceaux[indiceBloc]
+    morceaux.replaceSubrange(indiceBloc...indiceBloc, with: [
+        Morceau(duree: 90, fc: bloc.fc, vitesse: bloc.vitesse),
+        Morceau(duree: 10, fc: 0, vitesse: 0, pause: true),
+        Morceau(duree: 90, fc: bloc.fc, vitesse: bloc.vitesse),
+    ])
+    let g = try grilleDe(pivotConstruit(morceaux))
+    #expect(estimerRepetitions(g, parametres).count == 6)
+}
+
+@Test func d021UneSeanceDeQuatreHeuresResteRapide() throws {
+    // D-021 (revue) : séance de 4 h à 1 Hz (environ 14 000 échantillons). Mesure seulement, sans assertion de temps : la
+    // durée est imprimée pour les lancements en release (cible : moins de 50 ms hors tests).
+    let g = try grilleDe(pivotConstruit(fractionne(nombre: 44, duree: 180, recup: 120)))
+    #expect(g.n > 14_000)
+    let debut = ContinuousClock.now
+    let plages = estimerRepetitions(g, parametres)
+    let duree = debut.duration(to: ContinuousClock.now)
+    print("estimation sur \(g.n) échantillons : \(plages.count) blocs en \(duree)")
+    #expect(plages.count == 44)
+}
+
+@Test func d021LesGrillesDeMoinsDUnEchantillonNeDonnentRien() throws {
+    // D-021 (revue) : tableaux de longueur 0 ou 1 : aucun bloc, sans erreur, même avec les deux chemins.
+    var reglages = ReglagesEstimation.defaut
+    reglages.secoursEnCote = true
+    for n in [0, 1] {
+        let g = GrilleSeance(
+            n: n, t_s: Array(repeating: 0, count: n), dt_s: Array(repeating: 1, count: n),
+            distance_m: Array(repeating: 0, count: n), vitesse_ms: Array(repeating: 4, count: n),
+            fc_bpm: Array(repeating: 170, count: n), fcMesuree_bpm: Array(repeating: 170, count: n),
+            fcLissee_bpm: Array(repeating: 170, count: n), alt_m: Array(repeating: 0, count: n)
+        )
+        #expect(estimerRepetitions(g, parametres).isEmpty, "n = \(n)")
+        #expect(estimerRepetitions(g, parametres, reglages).isEmpty, "n = \(n), secours en côte")
+    }
+}
+
+@Test func d021DesFenetresNonFiniesPrennentLesValeursParDefaut() throws {
+    // D-021 (revue) : une fenêtre NaN ou infinie ne plante pas : elle prend la valeur par défaut, et le résultat est celui
+    // des réglages par défaut.
+    let g = try grilleDe(pivotConstruit(fractionne()))
+    var reglages = ReglagesEstimation.defaut
+    reglages.fenetrePente_s = .nan
+    reglages.fenetreBords_s = .infinity
+    reglages.demiFenetreRupture_s = -.infinity
+    #expect(estimerRepetitions(g, parametres, reglages) == estimerRepetitions(g, parametres))
+    #expect(estimerRepetitions(g, parametres, reglages).count == 6)
+}
+
+// MARK: - Décodage ancien : Seance et SeanceVue sans le champ `repetitionsEstimees`
+
+@Test func d021UneSeanceAncienneSansChampSeDecodeEnNil() throws {
+    // D-021 (revue) : une Seance classée, mémorisée sans le champ `repetitionsEstimees`, se relit en nil.
+    let seance = try classerSeances([sousSeuilSynthetique("ancienne", "2026-10-01", allure: 300)])[0]
+    var objet = try JSONSerialization.jsonObject(with: try JSONEncoder().encode(seance)) as! [String: Any]
+    objet.removeValue(forKey: "repetitionsEstimees")
+    let relue = try JSONDecoder().decode(Seance.self, from: try JSONSerialization.data(withJSONObject: objet))
+    #expect(relue.repetitionsEstimees == nil)
+    #expect(relue == seance)
+}
+
+@Test func d021UneSeanceVueAncienneSansChampSeDecodeEnNil() throws {
+    // D-021 (revue) : une SeanceVue de la Vue, relue sans le champ `repetitionsEstimees`, se décode en nil.
+    let J: DateCivile = "2026-10-20"
+    let vue = try calculerVue(EntreeVue(
+        intrinseques: [sousSeuilSynthetique("ancienne", "2026-10-18", allure: 300)],
+        parametres: parametresDefaut(), J: J, derniereSynchro: nil
+    ))
+    let seance = try #require(vue.seances.first)
+    var objet = try JSONSerialization.jsonObject(with: try JSONEncoder().encode(seance)) as! [String: Any]
+    objet.removeValue(forKey: "repetitionsEstimees")
+    let relue = try JSONDecoder().decode(SeanceVue.self, from: try JSONSerialization.data(withJSONObject: objet))
+    #expect(relue.repetitionsEstimees == nil)
+    #expect(relue == seance)
+}
+
 // MARK: - Outils de construction des séances de Vue
 
 private extension JSONValue {
@@ -415,6 +595,22 @@ private extension JSONValue {
         if case let .object(valeurs) = self { return valeurs }
         return nil
     }
+}
+
+/// Compteurs sans le type dominant de leurs barres (le type seul change avec l'estimation, D-021).
+private func sansTypeDeBarre(_ compteurs: Compteurs) -> Compteurs {
+    func neutre(_ serie: [BarreVolume]) -> [BarreVolume] {
+        serie.map { barre in
+            var sansType = barre
+            sansType.type = nil
+            return sansType
+        }
+    }
+    var resultat = compteurs
+    resultat.annee.serie = neutre(compteurs.annee.serie)
+    resultat.jours30.serie = neutre(compteurs.jours30.serie)
+    resultat.jours7.serie = neutre(compteurs.jours7.serie)
+    return resultat
 }
 
 /// Date civile décalée de `jours` par rapport à `date`.

@@ -6,7 +6,8 @@ private let DEMI_BANDE_SKM = 3.0
 
 /// La dernière séance sous-seuil de la Vue, ou nil sans séance sous-seuil. Les seuils sont ceux de sa date.
 public func derniereSeanceSousSeuil(_ vue: Vue, _ paramsAuJour: ParamsAuJour) -> DerniereSeance? {
-    // Séance sous-seuil, ou séance qualité aux répétitions estimées (D-021) : celle-ci est signalée par `estimees`.
+    // Séance sous-seuil, ou séance qualité aux répétitions estimées sur la vitesse et la FC (D-021) : celle-ci est signalée
+    // par `estimees`.
     var derniere: SeanceVue?
     for s in vue.seances where s.type == .sousSeuil || s.type == .seanceQualite {
         derniere = s

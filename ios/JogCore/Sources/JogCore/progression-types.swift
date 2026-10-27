@@ -453,7 +453,7 @@ public struct DerniereSeance: Codable, Sendable, Equatable {
     /// Borne haute de FC de fin à la date de la séance (D-006).
     @NombreOuNaN public var subtHrHi: Double
     public var repetitions: [RepetitionDerniere]
-    /// Vrai quand la séance est une séance qualité aux répétitions estimées (D-021). Nil sinon.
+    /// Vrai quand la séance est une séance qualité aux répétitions estimées sur la vitesse et la FC (D-021). Nil sinon.
     @ChampNul public var estimees: Bool?
 
     public init(

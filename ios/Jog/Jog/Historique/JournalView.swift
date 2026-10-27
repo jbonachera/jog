@@ -69,7 +69,7 @@ private struct LigneSemaineView: View {
                     Pastille(texte: "SS \(ligne.sousSeuil.texte)", ton: ligne.sousSeuil.ton)
                     Pastille(texte: "Ratio \(ligne.ratio.texte)", ton: ligne.ratio.ton)
                     ForEach(ligne.types, id: \.self) { type in
-                        Pastille(texte: ModeleApercu.libellePastilleType(type), ton: .neutre)
+                        Pastille(texte: ModeleApercu.libelleType(type), ton: .neutre)
                     }
                 }
             }

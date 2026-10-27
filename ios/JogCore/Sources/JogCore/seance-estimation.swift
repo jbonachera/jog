@@ -86,10 +86,10 @@ public func estimerRepetitions(_ g: GrilleSeance, _ p: ParamsDates, _ r: Reglage
     return estimerSurFc(g, p, r, seulementEnCote: false)
 }
 
-/// Estimation sur la FC lissée (chaîne de D-021).
+/// Chemin par la FC lissée : seuil entre récupération et pic, bords recalés sur la vitesse ou la pente. Utilisé en secours
+/// pour les côtes (`seulementEnCote`), ou seul si `blocsParVitesse` est éteint.
 private func estimerSurFc(_ g: GrilleSeance, _ p: ParamsDates, _ r: ReglagesEstimation, seulementEnCote: Bool) -> [Plage] {
-    guard g.n > 1, let seuilGlobal = seuilDeMiChemin(g, p, r) else { return [] }
-    let seuil = seuilGlobal
+    guard g.n > 1, let seuil = seuilDeMiChemin(g, p, r) else { return [] }
     let bruts = blocsAuDessusDuSeuil(g, g.fcLissee_bpm, seuil, r)
     guard bruts.count >= 2 else { return [] }
 
@@ -120,8 +120,8 @@ private func recuperationAcceptee(_ g: GrilleSeance, _ avant: Plage, _ apres: Pl
     return ecart <= r.recupMaxRelative * max(dureeDuPlage(g, avant), dureeDuPlage(g, apres))
 }
 
-/// Estimation sur la vitesse lissée, confirmée par la FC : les blocs rapides (au-dessus du mi-chemin entre allure lente et
-/// allure rapide de la partie active) séparés de récupérations lentes, dont la FC décalée est plus haute que dans les
+/// Chemin principal (vitesse confirmée par la FC) : les blocs rapides (au-dessus du mi-chemin entre allure lente et allure
+/// rapide de la partie active) séparés de récupérations lentes, dont la FC décalée est plus haute que dans les
 /// récupérations. Trouve les répétitions courtes, que la FC lissée noie ; la FC écarte les accélérations sans effort.
 private func estimerSurVitesse(_ g: GrilleSeance, _ r: ReglagesEstimation) -> [Plage] {
     guard g.n > 1 else { return [] }
@@ -146,6 +146,7 @@ private func estimerSurVitesse(_ g: GrilleSeance, _ r: ReglagesEstimation) -> [P
     }
     series = series.filter { $0.count >= 2 }
 
+    guard !series.isEmpty else { return [] }
     // La FC décalée confirme l'effort : plus haute dans les blocs que dans les récupérations de la série.
     let fcDecalee = (0..<g.n).map { i -> Double in
         let j = min(premierIndiceApres(g, g.t_s[i] + r.decalageFc_s), g.n - 1)
@@ -210,9 +211,11 @@ private func quantile(_ valeurs: [Double], _ q: Double) -> Double? {
     return triees[bas] + (triees[haut] - triees[bas]) * fraction
 }
 
-/// Blocs au-dessus du seuil sur la FC lissée : les passages au-dessus, les trous de moins de `trouMax_s` fusionnés, les
-/// blocs de moins de `dureeMinBloc_s` écartés. Un échantillon sans FC lissée est au-dessous du seuil.
+/// Blocs au-dessus du seuil sur un signal (vitesse ou FC lissée, de longueur `n`) : les passages au-dessus, les trous de
+/// moins de `trouMax_s` fusionnés, les blocs de moins de `dureeMinBloc_s` écartés. Un échantillon sans valeur finie est
+/// au-dessous du seuil. Un signal de mauvaise longueur ne donne aucun bloc.
 private func blocsAuDessusDuSeuil(_ g: GrilleSeance, _ signal: [Double], _ seuil: Double, _ r: ReglagesEstimation) -> [Plage] {
+    guard signal.count == g.n else { return [] }
     var passages: [Plage] = []
     var i = 0
     while i < g.n {
@@ -323,7 +326,7 @@ private func recuperationNette(_ g: GrilleSeance, _ avant: Plage, _ apres: Plage
 /// altitude. NaN là où la pente n'est pas mesurable (altitude absente, distance immobile).
 private func pentesDuTrace(_ g: GrilleSeance, _ r: ReglagesEstimation) -> [Double]? {
     guard let altitude = g.alt_m, altitude.count == g.n else { return nil }
-    let demi = max(1, Int(r.fenetrePente_s.rounded()))
+    let demi = max(1, echantillons(r.fenetrePente_s, repli: ReglagesEstimation.defaut.fenetrePente_s))
     var pentes = [Double](repeating: .nan, count: g.n)
     for i in 0..<g.n {
         let bas = max(0, i - demi)
@@ -349,8 +352,8 @@ private func recalerBords(
     b = min(max(b, 0), g.n - 1)
     guard b >= a else { return nil }
 
-    let demi = max(1, Int(r.demiFenetreRupture_s.rounded()))
-    let fenetre = max(0, Int(r.fenetreBords_s.rounded()))
+    let demi = max(1, echantillons(r.demiFenetreRupture_s, repli: ReglagesEstimation.defaut.demiFenetreRupture_s))
+    let fenetre = echantillons(r.fenetreBords_s, repli: ReglagesEstimation.defaut.fenetreBords_s)
     let signal: [Double]
     if let pente, moyenneDesFinies(pente[a...b]).map({ abs($0) >= r.penteCote }) == true {
         signal = pente
@@ -365,6 +368,13 @@ private func recalerBords(
     b = min(max(finRecalee, 0), g.n - 1)
     guard b >= a else { return nil }
     return Plage(a: a, b: b)
+}
+
+/// Durée en secondes convertie en nombre d'échantillons (1 Hz), arrondie. Une valeur non finie prend la valeur de repli
+/// (défaut), et l'échelle est bornée à une journée : aucune conversion ne peut planter.
+private func echantillons(_ secondes: Double, repli: Double) -> Int {
+    let s = secondes.isFinite ? secondes : repli
+    return Int(min(max(s.rounded(), 0), 86_400))
 }
 
 /// Premier échantillon dont l'instant est ≥ `t` (la grille est triée par temps).

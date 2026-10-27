@@ -265,9 +265,9 @@ enum ModeleHistorique {
             if let fc = seance.fcMoy {
                 morceaux.append("\(ModeleApercu.nombre(fc)) bpm")
             }
-            // D-021 : répétitions estimées sur la FC, sans détail par tours.
+            // D-021 : répétitions estimées sur la vitesse et la FC, sans détail par tours.
             if seance.repetitionsEstimees == true {
-                morceaux.append("répétitions estimées")
+                morceaux.append("répétitions estimées sur la vitesse et la FC")
             }
             resultat.append(SeanceSemaine(
                 id: seance.cleSource,

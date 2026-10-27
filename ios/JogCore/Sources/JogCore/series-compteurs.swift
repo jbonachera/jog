@@ -109,7 +109,8 @@ private func semainesDe(_ du: NumeroJour, _ au: NumeroJour) -> [(NumeroJour, Num
     return morceaux
 }
 
-/// Sous-seuil s'il y a une séance sous-seuil ; sinon le type de la séance la plus longue ; nil sans séance.
+/// Sous-seuil s'il y a une séance sous-seuil ; sinon le type de la séance la plus longue ; nil sans séance. Une semaine qui
+/// ne contient qu'une séance qualité (D-021) prend donc le type « séance qualité » : c'est la plus longue qui le fournit.
 private func typeDominant(_ seances: [Seance]) -> TypeSeance? {
     if seances.contains(where: { $0.type == .sousSeuil }) { return .sousSeuil }
     var retenue: Seance?

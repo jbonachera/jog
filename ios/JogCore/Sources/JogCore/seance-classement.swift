@@ -36,7 +36,7 @@ public func classerSeances(_ intrinseques: [SeanceIntrinseque]) throws -> [Seanc
 private func typer(_ s: SeanceIntrinseque, sortieLongueDeSemaine: Bool) -> TypeSeance {
     if s.marquage == .course { return .course }
     if s.marquage == .test { return .test }
-    // D-021 : répétitions estimées sur la FC, sans tours : séance qualité, hors sous-seuil et hors footings.
+    // D-021 : répétitions estimées sur la vitesse et la FC, sans tours : séance qualité, hors sous-seuil et hors footings.
     if s.repetitionsEstimees == true { return .seanceQualite }
     if !s.repetitions.isEmpty { return .sousSeuil }
     if s.duree_min >= DUREE_SORTIE_LONGUE_MIN || sortieLongueDeSemaine { return .sortieLongue }

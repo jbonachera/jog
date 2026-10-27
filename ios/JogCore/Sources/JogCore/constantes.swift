@@ -8,8 +8,12 @@
 public let REGLES_VERSION = "1.1.0"
 
 // Formats des données mémorisées (ADR 0006, 0009).
-/// FORMAT_SEANCE : entrée `seance:*` de derive, et partie de sa clé (2 : fcPic, D-019).
-public let FORMAT_SEANCE = 2
+/// FORMAT_SEANCE : entrée `seance:*` de derive, et partie de sa clé (3 : répétitions estimées hors de la classification,
+/// D-021 ; 2 : fcPic, D-019).
+public let FORMAT_SEANCE = 3
+/// VERSION_ESTIMATION : version du détecteur des répétitions estimées (D-021), dans la clé de mémorisation de ②a. À monter
+/// à chaque changement de son résultat.
+public let VERSION_ESTIMATION = 1
 /// FORMAT_VUE : `vue.formatVersion`, à monter à chaque changement de forme de la Vue (5 : suggestion hrMax, D-019).
 public let FORMAT_VUE = 5
 

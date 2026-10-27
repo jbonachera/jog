@@ -23,7 +23,8 @@ public func nuage(_ vue: Vue, _ periode: PeriodeNuage) throws -> Nuage {
 // Toutes les répétitions des séances sous-seuil, hors sous-seuil comprises (04). Les autres séances ne comptent pas.
 private func periodeRepetitions(_ seances: [SeanceVue], _ periode: PeriodeBornee, _ g: Globaux) throws -> PeriodeRepetitions {
     var points: [PointRepetition] = []
-    // Les répétitions estimées sur la FC (D-021) n'entrent pas dans le nuage : seules les répétitions détectées y sont.
+    // Les répétitions estimées sur la vitesse et la FC (D-021) n'entrent pas dans le nuage : seules les répétitions
+    // détectées y sont.
     for s in seances where s.type == .sousSeuil && s.repetitionsEstimees != true && contient(periode, s.date) {
         for r in s.repetitions {
             let norme = allureNormRepetition(r, g)

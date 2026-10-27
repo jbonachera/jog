@@ -411,7 +411,7 @@ public enum TypeSeance: String, Codable, Sendable, Equatable {
     case footingLignesDroites = "footing-lignes-droites"
     case sousSeuil = "sous-seuil"
     case sortieLongue = "sortie-longue"
-    /// Séance qualité aux répétitions estimées (D-021) : fractionné ou côtes détectés sur la FC, sans tours.
+    /// Séance qualité aux répétitions estimées (D-021) : fractionné ou côtes estimés sur la vitesse et la FC, sans tours.
     case seanceQualite = "seance-qualite"
     case course
     case test
@@ -501,7 +501,7 @@ public struct SeanceIntrinseque: Codable, Sendable, Equatable {
     /// Course / test.
     @ChampNul public var distanceRef_km: Double?
     @ChampNul public var temps_s: Double?
-    /// Vrai quand les répétitions sont estimées sur la FC, sans tours (D-021). Nil sinon (absent de l'oracle).
+    /// Vrai quand les répétitions sont estimées sur la vitesse et la FC, sans tours (D-021). Nil sinon (absent de l'oracle).
     @ChampNul public var repetitionsEstimees: Bool?
 
     public init(

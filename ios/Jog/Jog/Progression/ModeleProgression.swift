@@ -467,8 +467,8 @@ enum ModeleProgression {
             let secondes = Int(recup) % 60
             morceaux.append(secondes == 0 ? "récup. \(minutes) min" : "récup. \(minutes) min \(secondes) s")
         }
-        // D-021 : des répétitions estimées sur la FC, non détaillées par un format.
-        if seance.estimees == true { morceaux.append("répétitions estimées") }
+        // D-021 : des répétitions estimées sur la vitesse et la FC, non détaillées par un format.
+        if seance.estimees == true { morceaux.append("répétitions estimées sur la vitesse et la FC") }
         return morceaux.joined(separator: " · ")
     }
 
