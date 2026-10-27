@@ -42,27 +42,35 @@ struct FormeFatigueView: View {
             TitreSection(titre: "Forme et fatigue")
 
             VStack(alignment: .leading, spacing: 14) {
-                Text(lecture)
-                    .font(.caption)
-                    .foregroundStyle(.encre2)
-                    .monospacedDigit()
+                GraphiqueOuTableauApercu(tableau: ModeleApercu.tableauForme(points)) {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text(lecture)
+                            .font(.caption)
+                            .foregroundStyle(.encre2)
+                            .monospacedDigit()
 
-                formeChart
-                    .frame(height: 200)
+                        formeChart
+                            .frame(height: 200)
 
-                HStack(spacing: 14) {
-                    LegendeLigne(texte: "Forme de fond (CTL)", couleur: .accentFjord)
-                    LegendeLigne(texte: "Fatigue (ATL)", couleur: .encre3)
+                        HStack(spacing: 14) {
+                            LegendeLigne(texte: "Forme de fond (CTL)", couleur: .accentFjord)
+                            LegendeLigne(texte: "Fatigue (ATL)", couleur: .encre3)
+                        }
+                    }
                 }
 
-                Text("Fraîcheur (TSB) : forme − fatigue")
-                    .font(.caption)
-                    .foregroundStyle(.encre2)
+                GraphiqueOuTableauApercu(tableau: ModeleApercu.tableauFraicheur(points)) {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("Fraîcheur (TSB) : forme − fatigue")
+                            .font(.caption)
+                            .foregroundStyle(.encre2)
 
-                fraicheurChart
-                    .frame(height: 130)
+                        fraicheurChart
+                            .frame(height: 130)
 
-                LegendeLigne(texte: "Zone productive, de −25 à −10", couleur: .bande)
+                        LegendeLigne(texte: "Zone productive, de −25 à −10", couleur: .bande)
+                    }
+                }
 
                 HStack(alignment: .top, spacing: 12) {
                     RoundedRectangle(cornerRadius: 1)
@@ -140,6 +148,10 @@ struct FormeFatigueView: View {
         .chartXSelection(value: $selection)
         .accessibilityLabel("Forme de fond et fatigue sur tout l’historique")
         .accessibilityValue(lecture)
+        .accessibilityChartDescriptor(DescripteurApercu(donnees: ModeleApercu.donneesForme(
+            points, domaine: domaineForme,
+            resume: "Un point sur deux, de la plus ancienne date à la plus récente."
+        )))
     }
 
     private var fraicheurChart: some View {
@@ -188,6 +200,10 @@ struct FormeFatigueView: View {
         .chartXSelection(value: $selection)
         .accessibilityLabel("Fraîcheur, différence entre la forme de fond et la fatigue, zone productive de −25 à −10")
         .accessibilityValue(lecture)
+        .accessibilityChartDescriptor(DescripteurApercu(donnees: ModeleApercu.donneesFraicheur(
+            points, domaine: domaineFraicheur,
+            resume: "Zone productive de −25 à −10. Sous −25 : surcharge. Au-dessus de +5 : frais."
+        )))
     }
 }
 

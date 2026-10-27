@@ -3,9 +3,59 @@
 import Foundation
 import JogCore
 
-/// Ton d'affichage. La couche SwiftUI le traduit en token Fjord (`Bon`, `Attention`, `Mauvais`, `Encre2`).
+/// Ton d'affichage. La couche SwiftUI le traduit en token Fjord (`Bon`, `Attention`, `Mauvais`, `Encre2`, accent).
 enum Ton: Equatable, Sendable {
-    case bon, attention, mauvais, neutre
+    case bon, attention, mauvais, neutre, accent
+}
+
+/// Graphique ou tableau des mêmes séries (D-011).
+enum ModeAffichage: CaseIterable, Hashable, Sendable {
+    case graphique, tableau
+
+    var libelle: String {
+        switch self {
+        case .graphique: "Graphique"
+        case .tableau: "Tableau"
+        }
+    }
+}
+
+/// Un tableau de l'Aperçu : en-têtes réels et lignes déjà formatées, dans l'ordre chronologique du graphique.
+struct TableauAffiche: Equatable, Sendable {
+    let entetes: [String]
+    let lignes: [[String]]
+}
+
+/// Les données d'un graphique pour sa description VoiceOver (`accessibilityChartDescriptor`, 08). `libelles` donne le
+/// nom lu de chaque position ; une série sans valeur à une position n'a pas de point là.
+struct DonneesAccessibles: Equatable, Sendable {
+    struct Serie: Equatable, Sendable {
+        let nom: String
+        let valeurs: [Double?]
+    }
+
+    let titre: String
+    let resume: String
+    let axeX: String
+    let axeY: String
+    let unite: String
+    let libelles: [String]
+    let series: [Serie]
+    let domaineY: ClosedRange<Double>
+    let continu: Bool
+}
+
+/// Une option du marquage (D-020) : son titre de menu, et le marquage à enregistrer (nil pour « Retirer »).
+struct OptionMarquage: Equatable, Sendable {
+    let titre: String
+    let valeur: MarquageUtilisateur?
+}
+
+/// Une séance du jour, avec ce qu'il faut à son menu de marquage.
+struct SeanceAffichee: Identifiable, Equatable, Sendable {
+    let id: String
+    let titre: String
+    let marquage: Marquage
 }
 
 /// Les quatre intensités, dans l'ordre de la rampe (08).
@@ -203,6 +253,10 @@ enum ModeleApercu {
         let km: Double
         let sousSeuil: Bool
         let description: String
+        /// Date du jour (« dim. 18 oct. ») ou de la semaine (« 12 oct. ») : première colonne du tableau.
+        let quand: String
+        /// Type de séance, ou « Repos » : deuxième colonne du tableau, pour les jours.
+        let nature: String
     }
 
     struct Compteur: Identifiable, Equatable, Sendable {
@@ -214,6 +268,38 @@ enum ModeleApercu {
         let comparaison: Comparaison
         let barres: [BarreAffichee]
         let libelleAccessible: String
+        let hebdo: Bool
+    }
+
+    /// Le tableau des barres d'un compteur (D-011) : une ligne par jour, ou par semaine pour l'année.
+    static func tableauVolume(_ compteur: Compteur) -> TableauAffiche {
+        if compteur.hebdo {
+            return TableauAffiche(
+                entetes: ["Semaine", "km"],
+                lignes: compteur.barres.map { [$0.quand, nombre($0.km, 1)] }
+            )
+        }
+        return TableauAffiche(
+            entetes: ["Jour", "Séance", "km"],
+            lignes: compteur.barres.map { [$0.quand, $0.nature, nombre($0.km, 1)] }
+        )
+    }
+
+    /// Les données de la description VoiceOver d'un compteur : une barre par jour ou par semaine, en km.
+    static func donneesVolume(_ compteur: Compteur) -> DonneesAccessibles {
+        let km = compteur.barres.map(\.km)
+        return DonneesAccessibles(
+            titre: compteur.titre,
+            resume: compteur.libelleAccessible,
+            axeX: compteur.hebdo ? "Semaine" : "Jour",
+            axeY: "Kilomètres",
+            unite: "km",
+            libelles: compteur.barres.map(\.description),
+            series: [DonneesAccessibles.Serie(nom: "Kilomètres", valeurs: km.map { Optional($0) })],
+            // Des barres partent de zéro : bornes 0 à un multiple de 5 km au-dessus du plus grand volume (08, D-009).
+            domaineY: 0...max(5, ((km.filter(\.isFinite).max() ?? 0) / 5).rounded(.up) * 5),
+            continu: false
+        )
     }
 
     static func compteurs(_ compteurs: Compteurs, J: DateCivile) -> [Compteur] {
@@ -286,7 +372,7 @@ enum ModeleApercu {
         }
         return Compteur(
             id: id, titre: titre, plage: plage, km: kmTexte, detail: detail,
-            comparaison: comparaison, barres: barresAffichees, libelleAccessible: accessible
+            comparaison: comparaison, barres: barresAffichees, libelleAccessible: accessible, hebdo: hebdo
         )
     }
 
@@ -299,15 +385,18 @@ enum ModeleApercu {
             } else {
                 libelle = barre.type.map(libelleType) ?? "Séance"
             }
+            let quand = hebdo ? formatDate(barre.date) : formatJourDate(barre.date)
             let description = hebdo
-                ? "semaine du \(formatDate(barre.date)) · \(nombre(barre.km, 1)) km"
-                : "\(formatJourDate(barre.date)) · \(libelle) · \(nombre(barre.km, 1)) km"
+                ? "semaine du \(quand) · \(nombre(barre.km, 1)) km"
+                : "\(quand) · \(libelle) · \(nombre(barre.km, 1)) km"
             return BarreAffichee(
                 id: barre.date,
                 date: instant,
                 km: barre.km,
                 sousSeuil: !hebdo && barre.type == .sousSeuil,
-                description: description
+                description: description,
+                quand: quand,
+                nature: libelle
             )
         }
     }
@@ -329,6 +418,8 @@ enum ModeleApercu {
         let detail: String?
         let repartition: [SegmentIntensite]
         let libelleAccessible: String
+        /// Les séances du jour, dans l'ordre de la Vue. Vide pour un repos : une ligne Repos n'a pas de menu.
+        let seances: [SeanceAffichee]
     }
 
     struct SeptJours: Equatable, Sendable {
@@ -373,13 +464,50 @@ enum ModeleApercu {
             easy: vue.jours.minutes.easy[index], mp: vue.jours.minutes.mp[index],
             subt: vue.jours.minutes.subt[index], hard: vue.jours.minutes.hard[index]
         )
+        let affichees = seances.map { SeanceAffichee(id: $0.cleSource, titre: $0.nom ?? libelleType($0.type), marquage: $0.marquage) }
         var accessible = "\(jourCourt(jour)) \(quantieme(jour)), \(titre)"
         if let detail { accessible += ", \(detail)" }
+        for marque in affichees.compactMap({ libelleMarquage($0.marquage) }) {
+            accessible += ", \(marque)"
+        }
         return LigneJour(
             id: jour, jourCourt: jourCourt(jour), quantieme: quantieme(jour), titre: titre,
             estRepos: estRepos, detail: detail, repartition: segments,
-            libelleAccessible: accessible
+            libelleAccessible: accessible, seances: affichees
         )
+    }
+
+    // MARK: - Marquage (D-020)
+
+    /// « Course » ou « Test » pour une séance marquée, nil sinon : c'est le texte de la pastille.
+    static func libelleMarquage(_ marquage: Marquage) -> String? {
+        switch marquage {
+        case .course: "Course"
+        case .test: "Test"
+        case .aucun, .inconnu: nil
+        }
+    }
+
+    /// En tête du menu : le marquage actuel de la séance.
+    static func libelleMarquageActuel(_ marquage: Marquage) -> String {
+        "Marquage actuel : \(libelleMarquage(marquage) ?? "aucun")"
+    }
+
+    /// Les actions du menu, selon l'état courant (D-020). Une séance marquée propose l'autre marquage et le retrait.
+    static func optionsMarquage(_ courant: Marquage) -> [OptionMarquage] {
+        let course = OptionMarquage(titre: "Marquer comme course", valeur: .course)
+        let test = OptionMarquage(titre: "Marquer comme test", valeur: .test)
+        let retirer = OptionMarquage(titre: "Retirer le marquage", valeur: nil)
+        switch courant {
+        case .course: return [test, retirer]
+        case .test: return [course, retirer]
+        case .aucun, .inconnu: return [course, test]
+        }
+    }
+
+    /// Le titre d'une action VoiceOver : celui du menu, suivi du nom de la séance quand le jour en compte plusieurs.
+    static func libelleAction(_ option: OptionMarquage, seance: SeanceAffichee, plusieurs: Bool) -> String {
+        plusieurs ? "\(option.titre) : \(seance.titre)" : option.titre
     }
 
     static func repartition(easy: Double, mp: Double, subt: Double, hard: Double) -> [SegmentIntensite] {
@@ -408,6 +536,55 @@ enum ModeleApercu {
             guard let instant = date(point.date) else { return nil }
             return PointForme(id: point.date, date: instant, forme: point.ctl, fatigue: point.atl, fraicheur: point.tsb)
         }
+    }
+
+    /// Tableau du graphique forme et fatigue (D-011) : les mêmes points, dans l'ordre du graphique.
+    static func tableauForme(_ points: [PointForme]) -> TableauAffiche {
+        TableauAffiche(
+            entetes: ["Date", "Forme de fond", "Fatigue"],
+            lignes: points.map { [formatDate($0.id), nombre($0.forme), nombre($0.fatigue)] }
+        )
+    }
+
+    /// Tableau du graphique de fraîcheur (D-011).
+    static func tableauFraicheur(_ points: [PointForme]) -> TableauAffiche {
+        TableauAffiche(
+            entetes: ["Date", "Fraîcheur", "Lecture"],
+            lignes: points.map { [formatDate($0.id), ecart($0.fraicheur), lectureFraicheur($0.fraicheur)] }
+        )
+    }
+
+    /// Données VoiceOver du graphique forme et fatigue : deux séries, un axe Y commun (08, règle 1).
+    static func donneesForme(_ points: [PointForme], domaine: ClosedRange<Double>, resume: String) -> DonneesAccessibles {
+        DonneesAccessibles(
+            titre: "Forme de fond et fatigue",
+            resume: resume,
+            axeX: "Jour",
+            axeY: "Forme et fatigue",
+            unite: "",
+            libelles: points.map { formatDate($0.id) },
+            series: [
+                DonneesAccessibles.Serie(nom: "Forme de fond", valeurs: points.map { Optional($0.forme) }),
+                DonneesAccessibles.Serie(nom: "Fatigue", valeurs: points.map { Optional($0.fatigue) }),
+            ],
+            domaineY: domaine,
+            continu: true
+        )
+    }
+
+    /// Données VoiceOver du graphique de fraîcheur (TSB) : une série, la zone productive est dans le résumé.
+    static func donneesFraicheur(_ points: [PointForme], domaine: ClosedRange<Double>, resume: String) -> DonneesAccessibles {
+        DonneesAccessibles(
+            titre: "Fraîcheur",
+            resume: resume,
+            axeX: "Jour",
+            axeY: "Fraîcheur",
+            unite: "",
+            libelles: points.map { formatDate($0.id) },
+            series: [DonneesAccessibles.Serie(nom: "Fraîcheur", valeurs: points.map { Optional($0.fraicheur) })],
+            domaineY: domaine,
+            continu: true
+        )
     }
 
     static func lectureFraicheur(_ tsb: Double) -> String {

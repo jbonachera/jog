@@ -1,12 +1,13 @@
-// Lecture de HealthKit (migration-ios, « Source » et « Adaptateur HealthKit », partie HealthKit). Seul fichier de l'app
-// qui parle à HealthKit pour la synchronisation : aucun type HealthKit ne sort de l'acteur, seules des valeurs de
-// JogCore en sortent (SeanceBrute, Ignoree, EchecSynchro). Hors DEBUG : le spike réutilise cette collecte.
+// Lecture de HealthKit (migration-ios, « Source »). Seul fichier de l'app qui parle à HealthKit pour la synchronisation :
+// aucun type HealthKit ne sort de l'acteur, seules des valeurs de JogCore en sortent (ChangementsSeances, SeanceBrute).
+// Implémente `SourceSeances`, le protocole que `Synchroniseur` (JogCore) consomme. Hors DEBUG : le spike réutilise
+// cette collecte.
 import Foundation
 import HealthKit
 import JogCore
 
-/// Séances à traiter en même temps : les séries de plusieurs séances se lisent en parallèle.
-private let CONCURRENCE_LECTURE = 4
+/// Délais (en secondes) entre deux essais de livraison en arrière-plan qui échouent.
+private let DELAIS_LIVRAISON_S = [5, 30, 120]
 
 /// Erreurs de la lecture, connues de l'interface.
 public enum ErreurLecteur: LocalizedError, Equatable, Sendable {
@@ -21,22 +22,9 @@ public enum ErreurLecteur: LocalizedError, Equatable, Sendable {
     }
 }
 
-/// Résultat d'une synchronisation incrémentale.
-public struct ResultatSynchro: Sendable {
-    /// Séances ajoutées ou modifiées, collectées (FC, distances fines, tracé sans coordonnées, événements, étapes).
-    public var nouvelles: [SeanceBrute]
-    /// Séances écartées par le filtre de source, avant la lecture de leurs séries.
-    public var ecartees: [Ignoree]
-    /// Séances dont la lecture a échoué. Elles sont quand même comprises dans la nouvelle ancre.
-    public var echecs: [EchecSynchro]
-    /// Clés source (« hk:UUID ») des séances supprimées dans HealthKit.
-    public var supprimees: Set<String>
-    /// Nouvelle ancre, sérialisée (NSKeyedArchiver).
-    public var ancre: Data
-}
-
-/// Lecture des séances de course dans HealthKit. Les séries (FC, distances, tracé, étapes) sont lues à la demande.
-public actor LecteurHealthKit {
+/// Lecture des séances de course dans HealthKit. Les séries (FC, distances, tracé, étapes) sont lues à la demande,
+/// séance par séance, par la synchronisation (`SourceSeances`) et par le flux du moteur.
+public actor LecteurHealthKit: SourceSeances {
     private let store = HKHealthStore()
     /// Observation active pour la livraison en arrière-plan. Gardée pour pouvoir l'arrêter.
     private var observation: HKObserverQuery?
@@ -59,12 +47,9 @@ public actor LecteurHealthKit {
         try await store.requestAuthorization(toShare: [], read: Self.typesLecture)
     }
 
-    /// Séances ajoutées et supprimées depuis `ancre` (nil pour tout lire). La source est filtrée avant la lecture des
-    /// séries. `progression` reçoit (séances traitées, total) à chaque séance terminée.
-    public func synchroniser(
-        ancre: Data?,
-        progression: @escaping @Sendable (Int, Int) async -> Void = { _, _ in }
-    ) async throws -> ResultatSynchro {
+    /// Séances ajoutées et supprimées depuis `ancre` (nil pour tout lire). Ne lit aucune série : la source filtre
+    /// d'abord (seul l'exercice d'Apple, les courses), puis la synchronisation lit les séances retenues.
+    public func synchroniser(ancre: Data?) async throws -> ChangementsSeances {
         let predicat = HKSamplePredicate.workout(HKQuery.predicateForWorkouts(with: .running))
         let descripteur = HKAnchoredObjectQueryDescriptor(
             predicates: [predicat],
@@ -78,45 +63,20 @@ public actor LecteurHealthKit {
         }
 
         var ecartees: [Ignoree] = []
-        var retenues: [HKWorkout] = []
+        var retenues: [UUID] = []
         for seance in resultat.addedSamples {
             let bundle = seance.sourceRevision.source.bundleIdentifier
             if let ignoree = raisonIgnoreeSourceHealthKit(id: seance.uuid.uuidString, bundleId: bundle) {
                 ecartees.append(ignoree)
             } else {
-                retenues.append(seance)
+                retenues.append(seance.uuid)
             }
         }
 
-        var nouvelles: [SeanceBrute] = []
-        var echecs: [EchecSynchro] = []
-        var traitees = 0
-        await progression(0, retenues.count)
-        var restantes = retenues.makeIterator()
-        await withTaskGroup(of: IssueLecture.self) { groupe in
-            for _ in 0..<min(CONCURRENCE_LECTURE, retenues.count) {
-                if let seance = restantes.next() {
-                    groupe.addTask { await self.lireSeanceAvecIssue(seance) }
-                }
-            }
-            while let issue = await groupe.next() {
-                traitees += 1
-                switch issue {
-                case .lue(let brute): nouvelles.append(brute)
-                case .echec(let echec): echecs.append(echec)
-                }
-                await progression(traitees, retenues.count)
-                if let seance = restantes.next() {
-                    groupe.addTask { await self.lireSeanceAvecIssue(seance) }
-                }
-            }
-        }
-
-        return ResultatSynchro(
-            nouvelles: nouvelles,
+        return ChangementsSeances(
+            aLire: retenues,
             ecartees: ecartees,
-            echecs: echecs,
-            supprimees: Set(resultat.deletedObjects.map { "hk:" + $0.uuid.uuidString }),
+            supprimees: Set(resultat.deletedObjects.map { cleSourceHealthKit($0.uuid) }),
             ancre: try Self.archiverAncre(resultat.newAnchor)
         )
     }
@@ -128,40 +88,38 @@ public actor LecteurHealthKit {
     }
 
     /// Active la livraison en arrière-plan des séances et une observation qui appelle `surNouvelleSeance` à chaque
-    /// changement. L'observation est remplacée si on l'active à nouveau. À appeler à chaque lancement.
+    /// changement. L'observation est armée AVANT toute attente : un échec de la livraison ne l'empêche pas. La
+    /// livraison est réessayée quelques fois en cas d'erreur, puis l'erreur remonte. L'observation est remplacée si on
+    /// l'active à nouveau. À appeler à chaque lancement.
+    ///
+    /// `completionHandler` de HealthKit n'est appelé qu'une fois `surNouvelleSeance` terminée (la synchronisation en
+    /// cours, relancée si besoin, est alors finie) : iOS garde l'app éveillée jusque-là.
     public func activerLivraisonEnArrierePlan(surNouvelleSeance: @escaping @Sendable () async -> Void) async throws {
-        try await store.enableBackgroundDelivery(for: HKObjectType.workoutType(), frequency: .immediate)
         if let ancienne = observation {
             store.stop(ancienne)
         }
-        let requete = HKObserverQuery(sampleType: HKObjectType.workoutType(), predicate: nil) { _, completionHandler, erreur in
+        let requete = HKObserverQuery(sampleType: HKObjectType.workoutType(), predicate: nil) { _, completionHandler, _ in
             let fin = BoiteFin(completionHandler)
             Task {
-                if erreur == nil {
-                    await surNouvelleSeance()
-                }
+                await surNouvelleSeance()
                 fin.terminer()
             }
         }
         observation = requete
         store.execute(requete)
+
+        for delai in DELAIS_LIVRAISON_S {
+            do {
+                try await store.enableBackgroundDelivery(for: HKObjectType.workoutType(), frequency: .immediate)
+                return
+            } catch {
+                try await Task.sleep(for: .seconds(delai))
+            }
+        }
+        try await store.enableBackgroundDelivery(for: HKObjectType.workoutType(), frequency: .immediate)
     }
 
     // MARK: - Une séance
-
-    /// Résultat de la lecture d'une séance, pour le groupe de tâches.
-    private enum IssueLecture: Sendable {
-        case lue(SeanceBrute)
-        case echec(EchecSynchro)
-    }
-
-    private func lireSeanceAvecIssue(_ seance: HKWorkout) async -> IssueLecture {
-        do {
-            return .lue(try await collecter(seance))
-        } catch {
-            return .echec(EchecSynchro(cleSource: "hk:" + seance.uuid.uuidString, detail: error.localizedDescription))
-        }
-    }
 
     /// Séance HealthKit par son identifiant. Les séries ne sont pas lues ici.
     func chargerSeance(uuid: UUID) async throws -> HKWorkout? {
@@ -216,13 +174,29 @@ public actor LecteurHealthKit {
         }
     }
 
+    /// Distances fines de la séance. Prédicat par objet (la séance) d'abord. QUESTION À VALIDER SUR L'IPHONE : ce
+    /// prédicat doit ramener les échantillons de la séance. Si rien ne revient, repli sur la plage de dates de la séance,
+    /// en ne gardant que les échantillons de la même source (`sample.sourceRevision`) ; un échantillon sans source
+    /// lisible est gardé.
     private func distancesFines(_ seance: HKWorkout) async throws -> [EchantillonDistanceBrut] {
-        let predicat = HKQuery.predicateForSamples(withStart: seance.startDate, end: seance.endDate, options: [])
+        let premieres = try await distances(HKQuery.predicateForObjects(from: seance), filtreSource: nil)
+        if !premieres.isEmpty {
+            return premieres
+        }
+        let dates = HKQuery.predicateForSamples(withStart: seance.startDate, end: seance.endDate, options: [])
+        return try await distances(dates, filtreSource: seance.sourceRevision.source.bundleIdentifier)
+    }
+
+    /// Distances d'un prédicat. Si `filtreSource` est donné, seuls les échantillons de cette source (bundle) restent.
+    private func distances(_ predicat: NSPredicate, filtreSource: String?) async throws -> [EchantillonDistanceBrut] {
         let descripteur = HKQuantitySeriesSampleQueryDescriptor(
             predicate: .quantitySample(type: HKQuantityType(.distanceWalkingRunning), predicate: predicat)
         )
         var distances: [EchantillonDistanceBrut] = []
         for try await resultat in descripteur.results(for: store) {
+            if let filtreSource, let source = resultat.sample?.sourceRevision.source.bundleIdentifier, source != filtreSource {
+                continue
+            }
             distances.append(EchantillonDistanceBrut(
                 debut: resultat.dateInterval.start,
                 fin: resultat.dateInterval.end,
@@ -278,11 +252,12 @@ public actor LecteurHealthKit {
         )
     }
 
-    /// Métadonnées en texte : les dates en ISO 8601, le reste par String(describing:).
+    /// Métadonnées en texte : les dates en ISO 8601 en UTC (l'empreinte de la séance doit être la même quel que soit le
+    /// fuseau de l'appareil), le reste par String(describing:).
     private func metadonnees(_ metadata: [String: Any]?) -> [String: String]? {
         metadata?.mapValues { valeur in
             if let date = valeur as? Date {
-                return date.formatted(Date.ISO8601FormatStyle(includingFractionalSeconds: true, timeZone: .current))
+                return date.formatted(Date.ISO8601FormatStyle(includingFractionalSeconds: true, timeZone: .gmt))
             }
             return String(describing: valeur)
         }

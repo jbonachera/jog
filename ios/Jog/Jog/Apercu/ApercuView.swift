@@ -5,6 +5,8 @@ import JogCore
 /// Ne reçoit que la Vue ; les feuilles et l'état local vivent dans les sous-vues.
 struct ApercuView: View {
     let vue: Vue
+    /// Marquage d'une séance (D-020) : clé source, puis marquage à enregistrer (nil pour retirer le marquage saisi).
+    let surMarquage: (String, MarquageUtilisateur?) -> Void
 
     var body: some View {
         ScrollView {
@@ -14,7 +16,7 @@ struct ApercuView: View {
                 }
                 DecisionVolumeView(vue: vue)
                 VolumeRealiseView(compteurs: ModeleApercu.compteurs(vue.compteurs, J: vue.J))
-                SeptDerniersJoursView(modele: ModeleApercu.septDerniersJours(vue))
+                SeptDerniersJoursView(modele: ModeleApercu.septDerniersJours(vue), surMarquage: surMarquage)
                 FormeFatigueView(vue: vue)
                 if let texte = ModeleApercu.texteDerniereSynchro(vue.derniereSynchro) {
                     Text(texte)
@@ -34,27 +36,27 @@ struct ApercuView: View {
 
 #Preview("Clair") {
     NavigationStack {
-        ApercuView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"))
+        ApercuView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"), surMarquage: { _, _ in })
     }
     .preferredColorScheme(.light)
 }
 
 #Preview("Sombre") {
     NavigationStack {
-        ApercuView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"))
+        ApercuView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"), surMarquage: { _, _ in })
     }
     .preferredColorScheme(.dark)
 }
 
 #Preview("Dynamic Type grand") {
     NavigationStack {
-        ApercuView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"))
+        ApercuView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"), surMarquage: { _, _ in })
     }
     .dynamicTypeSize(.accessibility3)
 }
 
 #Preview("Pas encore de verdict") {
     NavigationStack {
-        ApercuView(vue: Vue.vide(J: "2026-10-20"))
+        ApercuView(vue: Vue.vide(J: "2026-10-20"), surMarquage: { _, _ in })
     }
 }

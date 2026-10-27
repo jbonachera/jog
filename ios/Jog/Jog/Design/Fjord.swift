@@ -22,6 +22,7 @@ extension Ton {
         case .attention: Color("Attention")
         case .mauvais: Color("Mauvais")
         case .neutre: Color("Encre2")
+        case .accent: Color.accentFjord
         }
     }
 }

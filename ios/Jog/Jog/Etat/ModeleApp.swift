@@ -1,6 +1,7 @@
 // Chef d'orchestre de l'app (migration-ios, « Calcul » et « Écran de première ouverture »). Possède le stockage, le
 // moteur et la synchronisation ; décide quand synchroniser et recalculer ; traduit les résultats en `EtatApp` via
-// `TransitionsApp`. Aucune logique HealthKit ici : elle reste dans `LecteurHealthKit` et `Synchronisation`.
+// `TransitionsApp`. Aucune logique HealthKit ici : elle reste dans `LecteurHealthKit` et `Synchroniseur` (JogCore).
+// Synchronisations et recalculs de jour passent par une même file : jamais deux à la fois.
 import Foundation
 import Observation
 import JogCore
@@ -21,17 +22,22 @@ final class ModeleApp {
     private(set) var maquette: Vue?
     #endif
 
-    /// Les services sont absents si le stockage n'a pas pu s'ouvrir : l'app affiche alors une erreur.
+    /// Les services sont absents si le stockage n'a pas pu s'ouvrir (l'app affiche alors une erreur) ou dans un aperçu.
     private let services: Services?
     @ObservationIgnored private var derniereSynchro: String?
     @ObservationIgnored private var tacheJour: Task<Void, Never>?
-    @ObservationIgnored private var synchroEnCours = false
+    /// Dernière tâche de la file : synchronisations et recalculs s'exécutent l'un après l'autre, dans l'ordre.
+    @ObservationIgnored private var fileTravail: Task<Void, Never>?
+    /// Synchronisation en file ou en cours. Une demande pendant ce temps la relance une fois, à la fin.
+    @ObservationIgnored private var synchroTache: Task<Void, Never>?
     @ObservationIgnored private var aRelancer = false
+    /// Dernier nombre de séances traitées affiché pendant l'import : la progression ne recule jamais.
+    @ObservationIgnored private var progressionRecue = 0
 
     private struct Services: Sendable {
         let lecteur: LecteurHealthKit
         let moteur: Moteur
-        let synchro: Synchronisation
+        let synchro: Synchroniseur
     }
 
     init() {
@@ -39,12 +45,22 @@ final class ModeleApp {
             let stockage = try Stockage.parDefaut()
             let lecteur = LecteurHealthKit()
             let moteur = Moteur(stockage: stockage, lireFlux: Synchronisation.lectureFlux(lecteur: lecteur))
-            let synchro = Synchronisation(stockage: stockage, lecteur: lecteur, moteur: moteur)
+            let synchro = Synchroniseur(source: lecteur, stockage: stockage, moteur: moteur)
             services = Services(lecteur: lecteur, moteur: moteur, synchro: synchro)
         } catch {
             services = nil
             etat = .erreur(message: "Les données de l’app n’ont pas pu être ouvertes.", vue: nil)
         }
+    }
+
+    /// Aperçus (Xcode) : pas de stockage ni de HealthKit, l'état est donné tel quel.
+    private init(apercu etat: EtatApp) {
+        services = nil
+        self.etat = etat
+    }
+
+    static func apercu(_ etat: EtatApp) -> ModeleApp {
+        ModeleApp(apercu: etat)
     }
 
     private var autorisationDemandee: Bool {
@@ -72,7 +88,7 @@ final class ModeleApp {
         // Capture forte : le modèle vit toute la durée de l'app.
         Task {
             // L'échec n'a pas de quoi être montré : la synchronisation reste possible à chaque ouverture.
-            try? await services.synchro.activerLivraisonEnArrierePlan {
+            try? await services.lecteur.activerLivraisonEnArrierePlan {
                 await self.synchroniser()
             }
         }
@@ -112,41 +128,80 @@ final class ModeleApp {
         await synchroniser()
     }
 
-    // MARK: - Synchronisation et recalcul
-
-    /// Une seule synchronisation à la fois. Une demande reçue pendant la synchronisation en relance une à la fin, pour
-    /// qu'aucune séance arrivée entre-temps ne reste en attente.
-    private func synchroniser() async {
+    /// Marque la séance « Course » ou « Test » (D-020), ou retire le marquage saisi (nil), puis recalcule la Vue.
+    func marquer(cleSource: String, comme marquage: MarquageUtilisateur?) async {
         guard let services else { return }
-        if synchroEnCours {
-            aRelancer = true
-            return
-        }
-        synchroEnCours = true
-        defer { synchroEnCours = false }
-        repeat {
-            aRelancer = false
-            do {
-                let vue = try await services.synchro.synchroniserEtRecalculer { traitees, total in
-                    Task { @MainActor in self.progression(traitees, total) }
-                }
-                recevoir(vue)
-            } catch {
-                etat = TransitionsApp.suivant(etat, .echec(message(pour: error)))
-            }
-        } while aRelancer
-    }
-
-    /// Recalcul au changement de jour (ADR 0007) : J change, les données non. Sans synchronisation.
-    private func recalculerJour() async {
-        guard autorisationDemandee, let services else { return }
         do {
-            let J = services.moteur.jourCourant(maintenant: Date(), fuseau: .current)
-            let vue = try await services.moteur.recalculer(J: J, derniereSynchro: derniereSynchro)
-            recevoir(vue)
+            try await services.moteur.marquer(cleSource: cleSource, comme: marquage)
         } catch {
             etat = TransitionsApp.suivant(etat, .echec(message(pour: error)))
+            return
         }
+        await recalculerJour()
+    }
+
+    // MARK: - Synchronisation et recalcul
+
+    /// Une seule synchronisation à la fois, dans la file. Une demande reçue pendant qu'une synchronisation est en file ou
+    /// en cours la relance une fois à la fin, et attend cette fin : l'appelant (la livraison en arrière-plan) ne rend
+    /// la main à iOS qu'une fois toutes les séances traitées.
+    private func synchroniser() async {
+        guard let services else { return }
+        if let tache = synchroTache {
+            aRelancer = true
+            await tache.value
+            return
+        }
+        let tache = enfiler { [self] in
+            defer { synchroTache = nil }
+            repeat {
+                aRelancer = false
+                progressionRecue = 0
+                do {
+                    let vue = try await services.synchro.synchroniser { traitees, total in
+                        await self.progression(traitees, total)
+                    }
+                    recevoir(vue)
+                } catch {
+                    etat = TransitionsApp.suivant(etat, .echec(message(pour: error)))
+                }
+            } while aRelancer
+        }
+        synchroTache = tache
+        await tache.value
+    }
+
+    /// Recalcul au changement de jour (ADR 0007) : J change, les données non. Sans synchronisation, mais dans la même file.
+    private func recalculerJour() async {
+        guard autorisationDemandee, services != nil else { return }
+        await enfiler { [self] in
+            guard let services else { return }
+            do {
+                let J = services.moteur.jourCourant(maintenant: Date(), fuseau: .current)
+                let vue = try await services.moteur.recalculer(J: J, derniereSynchro: derniereSynchro)
+                // Un bandeau d'erreur déjà affiché reste : seule la Vue dessous est mise à jour.
+                if case .erreur(let message, _) = etat {
+                    etat = .erreur(message: message, vue: vue)
+                } else {
+                    recevoir(vue)
+                }
+            } catch {
+                // Un état d'erreur déjà affiché n'est pas remplacé par celui-ci.
+                if case .erreur = etat { return }
+                etat = TransitionsApp.suivant(etat, .echec(message(pour: error)))
+            }
+        }.value
+    }
+
+    /// Ajoute une tâche à la file : elle démarre quand la précédente est finie.
+    private func enfiler(_ travail: @escaping @MainActor () async -> Void) -> Task<Void, Never> {
+        let precedent = fileTravail
+        let tache = Task { @MainActor in
+            await precedent?.value
+            await travail()
+        }
+        fileTravail = tache
+        return tache
     }
 
     /// Tâche qui dort jusqu'à minuit (heure du lieu), recalcule, et se réarme. Remplacée à chaque appel.
@@ -166,6 +221,8 @@ final class ModeleApp {
     }
 
     private func progression(_ traitees: Int, _ total: Int) {
+        guard traitees >= progressionRecue else { return }
+        progressionRecue = traitees
         etat = TransitionsApp.suivant(etat, .progression(traitees: traitees, total: total))
     }
 
