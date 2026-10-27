@@ -6,11 +6,13 @@ private let DEMI_BANDE_SKM = 3.0
 
 /// La dernière séance sous-seuil de la Vue, ou nil sans séance sous-seuil. Les seuils sont ceux de sa date.
 public func derniereSeanceSousSeuil(_ vue: Vue, _ paramsAuJour: ParamsAuJour) -> DerniereSeance? {
+    // Séance sous-seuil, ou séance qualité aux répétitions estimées (D-021) : celle-ci est signalée par `estimees`.
     var derniere: SeanceVue?
-    for s in vue.seances where s.type == .sousSeuil {
+    for s in vue.seances where s.type == .sousSeuil || s.type == .seanceQualite {
         derniere = s
     }
     guard let derniere else { return nil }
+    let estimees: Bool? = derniere.repetitionsEstimees == true ? true : nil
 
     let p = paramsAuJour(derniere.date)
     let moyenne = moyenneDesFinies(derniere.repetitions.lazy.map { $0.allure_skm })
@@ -35,6 +37,7 @@ public func derniereSeanceSousSeuil(_ vue: Vue, _ paramsAuJour: ParamsAuJour) ->
                 horsSousSeuil: hors.horsSousSeuil,
                 raisons: hors.raisons
             )
-        }
+        },
+        estimees: estimees
     )
 }

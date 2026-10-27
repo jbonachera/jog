@@ -80,12 +80,14 @@ private func clesDansLaVue(_ moteur: Moteur) async throws -> [String] {
 
 // MARK: - Analyse réservée à l'Exercice (décision 2)
 
-@Test func uneSeanceWorkoutDoorsAvecEtapesNAPasDeTourNiDeRepetition() throws {
+@Test func uneSeanceWorkoutDoorsAvecEtapesNAPasDeTourMaisDesRepetitionsEstimees() throws {
+    // Décision 2 et D-021 : sans tour, l'analyse par les tours n'existe pas ; les étapes à FC haute sont estimées.
     let pivotWod = try pivot(entrainement(bundle: workoutDoors))
     #expect(pivotWod.tours.isEmpty)
     #expect(pivotWod.appSource == workoutDoors)
     let seance = try calculerSeanceIntrinseque(pivotWod, parametresTest)
-    #expect(seance.repetitions.isEmpty)
+    #expect(seance.repetitionsEstimees == true)
+    #expect(seance.format == nil)
     #expect(seance.duree_min > 0)
     #expect(seance.km > 0)
 }
@@ -107,7 +109,9 @@ private func clesDansLaVue(_ moteur: Moteur) async throws -> [String] {
     #expect(seance.duree_min > 0)
     #expect(seance.km > 0)
     #expect(seance.charge > 0)
-    #expect(seance.repetitions.isEmpty)
+    // D-021 : les étapes à FC haute sont des répétitions estimées ; la séance est une séance qualité.
+    #expect(seance.repetitionsEstimees == true)
+    #expect(seance.type == .seanceQualite)
 }
 
 // MARK: - Doublons (décision 3)

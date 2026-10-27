@@ -125,9 +125,18 @@ enum ModeleApercu {
         case .footing: "Footing"
         case .footingLignesDroites: "Footing + lignes droites"
         case .sousSeuil: "Sous-seuil"
+        case .seanceQualite: "Séance qualité (répétitions non détaillées)"
         case .sortieLongue: "Sortie longue"
         case .course: "Course"
         case .test: "Test"
+        }
+    }
+
+    /// Libellé court d'une pastille de type : « Qualité » pour une séance qualité (répétitions estimées, D-021).
+    static func libellePastilleType(_ type: TypeSeance) -> String {
+        switch type {
+        case .seanceQualite: "Qualité"
+        default: libelleType(type)
         }
     }
 

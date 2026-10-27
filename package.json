@@ -13,6 +13,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
     "test:perf": "JOG_PERF=1 vitest run --no-file-parallelism",
+    "reference:extraire": "node scripts/lancer-ts.mjs scripts/extraire-reference.ts",
     "verif:reel": "node scripts/lancer-ts.mjs scripts/verif-reel.ts",
     "verif:reel:snapshot": "node scripts/lancer-ts.mjs scripts/verif-reel.ts --snapshot",
     "oracle": "TZ=America/Los_Angeles node scripts/lancer-ts.mjs scripts/oracle.ts"

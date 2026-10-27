@@ -46,10 +46,18 @@ public struct GrilleSeance: Codable, Sendable, Equatable {
     @TableauOuNaN public var fcMesuree_bpm: [Double]
     /// FC lissée (D-001) : moyenne pondérée par dt des 30 s qui précèdent i, i inclus ; NaN sans mesure.
     @TableauOuNaN public var fcLissee_bpm: [Double]
+    /// Altitude sur la grille, en m (NaN sans mesure) ; nil sans altitude. Hors JSON : l'oracle ne porte pas ce champ.
+    /// Sert à l'estimation des répétitions en côte (D-021).
+    public var alt_m: [Double]?
+
+    /// Clés JSON de la grille : `alt_m` n'y figure pas, pour que la sortie de ① reste celle de l'oracle.
+    private enum CodingKeys: String, CodingKey {
+        case n, t_s, dt_s, distance_m, vitesse_ms, fc_bpm, fcMesuree_bpm, fcLissee_bpm
+    }
 
     public init(
         n: Int, t_s: [Double], dt_s: [Double], distance_m: [Double], vitesse_ms: [Double], fc_bpm: [Double],
-        fcMesuree_bpm: [Double], fcLissee_bpm: [Double]
+        fcMesuree_bpm: [Double], fcLissee_bpm: [Double], alt_m: [Double]? = nil
     ) {
         self.n = n
         self.t_s = t_s
@@ -59,5 +67,6 @@ public struct GrilleSeance: Codable, Sendable, Equatable {
         self.fc_bpm = fc_bpm
         self.fcMesuree_bpm = fcMesuree_bpm
         self.fcLissee_bpm = fcLissee_bpm
+        self.alt_m = alt_m
     }
 }

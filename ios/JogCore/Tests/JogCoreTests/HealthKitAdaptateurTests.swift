@@ -83,11 +83,16 @@ private func entrainementPersonnalise(
 }
 
 @Test func uneAutreAppNAPasDeTourNiDeFiltreDeSourceSansIntervalles() throws {
+    // Décision 2 (migration-ios) et D-021 : une autre app n'a aucun tour, donc aucune analyse par les tours. Ses blocs de
+    // FC sont estimés (répétitions estimées), jamais détectés par les tours.
     var c = entrainementPersonnalise()
     c.bundle = "net.workoutdoors.workoutdoors"
     let pivot = try pivotDe(c)
     #expect(pivot.tours.isEmpty)
-    #expect(try calculerSeanceIntrinseque(pivot, parametresHK).repetitions.isEmpty)
+    let seance = try calculerSeanceIntrinseque(pivot, parametresHK)
+    #expect(seance.repetitionsEstimees == true)
+    #expect(seance.repetitions.count == 4)
+    #expect(seance.format == nil)
 }
 
 // MARK: - Pivot

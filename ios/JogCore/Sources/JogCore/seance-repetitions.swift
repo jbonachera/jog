@@ -28,7 +28,7 @@ func detecterRepetitions(_ g: GrilleSeance, _ tours: [Tour], _ p: ParamsDates, i
 }
 
 /// Tour de travail : déclenché à la main ou inconnu, et d'intensité absente ou « actif » (07, règle 2).
-private func estTourDeTravail(_ tour: Tour) -> Bool {
+func estTourDeTravail(_ tour: Tour) -> Bool {
     let declenchementAdmis = tour.declenchement == .manuel || tour.declenchement == .inconnu
     return declenchementAdmis && (tour.intensite == nil || tour.intensite == .actif)
 }
@@ -176,7 +176,7 @@ private func lies(_ p: Candidat, _ c: Candidat) -> Bool {
     return lie == rang
 }
 
-private func mettreEnForme(_ g: GrilleSeance, _ series: [[Plage]]) throws -> Repetitions {
+func mettreEnForme(_ g: GrilleSeance, _ series: [[Plage]]) throws -> Repetitions {
     var repetitions: [Repetition] = []
     var plages: [Plage] = []
     var recuperations: [Double] = []
@@ -227,7 +227,7 @@ private func minutesArrondies(_ secondes: Double) throws -> Double {
 }
 
 // Durée d'une plage, en secondes : somme des poids de ses échantillons.
-private func dureeDuPlage(_ g: GrilleSeance, _ r: Plage) -> Double {
+func dureeDuPlage(_ g: GrilleSeance, _ r: Plage) -> Double {
     var somme = 0.0
     for i in r.a...r.b { somme += g.dt_s[i] }
     return somme
@@ -266,7 +266,7 @@ private func fcFinDuPlage(_ g: GrilleSeance, _ r: Plage) -> Double {
 }
 
 // Écart entre la fin de la plage a et le début de la plage b.
-private func ecartEntre(_ g: GrilleSeance, _ a: Plage, _ b: Plage) -> Double {
+func ecartEntre(_ g: GrilleSeance, _ a: Plage, _ b: Plage) -> Double {
     let finA = g.t_s[a.b] + g.dt_s[a.b]
     return g.t_s[b.a] - finA
 }

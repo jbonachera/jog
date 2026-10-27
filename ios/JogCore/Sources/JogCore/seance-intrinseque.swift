@@ -17,7 +17,16 @@ public func calculerSeanceIntrinseque(
 ) throws -> SeanceIntrinseque {
     let g = try miseEnForme(pivot)
     let intervalles = analyseDesIntervallesAutorisee(source: pivot.source, appSource: pivot.appSource)
-    let reps = try detecterRepetitions(g, pivot.tours, p, intervalles: intervalles)
+    var reps = try detecterRepetitions(g, pivot.tours, p, intervalles: intervalles)
+    // D-021 : une séance HealthKit sans tour de travail (ni manuel ni étape), et sans répétition détectée dans le flux,
+    // est estimée sur la FC. Une séance avec tours garde son chemin par les tours, même sans série.
+    var estimees: Bool?
+    let sansTourDeTravail = !pivot.tours.contains(where: estTourDeTravail)
+    if pivot.source == .healthkit && sansTourDeTravail && reps.repetitions.isEmpty,
+       let estimation = try repetitionsParEstimation(g, p) {
+        reps = estimation
+        estimees = true
+    }
     let (categories, segmentsMp) = classer(g, reps, p)
     let marquage = marquerSeance(marquageUtilisateur, competition: pivot.competition, nom: pivot.nom)
     let enCourse = marquage == .course || marquage == .test
@@ -62,7 +71,8 @@ public func calculerSeanceIntrinseque(
         decouplage: calculerDecouplage(g, segmentsMp),
         lignesDroites: reps.repetitions.isEmpty && detecterLignesDroites(g),
         distanceRef_km: enCourse && resume.km > 0 ? distanceStandardProche(resume.km) : nil,
-        temps_s: enCourse ? resume.duree_s : nil
+        temps_s: enCourse ? resume.duree_s : nil,
+        repetitionsEstimees: estimees
     )
 }
 

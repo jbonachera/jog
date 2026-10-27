@@ -36,12 +36,14 @@ public func classerSeances(_ intrinseques: [SeanceIntrinseque]) throws -> [Seanc
 private func typer(_ s: SeanceIntrinseque, sortieLongueDeSemaine: Bool) -> TypeSeance {
     if s.marquage == .course { return .course }
     if s.marquage == .test { return .test }
+    // D-021 : répétitions estimées sur la FC, sans tours : séance qualité, hors sous-seuil et hors footings.
+    if s.repetitionsEstimees == true { return .seanceQualite }
     if !s.repetitions.isEmpty { return .sousSeuil }
     if s.duree_min >= DUREE_SORTIE_LONGUE_MIN || sortieLongueDeSemaine { return .sortieLongue }
     return s.lignesDroites ? .footingLignesDroites : .footing
 }
 
-// Footings de la semaine : ni course ni test, sans répétition, et de moins de 90 min (règle 3, sans cercle).
+// Footings de la semaine : ni course ni test, sans répétition (estimée ou non, D-021), et de moins de 90 min (règle 3).
 private func medianeDesFootings(_ seances: [SeanceIntrinseque], _ semaine: [Int]) -> Double? {
     var durees: [Double] = []
     for k in semaine {

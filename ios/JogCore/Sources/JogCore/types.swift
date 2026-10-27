@@ -411,6 +411,8 @@ public enum TypeSeance: String, Codable, Sendable, Equatable {
     case footingLignesDroites = "footing-lignes-droites"
     case sousSeuil = "sous-seuil"
     case sortieLongue = "sortie-longue"
+    /// Séance qualité aux répétitions estimées (D-021) : fractionné ou côtes détectés sur la FC, sans tours.
+    case seanceQualite = "seance-qualite"
     case course
     case test
 }
@@ -499,12 +501,15 @@ public struct SeanceIntrinseque: Codable, Sendable, Equatable {
     /// Course / test.
     @ChampNul public var distanceRef_km: Double?
     @ChampNul public var temps_s: Double?
+    /// Vrai quand les répétitions sont estimées sur la FC, sans tours (D-021). Nil sinon (absent de l'oracle).
+    @ChampNul public var repetitionsEstimees: Bool?
 
     public init(
         cleSource: String, date: DateCivile, debutUtc: Double, nom: String?, marquage: Marquage,
         duree_min: Double, km: Double, fcMoy: Double?, allureMoy_skm: Double?, minutes: Minutes, charge: Double,
         mp_min: Double, segmentsMp: [SegmentMp], repetitions: [Repetition], format: String?, recup_s: Double?,
-        ef: Double?, fcPic: Double?, decouplage: Decouplage?, lignesDroites: Bool, distanceRef_km: Double?, temps_s: Double?
+        ef: Double?, fcPic: Double?, decouplage: Decouplage?, lignesDroites: Bool, distanceRef_km: Double?, temps_s: Double?,
+        repetitionsEstimees: Bool? = nil
     ) {
         self.cleSource = cleSource
         self.date = date
@@ -528,6 +533,36 @@ public struct SeanceIntrinseque: Codable, Sendable, Equatable {
         self.lignesDroites = lignesDroites
         self.distanceRef_km = distanceRef_km
         self.temps_s = temps_s
+        self.repetitionsEstimees = repetitionsEstimees
+    }
+
+    /// Décodage explicite : `repetitionsEstimees` est facultatif dans les JSON anciens (mémoire, oracle), donc lu à part.
+    public init(from decodeur: Decoder) throws {
+        let c = try decodeur.container(keyedBy: CodingKeys.self)
+        cleSource = try c.decode(String.self, forKey: .cleSource)
+        date = try c.decode(DateCivile.self, forKey: .date)
+        _debutUtc = try c.decode(NombreOuNaN.self, forKey: .debutUtc)
+        _nom = try c.decode(ChampNul<String>.self, forKey: .nom)
+        marquage = try c.decode(Marquage.self, forKey: .marquage)
+        _duree_min = try c.decode(NombreOuNaN.self, forKey: .duree_min)
+        _km = try c.decode(NombreOuNaN.self, forKey: .km)
+        _fcMoy = try c.decode(ChampNul<Double>.self, forKey: .fcMoy)
+        _allureMoy_skm = try c.decode(ChampNul<Double>.self, forKey: .allureMoy_skm)
+        minutes = try c.decode(Minutes.self, forKey: .minutes)
+        _charge = try c.decode(NombreOuNaN.self, forKey: .charge)
+        _mp_min = try c.decode(NombreOuNaN.self, forKey: .mp_min)
+        segmentsMp = try c.decode([SegmentMp].self, forKey: .segmentsMp)
+        repetitions = try c.decode([Repetition].self, forKey: .repetitions)
+        _format = try c.decode(ChampNul<String>.self, forKey: .format)
+        _recup_s = try c.decode(ChampNul<Double>.self, forKey: .recup_s)
+        _ef = try c.decode(ChampNul<Double>.self, forKey: .ef)
+        _fcPic = try c.decode(ChampNul<Double>.self, forKey: .fcPic)
+        _decouplage = try c.decode(ChampNul<Decouplage>.self, forKey: .decouplage)
+        lignesDroites = try c.decode(Bool.self, forKey: .lignesDroites)
+        _distanceRef_km = try c.decode(ChampNul<Double>.self, forKey: .distanceRef_km)
+        _temps_s = try c.decode(ChampNul<Double>.self, forKey: .temps_s)
+        // Champ ajouté après la mémorisation (D-021) : absent des JSON anciens, lu comme nil.
+        _repetitionsEstimees = try c.decodeIfPresent(ChampNul<Bool>.self, forKey: .repetitionsEstimees) ?? ChampNul(wrappedValue: nil)
     }
 }
 
@@ -555,6 +590,7 @@ public struct Seance: Codable, Sendable, Equatable {
     public var lignesDroites: Bool
     @ChampNul public var distanceRef_km: Double?
     @ChampNul public var temps_s: Double?
+    @ChampNul public var repetitionsEstimees: Bool?
     public var type: TypeSeance
 
     public init(intrinseque s: SeanceIntrinseque, type: TypeSeance) {
@@ -580,7 +616,38 @@ public struct Seance: Codable, Sendable, Equatable {
         lignesDroites = s.lignesDroites
         distanceRef_km = s.distanceRef_km
         temps_s = s.temps_s
+        repetitionsEstimees = s.repetitionsEstimees
         self.type = type
+    }
+
+    /// Décodage explicite : `repetitionsEstimees` est facultatif dans les JSON anciens (mémoire, oracle), donc lu à part.
+    public init(from decodeur: Decoder) throws {
+        let c = try decodeur.container(keyedBy: CodingKeys.self)
+        cleSource = try c.decode(String.self, forKey: .cleSource)
+        date = try c.decode(DateCivile.self, forKey: .date)
+        _debutUtc = try c.decode(NombreOuNaN.self, forKey: .debutUtc)
+        _nom = try c.decode(ChampNul<String>.self, forKey: .nom)
+        marquage = try c.decode(Marquage.self, forKey: .marquage)
+        _duree_min = try c.decode(NombreOuNaN.self, forKey: .duree_min)
+        _km = try c.decode(NombreOuNaN.self, forKey: .km)
+        _fcMoy = try c.decode(ChampNul<Double>.self, forKey: .fcMoy)
+        _allureMoy_skm = try c.decode(ChampNul<Double>.self, forKey: .allureMoy_skm)
+        minutes = try c.decode(Minutes.self, forKey: .minutes)
+        _charge = try c.decode(NombreOuNaN.self, forKey: .charge)
+        _mp_min = try c.decode(NombreOuNaN.self, forKey: .mp_min)
+        segmentsMp = try c.decode([SegmentMp].self, forKey: .segmentsMp)
+        repetitions = try c.decode([Repetition].self, forKey: .repetitions)
+        _format = try c.decode(ChampNul<String>.self, forKey: .format)
+        _recup_s = try c.decode(ChampNul<Double>.self, forKey: .recup_s)
+        _ef = try c.decode(ChampNul<Double>.self, forKey: .ef)
+        _fcPic = try c.decode(ChampNul<Double>.self, forKey: .fcPic)
+        _decouplage = try c.decode(ChampNul<Decouplage>.self, forKey: .decouplage)
+        lignesDroites = try c.decode(Bool.self, forKey: .lignesDroites)
+        _distanceRef_km = try c.decode(ChampNul<Double>.self, forKey: .distanceRef_km)
+        _temps_s = try c.decode(ChampNul<Double>.self, forKey: .temps_s)
+        // Champ ajouté après la mémorisation (D-021) : absent des JSON anciens, lu comme nil.
+        _repetitionsEstimees = try c.decodeIfPresent(ChampNul<Bool>.self, forKey: .repetitionsEstimees) ?? ChampNul(wrappedValue: nil)
+        type = try c.decode(TypeSeance.self, forKey: .type)
     }
 }
 
@@ -607,6 +674,7 @@ public struct SeanceVue: Codable, Sendable, Equatable {
     public var lignesDroites: Bool
     @ChampNul public var distanceRef_km: Double?
     @ChampNul public var temps_s: Double?
+    @ChampNul public var repetitionsEstimees: Bool?
     public var type: TypeSeance
 
     public init(seance: Seance) {
@@ -632,7 +700,37 @@ public struct SeanceVue: Codable, Sendable, Equatable {
         lignesDroites = s.lignesDroites
         distanceRef_km = s.distanceRef_km
         temps_s = s.temps_s
+        repetitionsEstimees = s.repetitionsEstimees
         type = seance.type
+    }
+
+    /// Décodage explicite : `repetitionsEstimees` est facultatif dans les JSON anciens (mémoire, oracle), donc lu à part.
+    public init(from decodeur: Decoder) throws {
+        let c = try decodeur.container(keyedBy: CodingKeys.self)
+        cleSource = try c.decode(String.self, forKey: .cleSource)
+        date = try c.decode(DateCivile.self, forKey: .date)
+        _debutUtc = try c.decode(NombreOuNaN.self, forKey: .debutUtc)
+        _nom = try c.decode(ChampNul<String>.self, forKey: .nom)
+        marquage = try c.decode(Marquage.self, forKey: .marquage)
+        _duree_min = try c.decode(NombreOuNaN.self, forKey: .duree_min)
+        _km = try c.decode(NombreOuNaN.self, forKey: .km)
+        _fcMoy = try c.decode(ChampNul<Double>.self, forKey: .fcMoy)
+        _allureMoy_skm = try c.decode(ChampNul<Double>.self, forKey: .allureMoy_skm)
+        minutes = try c.decode(Minutes.self, forKey: .minutes)
+        _charge = try c.decode(NombreOuNaN.self, forKey: .charge)
+        _mp_min = try c.decode(NombreOuNaN.self, forKey: .mp_min)
+        repetitions = try c.decode([Repetition].self, forKey: .repetitions)
+        _format = try c.decode(ChampNul<String>.self, forKey: .format)
+        _recup_s = try c.decode(ChampNul<Double>.self, forKey: .recup_s)
+        _ef = try c.decode(ChampNul<Double>.self, forKey: .ef)
+        _fcPic = try c.decode(ChampNul<Double>.self, forKey: .fcPic)
+        _decouplage = try c.decode(ChampNul<Decouplage>.self, forKey: .decouplage)
+        lignesDroites = try c.decode(Bool.self, forKey: .lignesDroites)
+        _distanceRef_km = try c.decode(ChampNul<Double>.self, forKey: .distanceRef_km)
+        _temps_s = try c.decode(ChampNul<Double>.self, forKey: .temps_s)
+        // Champ ajouté après la mémorisation (D-021) : absent des JSON anciens, lu comme nil.
+        _repetitionsEstimees = try c.decodeIfPresent(ChampNul<Bool>.self, forKey: .repetitionsEstimees) ?? ChampNul(wrappedValue: nil)
+        type = try c.decode(TypeSeance.self, forKey: .type)
     }
 }
 

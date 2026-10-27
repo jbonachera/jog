@@ -453,10 +453,12 @@ public struct DerniereSeance: Codable, Sendable, Equatable {
     /// Borne haute de FC de fin à la date de la séance (D-006).
     @NombreOuNaN public var subtHrHi: Double
     public var repetitions: [RepetitionDerniere]
+    /// Vrai quand la séance est une séance qualité aux répétitions estimées (D-021). Nil sinon.
+    @ChampNul public var estimees: Bool?
 
     public init(
         date: DateCivile, format: String?, recup_s: Double?, allureMoy_skm: Double?, bande: Bande?,
-        seuil_skm: Double, subtHrHi: Double, repetitions: [RepetitionDerniere]
+        seuil_skm: Double, subtHrHi: Double, repetitions: [RepetitionDerniere], estimees: Bool? = nil
     ) {
         self.date = date
         self.format = format
@@ -466,5 +468,6 @@ public struct DerniereSeance: Codable, Sendable, Equatable {
         self.seuil_skm = seuil_skm
         self.subtHrHi = subtHrHi
         self.repetitions = repetitions
+        self.estimees = estimees
     }
 }

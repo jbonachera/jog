@@ -54,7 +54,8 @@ public func miseEnForme(_ pivot: ActivitePivot) throws -> GrilleSeance {
         fc_bpm: fc,
         fcMesuree_bpm: fcMesuree,
         // Une fenêtre de 30 s à 1 s : les 30 échantillons t−29 … t, t inclus.
-        fcLissee_bpm: moyenneGlissante(fc, t, dt, FENETRE_FC_LISSEE_S - 1, 0)
+        fcLissee_bpm: moyenneGlissante(fc, t, dt, FENETRE_FC_LISSEE_S - 1, 0),
+        alt_m: flux.alt_m.map { $0.map { Double($0) } }
     )
 }
 
