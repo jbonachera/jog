@@ -133,7 +133,8 @@ private func intervalleSecondes(_ g: GrilleSeance, _ plage: Plage) -> (debut: Do
     #expect(seance.repetitionsEstimees == true)
     #expect(seance.repetitions.count == 6)
     #expect(seance.format == nil)
-    #expect(seance.recup_s == 120)
+    // Les bords viennent de la vitesse lissée sur 10 s : la récupération est à 10 s près de 120 s.
+    #expect(abs((seance.recup_s ?? 0) - 120) <= 10, "récupération \(seance.recup_s ?? -1)")
     let classee = try classerSeances([seance])
     #expect(classee[0].type == .seanceQualite)
 }
@@ -142,7 +143,9 @@ private func intervalleSecondes(_ g: GrilleSeance, _ plage: Plage) -> (debut: Do
 
 @Test func d021DesCotesLentesSontDetecteesParLaFcAlorsQueLAllureEchoue() throws {
     // D-021 : côtes à 2,5 m/s (allure de 400 s/km) à 8 % de pente, FC de 170 ; récupération à plat à 3,5 m/s, FC de 130.
-    // Le chemin par l'allure (cheminFlux) ne voit aucune répétition ; l'estimation sur la FC en trouve cinq.
+    // Le chemin par l'allure (cheminFlux) ne voit aucune répétition. Le chemin par la vitesse non plus (la vitesse baisse
+    // dans les côtes) : sur les références réelles il n'y avait pas de telles séances et le secours par la FC inventait des
+    // blocs sur les footings, donc il est éteint par défaut (`secoursEnCote`). Allumé, il trouve les cinq côtes.
     var morceaux = [Morceau(duree: 600, fc: 135, vitesse: 3)]
     for k in 0..<5 {
         morceaux.append(Morceau(duree: 180, fc: 170, vitesse: 2.5, pente: 0.08))
@@ -152,7 +155,10 @@ private func intervalleSecondes(_ g: GrilleSeance, _ plage: Plage) -> (debut: Do
     let g = try grilleDe(pivotConstruit(morceaux))
 
     #expect(try detecterRepetitions(g, [], parametres).repetitions.isEmpty)
-    let plages = estimerRepetitions(g, parametres)
+    #expect(estimerRepetitions(g, parametres).isEmpty)
+    var reglages = ReglagesEstimation.defaut
+    reglages.secoursEnCote = true
+    let plages = estimerRepetitions(g, parametres, reglages)
     #expect(plages.count == 5)
     for (k, plage) in plages.enumerated() {
         let (debut, _) = intervalleSecondes(g, plage)
@@ -161,7 +167,7 @@ private func intervalleSecondes(_ g: GrilleSeance, _ plage: Plage) -> (debut: Do
 }
 
 @Test func d021DesCotesSansAltitudeRestentDetecteesParLaFc() throws {
-    // D-021 : sans altitude (alt_m nil), la détection reste sur la FC : les bords retombent sur la vitesse.
+    // D-021 : sans altitude (alt_m nil), la détection reste possible : les bords retombent sur la vitesse.
     let g = try grilleDe(pivotConstruit(fractionne(), altitude: false))
     #expect(g.alt_m == nil)
     #expect(estimerRepetitions(g, parametres).count == 6)
@@ -253,7 +259,7 @@ private func intervalleSecondes(_ g: GrilleSeance, _ plage: Plage) -> (debut: Do
     var reglages = ReglagesEstimation.defaut
     reglages.dureeMinBloc_s = 400
     #expect(estimerRepetitions(g, parametres, reglages).isEmpty)
-    #expect(ReglagesEstimation.defaut.dureeMinBloc_s == 120)
+    #expect(ReglagesEstimation.defaut.dureeMinBloc_s == 90)
 }
 
 // MARK: - Sources, marquage des tours, verdict

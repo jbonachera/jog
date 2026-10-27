@@ -16,6 +16,7 @@
     "reference:extraire": "node scripts/lancer-ts.mjs scripts/extraire-reference.ts",
     "verif:reel": "node scripts/lancer-ts.mjs scripts/verif-reel.ts",
     "verif:reel:snapshot": "node scripts/lancer-ts.mjs scripts/verif-reel.ts --snapshot",
+    "verif:estimation": "cd ios/JogCore && swift test -c release --disable-sandbox --scratch-path /tmp/jogcore-V --filter EvaluationReelleTests",
     "oracle": "TZ=America/Los_Angeles node scripts/lancer-ts.mjs scripts/oracle.ts"
   },
   "dependencies": {
