@@ -7,16 +7,29 @@ struct ApercuView: View {
     let vue: Vue
     /// Marquage d'une séance (D-020) : clé source, puis marquage à enregistrer (nil pour retirer le marquage saisi).
     let surMarquage: (String, MarquageUtilisateur?) -> Void
+    /// Les compteurs et les sept derniers jours, calculés une fois par Vue.
+    @State private var memo = Memo<Vue, Calculs>()
+
+    private struct Calculs {
+        let compteurs: [ModeleApercu.Compteur]
+        let septJours: ModeleApercu.SeptJours
+    }
 
     var body: some View {
+        let calculs = memo.valeur(pour: vue) {
+            Calculs(
+                compteurs: ModeleApercu.compteurs(vue.compteurs, J: vue.J),
+                septJours: ModeleApercu.septDerniersJours(vue)
+            )
+        }
         ScrollView {
             VStack(alignment: .leading, spacing: 36) {
                 if vue.seances.isEmpty {
                     SansDonneesView()
                 }
                 DecisionVolumeView(vue: vue)
-                VolumeRealiseView(compteurs: ModeleApercu.compteurs(vue.compteurs, J: vue.J))
-                SeptDerniersJoursView(modele: ModeleApercu.septDerniersJours(vue), surMarquage: surMarquage)
+                VolumeRealiseView(compteurs: calculs.compteurs)
+                SeptDerniersJoursView(modele: calculs.septJours, surMarquage: surMarquage)
                 FormeFatigueView(vue: vue)
                 if let texte = ModeleApercu.texteDerniereSynchro(vue.derniereSynchro) {
                     Text(texte)

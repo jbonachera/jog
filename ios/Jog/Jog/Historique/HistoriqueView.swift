@@ -2,7 +2,8 @@ import SwiftUI
 import JogCore
 
 /// L'onglet Historique (02, 03 H1 et H2) : grand titre, une seule page qui défile. Le sélecteur de période (12 · 26 ·
-/// toutes) pilote H1 et H2, et il est mémorisé (`jog-range`, 02).
+/// toutes) pilote H1 et H2, et il est mémorisé (`jog-range`, 02). Les données de la période sont calculées une fois
+/// par Vue et par période, pas à chaque réévaluation de l'écran.
 struct HistoriqueView: View {
     let vue: Vue
     /// Marquage D-020 d'une séance (cle, marquage ; nil retire le marquage). Branché par l'appelant.
@@ -10,6 +11,12 @@ struct HistoriqueView: View {
 
     @AppStorage("jog-range") private var periode: PeriodeHistorique = .toutes
     @State private var semaineOuverte: ModeleHistorique.LigneSemaine?
+    @State private var memo = Memo<CleHistorique, ModeleHistorique.Donnees?>()
+
+    private struct CleHistorique: Equatable {
+        let vue: Vue
+        let periode: PeriodeHistorique
+    }
 
     init(
         vue: Vue,
@@ -20,21 +27,21 @@ struct HistoriqueView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if let donnees = ModeleHistorique.donnees(vue, periode) {
-                    contenu(donnees)
-                } else {
-                    ContentUnavailableView(
-                        "Historique indisponible",
-                        systemImage: "exclamationmark.triangle",
-                        description: Text("Le calcul de l’historique a échoué.")
-                    )
-                }
+        Group {
+            if let donnees = memo.valeur(pour: CleHistorique(vue: vue, periode: periode), calcul: {
+                ModeleHistorique.donnees(vue, periode)
+            }) {
+                contenu(donnees)
+            } else {
+                ContentUnavailableView(
+                    "Historique indisponible",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text("Le calcul de l’historique a échoué.")
+                )
             }
-            .navigationTitle("Historique")
-            .background(Color.fond.ignoresSafeArea())
         }
+        .navigationTitle("Historique")
+        .background(Color.fond.ignoresSafeArea())
     }
 
     private func contenu(_ donnees: ModeleHistorique.Donnees) -> some View {
@@ -75,20 +82,28 @@ struct HistoriqueView: View {
 }
 
 #Preview("Clair") {
-    HistoriqueView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"))
-        .preferredColorScheme(.light)
+    NavigationStack {
+        HistoriqueView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"))
+    }
+    .preferredColorScheme(.light)
 }
 
 #Preview("Sombre") {
-    HistoriqueView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"))
-        .preferredColorScheme(.dark)
+    NavigationStack {
+        HistoriqueView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"))
+    }
+    .preferredColorScheme(.dark)
 }
 
 #Preview("Dynamic Type grand") {
-    HistoriqueView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"))
-        .dynamicTypeSize(.accessibility3)
+    NavigationStack {
+        HistoriqueView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"))
+    }
+    .dynamicTypeSize(.accessibility3)
 }
 
 #Preview("Vide") {
-    HistoriqueView(vue: Vue.vide(J: "2026-10-20"))
+    NavigationStack {
+        HistoriqueView(vue: Vue.vide(J: "2026-10-20"))
+    }
 }

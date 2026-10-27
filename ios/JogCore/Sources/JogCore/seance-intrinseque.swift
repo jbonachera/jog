@@ -16,7 +16,8 @@ public func calculerSeanceIntrinseque(
     _ pivot: ActivitePivot, _ p: ParamsDates, marquageUtilisateur: MarquageUtilisateur? = nil
 ) throws -> SeanceIntrinseque {
     let g = try miseEnForme(pivot)
-    let reps = try detecterRepetitions(g, pivot.tours, p)
+    let intervalles = analyseDesIntervallesAutorisee(source: pivot.source, appSource: pivot.appSource)
+    let reps = try detecterRepetitions(g, pivot.tours, p, intervalles: intervalles)
     let (categories, segmentsMp) = classer(g, reps, p)
     let marquage = marquerSeance(marquageUtilisateur, competition: pivot.competition, nom: pivot.nom)
     let enCourse = marquage == .course || marquage == .test

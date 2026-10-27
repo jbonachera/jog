@@ -78,9 +78,6 @@ struct FeuilleSimulateur: View {
                         .carte()
                         .accessibilityElement(children: .contain)
                         .accessibilityLabel("Résultats")
-                        .onChange(of: resultat.phrase) { _, nouvelle in
-                            AccessibilityNotification.Announcement(nouvelle).post()
-                        }
                     }
                 }
                 .padding(16)
@@ -88,6 +85,16 @@ struct FeuilleSimulateur: View {
             .background(Color.fond.ignoresSafeArea())
             .navigationTitle("Et si je cours…")
             .navigationBarTitleDisplayMode(.inline)
+            // L'annonce arrive après une pause : pendant un glissement, le lecteur ne lit pas chaque km.
+            .task(id: km) {
+                try? await Task.sleep(for: .milliseconds(700))
+                guard !Task.isCancelled, km != simulateur.defaut, let annonce = ModeleApercu.simulation(km: km, simulateur: simulateur, fourchette: fourchette) else {
+                    return
+                }
+                AccessibilityNotification.Announcement(
+                    "Ratio \(annonce.ratio), fraîcheur \(annonce.fraicheur). \(annonce.phrase)"
+                ).post()
+            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Fermer") { fermer() }

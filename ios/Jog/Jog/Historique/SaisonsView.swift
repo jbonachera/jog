@@ -6,12 +6,7 @@ import JogCore
 /// Bascule Graphique · Tableau (D-011) ; le choix n'est pas mémorisé.
 struct SaisonsView: View {
     let donnees: ModeleHistorique.Donnees
-    @State private var presentation: Presentation = .graphique
     @State private var selection: Date?
-
-    private enum Presentation: Hashable {
-        case graphique, tableau
-    }
 
     private var ligneLue: ModeleHistorique.LigneSemaine? {
         selection.flatMap { ModeleHistorique.semaine(proche: $0, dans: donnees.chronologique) }
@@ -22,23 +17,36 @@ struct SaisonsView: View {
             TitreSection(titre: "Saisons", detail: ModeleHistorique.libellePeriode(donnees.periode))
 
             VStack(alignment: .leading, spacing: 14) {
-                Picker("Affichage", selection: $presentation) {
-                    Text("Graphique").tag(Presentation.graphique)
-                    Text("Tableau").tag(Presentation.tableau)
-                }
-                .pickerStyle(.segmented)
-
-                switch presentation {
-                case .graphique:
-                    lectureTexte
-                    graphique
-                        .frame(height: 220)
-                case .tableau:
-                    TableauSaisons(lignes: donnees.chronologique.reversed())
+                GraphiqueOuTableau(tableau: tableau) {
+                    VStack(alignment: .leading, spacing: 14) {
+                        lectureTexte
+                        graphique
+                            .frame(height: 220)
+                        legende
+                    }
                 }
             }
             .carte()
         }
+    }
+
+    // MARK: - Tableau (D-011)
+
+    /// Une ligne par semaine, la plus récente en premier, comme la vue tableau de H1.
+    private var tableau: TableauAffiche {
+        TableauAffiche(
+            entetes: ["Semaine", "km", "Facile", "Marathon", "Sous-seuil", "Au-dessus"],
+            lignes: donnees.chronologique.reversed().map { ligne in
+                [
+                    ligne.titreCourt,
+                    ModeleApercu.nombre(ligne.km, 1),
+                    ModeleApercu.nombre(ligne.kmParZone[.facile] ?? 0, 1),
+                    ModeleApercu.nombre(ligne.kmParZone[.marathon] ?? 0, 1),
+                    ModeleApercu.nombre(ligne.kmParZone[.sousSeuil] ?? 0, 1),
+                    ModeleApercu.nombre(ligne.kmParZone[.auDessus] ?? 0, 1),
+                ]
+            }
+        )
     }
 
     // MARK: - Lecture au doigt
@@ -111,8 +119,8 @@ struct SaisonsView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(values: .stride(by: .month)) { _ in
-                AxisValueLabel(format: .dateTime.month(.abbreviated))
+            AxisMarks(values: .stride(by: .month)) { valeur in
+                AxisValueLabel { Text(etiquetteMois(valeur)) }
                     .font(.caption2)
                     .foregroundStyle(Color.encre3)
             }
@@ -120,105 +128,34 @@ struct SaisonsView: View {
         .chartXSelection(value: $selection)
         .chartLegend(position: .bottom, alignment: .leading)
         .accessibilityLabel("Kilomètres par semaine, répartis par intensité, avec les résultats de course")
-        .accessibilityChartDescriptor(DescripteurSaisons(points: donnees.chronologique.map {
-            PointSemaine(libelle: $0.titreCourt, km: $0.km)
-        }))
+        .accessibilityChartDescriptor(DescripteurGraphique(donnees: DonneesAccessibles(
+            titre: "Volume hebdomadaire",
+            resume: "\(donnees.chronologique.count) semaines, de la plus ancienne à la plus récente",
+            axeX: "Semaine",
+            axeY: "Kilomètres",
+            unite: "km",
+            libelles: donnees.chronologique.map(libelleAccessible),
+            series: [DonneesAccessibles.Serie(
+                nom: "Kilomètres par semaine",
+                valeurs: donnees.chronologique.map { Optional($0.km) }
+            )],
+            domaineY: 0...max(donnees.domaineKm.upperBound, 1),
+            continu: false
+        )))
     }
-}
 
-// MARK: - Tableau (D-011)
+    /// Le nom lu d'une semaine. Sur « Toutes les saisons », l'année s'ajoute : deux semaines de même date ne se confondent pas.
+    private func libelleAccessible(_ ligne: ModeleHistorique.LigneSemaine) -> String {
+        donnees.periode == .toutes ? formatDateAnnee(ligne.id) : ligne.titreCourt
+    }
 
-/// Vue tableau de H1 : une ligne par semaine, la plus récente en premier, des en-têtes réels. Défile dans son conteneur.
-private struct TableauSaisons: View {
-    let lignes: [ModeleHistorique.LigneSemaine]
-
-    var body: some View {
-        ScrollView([.horizontal, .vertical]) {
-            Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
-                GridRow {
-                    entete("Semaine")
-                    entete("km")
-                    entete("Facile")
-                    entete("Marathon")
-                    entete("Sous-seuil")
-                    entete("Au-dessus")
-                }
-                Divider()
-                ForEach(lignes) { ligne in
-                    GridRow {
-                        Text(ligne.titreCourt)
-                            .foregroundStyle(.encre)
-                        cellule(ligne.kmTexte)
-                        cellule(kmTexte(ligne, .facile))
-                        cellule(kmTexte(ligne, .marathon))
-                        cellule(kmTexte(ligne, .sousSeuil))
-                        cellule(kmTexte(ligne, .auDessus))
-                    }
-                    .font(.footnote.monospacedDigit())
-                }
-            }
-            .padding(.trailing, 4)
+    /// Légende des repères, en forme (08 : la couleur ne porte pas seule le sens).
+    private var legende: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), alignment: .leading)], alignment: .leading, spacing: 6) {
+            LegendeForme(texte: "Aujourd’hui", forme: .ligne, couleur: .accentFjord)
+            LegendeForme(texte: "Course, en pointillés", forme: .ligne, couleur: .encre3)
+            LegendeForme(texte: "Semaine lue", forme: .ligne, couleur: .encre2)
         }
-        .frame(height: 320)
-    }
-
-    private func entete(_ texte: String) -> some View {
-        Text(texte)
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(.encre2)
-            .accessibilityAddTraits(.isHeader)
-    }
-
-    private func cellule(_ texte: String) -> some View {
-        Text(texte)
-            .foregroundStyle(.encre)
-            .monospacedDigit()
-    }
-
-    private func kmTexte(_ ligne: ModeleHistorique.LigneSemaine, _ zone: Zone) -> String {
-        ModeleApercu.nombre(ligne.kmParZone[zone] ?? 0, 1)
-    }
-}
-
-// MARK: - Description VoiceOver (08, accessibilité)
-
-private struct PointSemaine: Sendable {
-    let libelle: String
-    let km: Double
-}
-
-/// Descripteur de H1 : une catégorie par semaine, un axe en km, une série de kilomètres totaux.
-private struct DescripteurSaisons: AXChartDescriptorRepresentable {
-    let points: [PointSemaine]
-
-    func makeChartDescriptor() -> AXChartDescriptor {
-        let maximum = points.map(\.km).max() ?? 0
-        let axeX = AXCategoricalDataAxisDescriptor(
-            title: "Semaine",
-            categoryOrder: points.map(\.libelle)
-        )
-        let axeY = AXNumericDataAxisDescriptor(
-            title: "Kilomètres",
-            range: 0...max(maximum, 1),
-            gridlinePositions: []
-        ) { valeur in
-            "\(ModeleApercu.nombre(valeur, 1)) km"
-        }
-        let serie = AXDataSeriesDescriptor(
-            name: "Kilomètres par semaine",
-            isContinuous: false,
-            dataPoints: points.map { point in
-                AXDataPoint(x: point.libelle, y: point.km)
-            }
-        )
-        return AXChartDescriptor(
-            title: "Volume hebdomadaire",
-            summary: "\(points.count) semaines, de la plus ancienne à la plus récente",
-            xAxis: axeX,
-            yAxis: axeY,
-            additionalAxes: [],
-            series: [serie]
-        )
     }
 }
 

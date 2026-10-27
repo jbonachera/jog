@@ -8,43 +8,6 @@ enum Ton: Equatable, Sendable {
     case bon, attention, mauvais, neutre, accent
 }
 
-/// Graphique ou tableau des mêmes séries (D-011).
-enum ModeAffichage: CaseIterable, Hashable, Sendable {
-    case graphique, tableau
-
-    var libelle: String {
-        switch self {
-        case .graphique: "Graphique"
-        case .tableau: "Tableau"
-        }
-    }
-}
-
-/// Un tableau de l'Aperçu : en-têtes réels et lignes déjà formatées, dans l'ordre chronologique du graphique.
-struct TableauAffiche: Equatable, Sendable {
-    let entetes: [String]
-    let lignes: [[String]]
-}
-
-/// Les données d'un graphique pour sa description VoiceOver (`accessibilityChartDescriptor`, 08). `libelles` donne le
-/// nom lu de chaque position ; une série sans valeur à une position n'a pas de point là.
-struct DonneesAccessibles: Equatable, Sendable {
-    struct Serie: Equatable, Sendable {
-        let nom: String
-        let valeurs: [Double?]
-    }
-
-    let titre: String
-    let resume: String
-    let axeX: String
-    let axeY: String
-    let unite: String
-    let libelles: [String]
-    let series: [Serie]
-    let domaineY: ClosedRange<Double>
-    let continu: Bool
-}
-
 /// Une option du marquage (D-020) : son titre de menu, et le marquage à enregistrer (nil pour « Retirer »).
 struct OptionMarquage: Equatable, Sendable {
     let titre: String
@@ -74,6 +37,7 @@ enum Zone: CaseIterable, Hashable, Sendable {
 
 enum ModeleApercu {
     static let tiret = "–"
+    static let moins = "−"
     static let joursCourts = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]
 
     // MARK: - Nombres et dates
@@ -85,6 +49,29 @@ enum ModeleApercu {
     /// Écart signé (+22,6 ou −18). Sans valeur affichable, un tiret.
     static func ecart(_ valeur: Double, _ decimales: Int = 0) -> String {
         (try? formatEcart(valeur, decimales)) ?? tiret
+    }
+
+    /// Pourcentage, avec l'espace insécable de la rédaction (22 %), à `decimales` près.
+    static func pourcentage(_ valeur: Double, _ decimales: Int = 0) -> String {
+        (try? formatPourcentage(valeur, decimales)) ?? tiret
+    }
+
+    /// Le même pourcentage, ou un tiret sans valeur.
+    static func pourcentageOuTiret(_ valeur: Double?, _ decimales: Int = 0) -> String {
+        valeur.map { pourcentage($0, decimales) } ?? tiret
+    }
+
+    /// Signe seul d'une différence (« + » ou « − »), vide pour zéro.
+    static func signeTexte(_ valeur: Double) -> String {
+        if valeur > 0 { return "+" }
+        if valeur < 0 { return moins }
+        return ""
+    }
+
+    /// Nombre signé à `decimales` près, avec une unité optionnelle : « +3,7 s/km ». Sans valeur affichable, un tiret.
+    static func signe(_ valeur: Double, _ decimales: Int = 0, unite: String = "") -> String {
+        guard let texte = try? formatEcart(valeur, decimales) else { return tiret }
+        return texte + unite
     }
 
     /// Écart en pourcentage, signé, avec l'espace insécable de la rédaction (+15 %).
@@ -114,11 +101,19 @@ enum ModeleApercu {
 
     /// « Dernière synchronisation : 27 oct. à 10:12 », à partir de l'ISO 8601 de la Vue, en heure locale. Nil si absente.
     static func texteDerniereSynchro(_ iso: String?) -> String? {
-        guard let iso, let instant = try? Date.ISO8601FormatStyle().parse(iso) else { return nil }
+        guard let iso, let instant = instantISO(iso) else { return nil }
         let jour = formatDate(aujourdhuiCivil(maintenant: instant))
         let composantes = Calendar.current.dateComponents([.hour, .minute], from: instant)
         let heure = String(format: "%02ld:%02ld", composantes.hour ?? 0, composantes.minute ?? 0)
         return "Dernière synchronisation : \(jour) à \(heure)"
+    }
+
+    /// Un instant ISO 8601, avec ou sans fractions de seconde (le moteur écrit « 2026-10-27T10:12:03.512Z »).
+    static func instantISO(_ texte: String) -> Date? {
+        if let instant = try? Date.ISO8601FormatStyle(includingFractionalSeconds: true).parse(texte) {
+            return instant
+        }
+        return try? Date.ISO8601FormatStyle().parse(texte)
     }
 
     static func veille(_ J: DateCivile) -> DateCivile? {
@@ -427,26 +422,26 @@ enum ModeleApercu {
         let lignes: [LigneJour]
     }
 
-    /// Les jours de J−1 à J−7, le plus récent en premier (03, A3). Les jours sans séance sont des repos.
+    /// Les jours de J−1 à J−7, le plus récent en premier (03, A3). Chaque jour a sa ligne : un jour sans séance, ou sans
+    /// trace dans l'historique, est un repos. Le total de km vient du compteur 7 jours du moteur (même fenêtre).
     static func septDerniersJours(_ vue: Vue) -> SeptJours {
         let jours = (1...7).compactMap { try? ajouterJours(vue.J, -$0) }
-        let lignes: [LigneJour] = jours.compactMap { jour in
-            guard let index = vue.jours.date.firstIndex(of: jour) else { return nil }
-            return ligneJour(jour, index: index, vue: vue)
+        let lignes: [LigneJour] = jours.map { jour in
+            ligneJour(jour, index: vue.jours.date.firstIndex(of: jour), vue: vue)
         }
         let seancesSemaine = vue.seances.filter { jours.contains($0.date) }
-        let km = jours.compactMap { jour in vue.jours.date.firstIndex(of: jour).map { vue.jours.km[$0] } }.reduce(0, +)
         let subtMin = jours.compactMap { jour in vue.jours.date.firstIndex(of: jour).map { vue.jours.minutes.subt[$0] } }.reduce(0, +)
-        let resume = "\(pluriel(seancesSemaine.count, "séance", "séances")) · \(nombre(km, 1)) km · \(nombre(subtMin)) min de sous-seuil"
+        // Les minutes de sous-seuil n'ont pas de compteur côté moteur : elles se somment ici, sur les mêmes jours.
+        let resume = "\(pluriel(seancesSemaine.count, "séance", "séances")) · \(nombre(vue.compteurs.jours7.km, 1)) km · \(nombre(subtMin)) min de sous-seuil"
         return SeptJours(resume: resume, lignes: lignes)
     }
 
-    private static func ligneJour(_ jour: DateCivile, index: Int, vue: Vue) -> LigneJour {
+    private static func ligneJour(_ jour: DateCivile, index: Int?, vue: Vue) -> LigneJour {
         let seances = vue.seances.filter { $0.date == jour }
         let estRepos = seances.isEmpty
         let titre = estRepos ? "Repos" : seances.map { $0.nom ?? libelleType($0.type) }.joined(separator: " + ")
         var morceaux: [String] = []
-        if !estRepos {
+        if !estRepos, let index {
             let km = vue.jours.km[index]
             morceaux.append("\(formatDuree(vue.jours.min[index])) · \(nombre(km, 1)) km")
             if let fc = seances.compactMap(\.fcMoy).first {
@@ -460,10 +455,12 @@ enum ModeleApercu {
             }
         }
         let detail = morceaux.isEmpty ? nil : morceaux.joined(separator: " · ")
-        let segments = repartition(
-            easy: vue.jours.minutes.easy[index], mp: vue.jours.minutes.mp[index],
-            subt: vue.jours.minutes.subt[index], hard: vue.jours.minutes.hard[index]
-        )
+        let segments = index.map { index in
+            repartition(
+                easy: vue.jours.minutes.easy[index], mp: vue.jours.minutes.mp[index],
+                subt: vue.jours.minutes.subt[index], hard: vue.jours.minutes.hard[index]
+            )
+        } ?? []
         let affichees = seances.map { SeanceAffichee(id: $0.cleSource, titre: $0.nom ?? libelleType($0.type), marquage: $0.marquage) }
         var accessible = "\(jourCourt(jour)) \(quantieme(jour)), \(titre)"
         if let detail { accessible += ", \(detail)" }
@@ -538,6 +535,41 @@ enum ModeleApercu {
         }
     }
 
+    /// Tout ce que l'écran A4 affiche, calculé une fois par Vue : points, bornes (D-009), tableaux et description VoiceOver.
+    struct FormeFatigue: Equatable, Sendable {
+        let points: [PointForme]
+        let notes: [String]
+        let domaineForme: ClosedRange<Double>
+        let domaineFraicheur: ClosedRange<Double>
+        let tableauForme: TableauAffiche
+        let tableauFraicheur: TableauAffiche
+        let donneesForme: DonneesAccessibles
+        let donneesFraicheur: DonneesAccessibles
+        let resume: String
+    }
+
+    static func formeFatigue(_ vue: Vue) -> FormeFatigue {
+        let points = pointsForme(vue.serieCharge)
+        let domaineForme = domaineAxe(points.flatMap { [$0.forme, $0.fatigue] }, preset: .formeFond)
+        // Les repères de la zone productive (−25 à −10) et le zéro restent visibles même si la série est plate.
+        let domaineFraicheur = domaineAxe(points.map(\.fraicheur), preset: .fraicheur, reperes: [-25, -10, 0])
+        let resume = "Un point sur deux, de la plus ancienne date à la plus récente."
+        return FormeFatigue(
+            points: points,
+            notes: notesForme(vue),
+            domaineForme: domaineForme,
+            domaineFraicheur: domaineFraicheur,
+            tableauForme: tableauForme(points),
+            tableauFraicheur: tableauFraicheur(points),
+            donneesForme: donneesForme(points, domaine: domaineForme, resume: resume),
+            donneesFraicheur: donneesFraicheur(
+                points, domaine: domaineFraicheur,
+                resume: "Zone productive de −25 à −10. Sous −25 : surcharge. Au-dessus de +5 : frais."
+            ),
+            resume: resume
+        )
+    }
+
     /// Tableau du graphique forme et fatigue (D-011) : les mêmes points, dans l'ordre du graphique.
     static func tableauForme(_ points: [PointForme]) -> TableauAffiche {
         TableauAffiche(
@@ -587,34 +619,16 @@ enum ModeleApercu {
         )
     }
 
+    /// Lecture de la fraîcheur du jour (A4, 05). La mesure est arrondie à l'unité (D-015), puis jugée par `etatFraicheur`
+    /// de JogCore : surcharge (alerte), sous-charge (à surveiller), sinon la zone productive ou l'équilibre (sous −10 : productive).
     static func lectureFraicheur(_ tsb: Double) -> String {
-        if tsb < -25 { return "surcharge" }
-        if tsb < -10 { return "charge productive" }
-        if tsb <= 5 { return "équilibre" }
-        return "fraîcheur, sous-charge"
-    }
-
-    /// Bornes d'un axe (08, « Règles des graphiques ») : étendue minimale, marge de 5 % et arrondi vers l'extérieur.
-    static func domaineAxe(
-        _ valeurs: [Double], pas: Double, etendueMin: Double, reperes: [Double] = [], marge: Double = 0.05
-    ) -> ClosedRange<Double> {
-        let finies = (valeurs + reperes).filter { $0.isFinite }
-        guard let minimum = finies.min(), let maximum = finies.max() else { return 0...etendueMin }
-        var bas = minimum
-        var haut = maximum
-        if haut - bas < etendueMin {
-            let centre = (bas + haut) / 2
-            bas = centre - etendueMin / 2
-            haut = centre + etendueMin / 2
+        guard tsb.isFinite, let arrondie = try? arrondirDecimales(tsb, 0) else { return tiret }
+        switch etatFraicheur(arrondie) {
+        case .alerte: return "surcharge"
+        case .surveiller: return "fraîcheur, sous-charge"
+        case .ok: return arrondie < -10 ? "charge productive" : "équilibre"
+        case .insuffisant: return tiret
         }
-        let ecartMarge = (haut - bas) * marge
-        bas = ((bas - ecartMarge) / pas).rounded(.down) * pas
-        haut = ((haut + ecartMarge) / pas).rounded(.up) * pas
-        return bas...haut
-    }
-
-    static func graduations(_ domaine: ClosedRange<Double>, pas: Double) -> [Double] {
-        stride(from: domaine.lowerBound, through: domaine.upperBound, by: pas).map { $0 }
     }
 
     /// La note de A4 : définitions et lecture du jour (03, A4).

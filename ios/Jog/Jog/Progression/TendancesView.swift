@@ -15,7 +15,7 @@ struct TendancesView: View {
             VStack(spacing: 12) {
                 PanneauTendance(
                     serie: .allure,
-                    titre: "Allure sous-seuil à \(ModeleProgression.nombre(refHr)) bpm",
+                    titre: "Allure sous-seuil à \(ModeleApercu.nombre(refHr)) bpm",
                     derniere: tendances.allure.derniere,
                     ecart: tendances.allure.ecart,
                     bonSens: tendances.allure.bonSens,
@@ -62,24 +62,32 @@ private struct PanneauTendance: View {
                 .foregroundStyle(.encre)
 
             HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Text(derniere.map(valeur) ?? ModeleProgression.tiret)
+                Text(derniere.map(valeur) ?? ModeleApercu.tiret)
                     .font(.title2.weight(.bold))
                     .monospacedDigit()
                     .foregroundStyle(.encre)
                 Pastille(texte: ModeleProgression.ecartTendance(serie, ecart: ecart), ton: ModeleProgression.tonTendance(bonSens))
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(titre), dernière valeur \(derniere.map(valeur) ?? ModeleProgression.tiret)")
+            .accessibilityLabel("\(titre), dernière valeur \(derniere.map(valeur) ?? ModeleApercu.tiret)")
             .accessibilityValue("écart depuis le début \(ModeleProgression.ecartTendance(serie, ecart: ecart))")
 
             if points.isEmpty {
                 EtatVide(texte: "Pas encore assez de séances pour tracer cette tendance.")
             } else {
-                GraphiqueOuTableau(
-                    graphique: GraphiqueTendance(serie: serie, titre: titre, points: points)
-                        .frame(height: 150),
-                    tableau: TableauVue(tableau: ModeleProgression.tableauTendance(points, valeur))
-                )
+                GraphiqueOuTableau(tableau: ModeleProgression.tableauTendance(points, valeur)) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        GraphiqueTendance(serie: serie, titre: titre, points: points)
+                            .frame(height: 150)
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), alignment: .leading)], alignment: .leading, spacing: 6) {
+                            LegendeForme(texte: "Valeur lissée", forme: .ligne, couleur: .accentFjord)
+                            LegendeForme(texte: "Valeur mesurée", forme: .rond, couleur: .encre3)
+                            if serie == .decouplage {
+                                LegendeForme(texte: "Sortie à allure marathon", forme: .losange, couleur: .encre3)
+                            }
+                        }
+                    }
+                }
             }
 
             Text(serie.note)
@@ -108,7 +116,7 @@ private struct GraphiqueTendance: View {
     }
 
     private var lecture: String {
-        guard let point = pointLu else { return ModeleProgression.tiret }
+        guard let point = pointLu else { return ModeleApercu.tiret }
         return point.libelle
     }
 
@@ -116,8 +124,8 @@ private struct GraphiqueTendance: View {
     private func libelleAxe(_ v: Double) -> String {
         switch serie {
         case .allure: formatAllure(v)
-        case .ef: ModeleProgression.nombre(v, 2)
-        case .decouplage: ModeleProgression.nombre(v) + " %"
+        case .ef: ModeleApercu.nombre(v, 2)
+        case .decouplage: ModeleApercu.nombre(v) + " %"
         }
     }
 
@@ -158,7 +166,7 @@ private struct GraphiqueTendance: View {
         // L'allure monte quand elle baisse : plus rapide en haut (03, P2 : « meilleur si plus bas »).
         .chartYScale(domain: serie == .allure ? [domaine.upperBound, domaine.lowerBound] : [domaine.lowerBound, domaine.upperBound])
         .chartYAxis {
-            AxisMarks(position: .leading, values: ModeleApercu.graduations(domaine, pas: serie.pas)) { valeur in
+            AxisMarks(position: .leading, values: Axes.graduations(domaine, pas: presetAxe(serie.preset).pas)) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {
@@ -170,8 +178,8 @@ private struct GraphiqueTendance: View {
             }
         }
         .chartXAxis {
-            AxisMarks(values: .stride(by: .month)) { _ in
-                AxisValueLabel(format: .dateTime.month(.abbreviated))
+            AxisMarks(values: .stride(by: .month)) { valeur in
+                AxisValueLabel { Text(etiquetteMois(valeur)) }
                     .font(.caption2)
                     .foregroundStyle(Color.encre3)
             }
@@ -186,7 +194,7 @@ private struct GraphiqueTendance: View {
             intervalleY: domaine,
             libelleX: { formatDate(ModeleProgression.civile(Date(timeIntervalSince1970: $0))) },
             libelleY: libelleAxe,
-            series: [.init(nom: "Lissée", points: points.map { (x: $0.date.timeIntervalSince1970, y: $0.lisse) })]
+            series: [.init(nom: "Lissée", continu: true, points: points.map { .init(x: $0.date.timeIntervalSince1970, y: $0.lisse) })]
         ))
         .accessibilityLabel(titre)
         .accessibilityValue(lecture)

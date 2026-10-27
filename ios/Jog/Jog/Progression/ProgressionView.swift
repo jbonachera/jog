@@ -1,6 +1,9 @@
 import SwiftUI
 import JogCore
 
+/// Aucune Vue ni aperçu : l'écran affiche son état d'indisponibilité.
+private struct AbsenteVue: Error {}
+
 /// Les résultats de JogCore dont l'onglet Progression a besoin (03, P1 à P5).
 ///
 /// Les calculs ne sont pas refaits dans l'interface : chaque valeur vient d'une fonction de JogCore. Les deux sélecteurs
@@ -19,41 +22,58 @@ struct CalculsProgression {
     let prereglage: (Prereglage) throws -> (a: PeriodeDates, b: PeriodeDates)
     let comparer: (PeriodeDates, PeriodeDates) throws -> Comparaison
     let nuage: (PeriodeNuage) throws -> Nuage
+    /// La Vue dont ces calculs sont tirés (nil pour les aperçus) : clé de mémoïsation des écrans, qui ne doivent pas
+    /// garder un résultat quand la Vue change.
+    var cle: Vue? = nil
 }
 
 /// L'onglet Progression (02, 03) : comparateur, tendances, nuage et dernière séance en deux colonnes sur grand écran,
 /// puis le niveau estimé. Un grand titre, une seule page défilante. Les calculs viennent de JogCore, lus dans la Vue.
 struct ProgressionView: View {
-    private let resultat: Result<CalculsProgression, Error>
+    /// La Vue lue par JogCore, ou nil pour l'aperçu (`calculs`).
+    private let vue: Vue?
+    private let exemple: CalculsProgression?
+    @State private var memo = Memo<Vue, Result<CalculsProgression, Error>>()
     @Environment(\.horizontalSizeClass) private var tailleHorizontale
 
     init(vue: Vue) {
-        resultat = Result { try CalculsProgression(vue: vue) }
+        self.vue = vue
+        exemple = nil
     }
 
     init(calculs: CalculsProgression) {
-        resultat = .success(calculs)
+        vue = nil
+        exemple = calculs
     }
 
     var body: some View {
-        NavigationStack {
-            Group {
-                switch resultat {
-                case let .success(calculs):
-                    ScrollView {
-                        corps(calculs)
-                    }
-                case .failure:
-                    ContentUnavailableView(
-                        "Progression indisponible",
-                        systemImage: "exclamationmark.triangle",
-                        description: Text("Le calcul de la progression a échoué pour cet historique.")
-                    )
+        Group {
+            switch resultat {
+            case let .success(calculs):
+                ScrollView {
+                    corps(calculs)
                 }
+            case .failure:
+                ContentUnavailableView(
+                    "Progression indisponible",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text("Le calcul de la progression a échoué pour cet historique.")
+                )
             }
-            .background(Color.fond.ignoresSafeArea())
-            .navigationTitle("Progression")
         }
+        .background(Color.fond.ignoresSafeArea())
+        .navigationTitle("Progression")
+    }
+
+    /// Les calculs de l'écran, faits une fois par Vue : une réévaluation de l'écran parent ne les refait pas.
+    private var resultat: Result<CalculsProgression, Error> {
+        if let exemple {
+            return .success(exemple)
+        }
+        guard let vue else {
+            return .failure(AbsenteVue())
+        }
+        return memo.valeur(pour: vue) { Result { try CalculsProgression(vue: vue) } }
     }
 
     private func corps(_ calculs: CalculsProgression) -> some View {

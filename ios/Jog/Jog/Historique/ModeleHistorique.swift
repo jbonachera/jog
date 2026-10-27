@@ -153,7 +153,7 @@ enum ModeleHistorique {
             mois: titreMois(s.lundi),
             enCours: s.enCours,
             km: s.km,
-            kmTexte: nombre(s.km, 1),
+            kmTexte: ModeleApercu.nombre(s.km, 1),
             dureeTexte: formatDuree(s.min),
             kmParZone: [
                 .facile: repartition.easy,
@@ -162,21 +162,21 @@ enum ModeleHistorique {
                 .auDessus: repartition.hard,
             ],
             sousSeuil: indicateurSousSeuil(s),
-            seancesSousSeuil: nombre(s.nbSS),
-            charge: nombre(s.charge),
+            seancesSousSeuil: ModeleApercu.nombre(s.nbSS),
+            charge: ModeleApercu.nombre(s.charge),
             ratio: Indicateur(
-                texte: s.ratioDimanche.map { nombre($0, 2) } ?? tiret,
+                texte: s.ratioDimanche.map { ModeleApercu.nombre($0, 2) } ?? tiret,
                 ton: ton(s.etatRatio),
                 qualificatif: nil
             ),
-            monotonie: s.monotonie.map { nombre($0, 2) } ?? tiret,
-            contrainte: s.contrainte.map { nombre($0) } ?? tiret,
+            monotonie: s.monotonie.map { ModeleApercu.nombre($0, 2) } ?? tiret,
+            contrainte: s.contrainte.map { ModeleApercu.nombre($0) } ?? tiret,
             conformite: Indicateur(
-                texte: pourcentage(s.conformitePct),
+                texte: ModeleApercu.pourcentageOuTiret(s.conformitePct),
                 ton: ton(s.etatFootings),
                 qualificatif: nil
             ),
-            libelleFootings: "Footings ≤ \(nombre(plafond)) bpm",
+            libelleFootings: "Footings ≤ \(ModeleApercu.nombre(plafond)) bpm",
             types: types,
             courses: s.courses.enumerated().compactMap { index, course in
                 guard let instant = ModeleApercu.date(course.date) else { return nil }
@@ -195,9 +195,9 @@ enum ModeleHistorique {
         case .enCours?:
             Indicateur(texte: "en cours", ton: .neutre, qualificatif: nil)
         case .dansLaCible?:
-            Indicateur(texte: pourcentage(s.partSSPct), ton: .bon, qualificatif: "dans la cible")
+            Indicateur(texte: ModeleApercu.pourcentageOuTiret(s.partSSPct), ton: .bon, qualificatif: "dans la cible")
         case .horsCible?:
-            Indicateur(texte: pourcentage(s.partSSPct), ton: .attention, qualificatif: "hors de la cible")
+            Indicateur(texte: ModeleApercu.pourcentageOuTiret(s.partSSPct), ton: .attention, qualificatif: "hors de la cible")
         case nil:
             Indicateur(texte: tiret, ton: .neutre, qualificatif: nil)
         }
@@ -209,10 +209,10 @@ enum ModeleHistorique {
         let qualificatif = sousSeuil.qualificatif.map { ", \($0)" } ?? ""
         return [
             titre + enCours,
-            "\(nombre(s.km, 1)) kilomètres",
+            "\(ModeleApercu.nombre(s.km, 1)) kilomètres",
             "durée \(formatDuree(s.min))",
             "sous-seuil \(sousSeuil.texte)\(qualificatif)",
-            "ratio \(s.ratioDimanche.map { nombre($0, 2) } ?? tiret)",
+            "ratio \(s.ratioDimanche.map { ModeleApercu.nombre($0, 2) } ?? tiret)",
         ].joined(separator: ", ")
     }
 
@@ -261,16 +261,16 @@ enum ModeleHistorique {
             if let format = seance.format {
                 libelle += " " + format
             }
-            var morceaux = [formatDuree(seance.duree_min), "\(nombre(seance.km, 1)) km"]
+            var morceaux = [formatDuree(seance.duree_min), "\(ModeleApercu.nombre(seance.km, 1)) km"]
             if let fc = seance.fcMoy {
-                morceaux.append("\(nombre(fc)) bpm")
+                morceaux.append("\(ModeleApercu.nombre(fc)) bpm")
             }
             resultat.append(SeanceSemaine(
                 id: seance.cleSource,
                 titre: "\(ModeleApercu.jourCourt(seance.date)) \(ModeleApercu.quantieme(seance.date)) · \(libelle)",
                 detail: morceaux.joined(separator: " · "),
                 marquage: seance.marquage,
-                libelleMarquage: libelleMarquage(seance.marquage)
+                libelleMarquage: ModeleApercu.libelleMarquage(seance.marquage)
             ))
         }
         return resultat
@@ -312,22 +312,4 @@ enum ModeleHistorique {
         return "\(distance) · \(temps)"
     }
 
-    static func libelleMarquage(_ marquage: Marquage) -> String? {
-        switch marquage {
-        case .course: "Course"
-        case .test: "Test"
-        case .aucun, .inconnu: nil
-        }
-    }
-
-    // MARK: - Nombres
-
-    private static func nombre(_ valeur: Double, _ decimales: Int = 0) -> String {
-        ModeleApercu.nombre(valeur, decimales)
-    }
-
-    private static func pourcentage(_ pourcent: Double?) -> String {
-        guard let pourcent else { return tiret }
-        return nombre(pourcent) + "\u{00A0}%"
-    }
 }

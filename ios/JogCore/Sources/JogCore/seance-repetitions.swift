@@ -18,7 +18,9 @@ public func mediane(_ valeurs: [Double]) -> Double? {
 ///
 /// Repli sur le flux : on ne bascule sur la détection dans le flux que si le chemin par tours ne donne **aucune**
 /// série. Les deux chemins ne se mélangent jamais.
-func detecterRepetitions(_ g: GrilleSeance, _ tours: [Tour], _ p: ParamsDates) throws -> Repetitions {
+/// `intervalles` à faux : aucune analyse des intervalles, ni par les tours ni dans le flux (migration-ios, décision 2).
+func detecterRepetitions(_ g: GrilleSeance, _ tours: [Tour], _ p: ParamsDates, intervalles: Bool = true) throws -> Repetitions {
+    guard intervalles else { return try mettreEnForme(g, []) }
     let seuilFcFin = p.subtHrLo - MARGE_FC_FIN_SOUS_SEUIL
     let parTours = cheminParTours(g, tours, seuilFcFin)
     let series = parTours.isEmpty ? cheminFlux(g, p, seuilFcFin) : parTours

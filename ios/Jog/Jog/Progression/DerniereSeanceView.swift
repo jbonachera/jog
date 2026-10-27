@@ -3,7 +3,7 @@ import Charts
 import JogCore
 
 /// P4 · Dernière séance sous-seuil (03, P4) : une sucette par répétition, autour de la moyenne de la séance. La ligne
-/// rouge pointillée est l'allure seuil ; une répétition hors sous-seuil a un point rouge.
+/// rouge pointillée est l'allure seuil ; une répétition hors sous-seuil a un losange rouge (la forme porte l'écart).
 struct DerniereSeanceView: View {
     let seance: DerniereSeance?
     @State private var selection: Double?
@@ -35,20 +35,21 @@ struct DerniereSeanceView: View {
             if repetitions.isEmpty {
                 EtatVide(texte: "Aucune répétition exploitable dans cette séance.")
             } else {
-                GraphiqueOuTableau(
-                    graphique: GraphiqueSucettes(seance: seance, repetitions: repetitions, selection: $selection)
-                        .frame(height: 190),
-                    tableau: TableauVue(tableau: ModeleProgression.tableauDerniere(seance))
-                )
+                GraphiqueOuTableau(tableau: ModeleProgression.tableauDerniere(seance)) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(lecture(repetitions))
+                            .font(.caption)
+                            .foregroundStyle(.encre2)
 
-                Text(lecture(repetitions))
-                    .font(.caption)
-                    .foregroundStyle(.encre2)
+                        GraphiqueSucettes(seance: seance, repetitions: repetitions, selection: $selection)
+                            .frame(height: 190)
 
-                HStack(spacing: 14) {
-                    LegendeForme(texte: "Moyenne ±3 s/km", forme: .ligne, couleur: .bande)
-                    LegendeForme(texte: "Répétition", forme: .rond, couleur: Zone.sousSeuil.couleur)
-                    LegendeForme(texte: "Hors sous-seuil", forme: .rond, couleur: Ton.mauvais.couleur)
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), alignment: .leading)], alignment: .leading, spacing: 6) {
+                            LegendeForme(texte: "Moyenne ±3 s/km", forme: .ligne, couleur: .bande)
+                            LegendeForme(texte: "Répétition", forme: .rond, couleur: Zone.sousSeuil.couleur)
+                            LegendeForme(texte: "Hors sous-seuil", forme: .losange, couleur: Ton.mauvais.couleur)
+                        }
+                    }
                 }
 
                 Text(horsSousSeuil == 0
@@ -61,14 +62,15 @@ struct DerniereSeanceView: View {
     }
 
     private func lecture(_ repetitions: [RepetitionAffichee]) -> String {
-        guard let selection, let rep = repetitions.first(where: { Double($0.n) == selection }) else {
+        guard let rep = ModeleProgression.repetitionLue(repetitions, position: selection) else {
             return "Touchez une répétition pour la lire."
         }
         return rep.libelleAccessible
     }
 }
 
-/// Les sucettes : tige de la moyenne à chaque répétition, point coloré, bande de régularité et allure seuil (03, P4).
+/// Les sucettes : tige de la moyenne à chaque répétition, point coloré (losange si hors sous-seuil), bande de régularité
+/// et allure seuil (03, P4). Le domaine est calculé une fois pour toutes les lectures du graphique.
 private struct GraphiqueSucettes: View {
     let seance: DerniereSeance
     let repetitions: [RepetitionAffichee]
@@ -87,6 +89,10 @@ private struct GraphiqueSucettes: View {
     }
 
     var body: some View {
+        let domaine = self.domaine
+        let etendueX = self.etendueX
+        let horsSousSeuil = repetitions.filter(\.horsSousSeuil).count
+
         Chart {
             if let bande = seance.bande {
                 RectangleMark(
@@ -121,8 +127,15 @@ private struct GraphiqueSucettes: View {
                     x: .value("Répétition", Double(rep.n)),
                     y: .value("Allure", rep.allure)
                 )
+                .symbol(rep.horsSousSeuil ? .diamond : .circle)
                 .symbolSize(70)
                 .foregroundStyle(rep.horsSousSeuil ? Ton.mauvais.couleur : Zone.sousSeuil.couleur)
+            }
+
+            if let lue = selection.flatMap({ ModeleProgression.repetitionLue(repetitions, position: $0) }) {
+                RuleMark(x: .value("Répétition", Double(lue.n)))
+                    .foregroundStyle(Color.encre3)
+                    .lineStyle(StrokeStyle(lineWidth: 0.75))
             }
         }
         .chartYScale(domain: [domaine.upperBound, domaine.lowerBound])
@@ -134,7 +147,7 @@ private struct GraphiqueSucettes: View {
                     if let n = valeur.as(Double.self), let rep = repetitions.first(where: { Double($0.n) == n }) {
                         VStack(spacing: 1) {
                             Text("#\(rep.n)")
-                            Text(ModeleProgression.nombre(rep.fcFin))
+                            Text(ModeleApercu.nombre(rep.fcFin))
                                 .foregroundStyle(.encre3)
                         }
                         .font(.caption2.monospacedDigit())
@@ -144,7 +157,7 @@ private struct GraphiqueSucettes: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .leading, values: ModeleApercu.graduations(domaine, pas: 5)) { valeur in
+            AxisMarks(position: .leading, values: Axes.graduations(domaine, pas: 5)) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {
@@ -165,13 +178,13 @@ private struct GraphiqueSucettes: View {
             libelleX: { "#\(Int($0.rounded()))" },
             libelleY: { formatAllure($0) },
             series: [
-                .init(nom: "Répétitions", points: repetitions.map { (x: Double($0.n), y: $0.allure) }),
+                .init(nom: "Répétitions", continu: false, points: repetitions.map { .init(x: Double($0.n), y: $0.allure) }),
             ]
         ))
         .accessibilityLabel("Allure de chaque répétition de la dernière séance sous-seuil")
-        .accessibilityValue(repetitions.filter(\.horsSousSeuil).isEmpty
+        .accessibilityValue(horsSousSeuil == 0
             ? "toutes dans le sous-seuil"
-            : "\(repetitions.filter(\.horsSousSeuil).count) hors sous-seuil")
+            : "\(horsSousSeuil) hors sous-seuil")
     }
 }
 

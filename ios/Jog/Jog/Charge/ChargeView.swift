@@ -7,20 +7,18 @@ struct ChargeView: View {
     let vue: Vue
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 36) {
-                    ProgressiviteView(vue: vue)
-                    MinutesSousSeuilView(vue: vue)
-                    DisciplineView(vue: vue)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 36) {
+                ProgressiviteView(vue: vue)
+                MinutesSousSeuilView(vue: vue)
+                DisciplineView(vue: vue)
             }
-            .background(Color.fond.ignoresSafeArea())
-            .navigationTitle("Charge")
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .background(Color.fond.ignoresSafeArea())
+        .navigationTitle("Charge")
     }
 }
 

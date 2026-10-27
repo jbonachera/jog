@@ -10,7 +10,7 @@ private let J: DateCivile = "2026-09-10"
 private func activite(_ cle: String, _ date: DateCivile, empreinte: String? = nil) -> PivotSansFlux {
     PivotSansFlux(
         cleSource: cle, source: .fit, versionAdaptateur: "1.0.0", empreinteBrute: empreinte ?? "empreinte-\(cle)",
-        debutUtc: 1_000_000, decalageLocal_min: 0, dateLocale: date, duree_s: 600, distance_m: 3000, nom: nil,
+        debutUtc: debutUtcDeLaDate(date), decalageLocal_min: 0, dateLocale: date, duree_s: 600, distance_m: 3000, nom: nil,
         competition: false, sousType: .route, pasFC_s: nil, tours: []
     )
 }

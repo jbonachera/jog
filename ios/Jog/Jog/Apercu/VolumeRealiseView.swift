@@ -77,7 +77,7 @@ private struct CompteurView: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(compteur.libelleAccessible)
 
-            GraphiqueOuTableauApercu(tableau: ModeleApercu.tableauVolume(compteur)) {
+            GraphiqueOuTableau(tableau: ModeleApercu.tableauVolume(compteur)) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(barreSelectionnee?.description ?? "Glissez le doigt sur le graphique pour le détail")
                         .font(.caption)
@@ -98,7 +98,7 @@ private struct CompteurView: View {
                     .chartXSelection(value: $selection)
                     .frame(height: 44)
                     .accessibilityLabel("Volume \(compteur.titre)")
-                    .accessibilityChartDescriptor(DescripteurApercu(donnees: ModeleApercu.donneesVolume(compteur)))
+                    .accessibilityChartDescriptor(DescripteurGraphique(donnees: ModeleApercu.donneesVolume(compteur)))
                 }
             }
         }

@@ -1,8 +1,9 @@
 import SwiftUI
 import JogCore
 
-/// Racine de l'app : quatre onglets. L'Aperçu suit `EtatApp` (accueil, import, Vue, erreur) ; l'Historique lit la Vue ;
-/// Progression et Charge lisent la Vue. En DEBUG, la maquette peut remplacer les données réelles (Paramètres > Développement).
+/// Racine de l'app : quatre onglets, chacun dans sa pile de navigation, avec le bouton Paramètres dans la barre (maquette).
+/// L'Aperçu suit `EtatApp` (accueil, import, Vue, erreur) ; les autres onglets lisent la Vue, ou montrent l'état en attente
+/// (chargement, import, erreur). En DEBUG, la maquette peut remplacer les données réelles (Paramètres > Développement).
 struct ContentView: View {
     let modele: ModeleApp
     @Environment(\.scenePhase) private var phase
@@ -13,48 +14,42 @@ struct ContentView: View {
             Tab("Aperçu", systemImage: "gauge.with.dots.needle.33percent") {
                 NavigationStack {
                     contenuApercu
-                        .toolbar {
-                            ToolbarItem(placement: .topBarTrailing) {
-                                Button("Paramètres", systemImage: "slider.horizontal.3") {
-                                    parametresOuverts = true
-                                }
-                            }
-                        }
-                }
-                .sheet(isPresented: $parametresOuverts) {
-                    ParametresView(modele: modele, vue: vueCourante)
+                        .toolbar { boutonParametres }
                 }
             }
             Tab("Charge", systemImage: "chart.bar.xaxis") {
-                if let vue = vueCourante {
-                    ChargeView(vue: vue)
-                } else {
-                    NavigationStack {
-                        ContentUnavailableView("Pas encore de charge", systemImage: "chart.bar.xaxis")
-                            .navigationTitle("Charge")
+                NavigationStack {
+                    if let vue = vueCourante {
+                        ChargeView(vue: vue)
+                            .toolbar { boutonParametres }
+                    } else {
+                        sansVue("Charge", icone: "chart.bar.xaxis")
                     }
                 }
             }
             Tab("Progression", systemImage: "chart.line.uptrend.xyaxis") {
-                if let vue = vueCourante {
-                    ProgressionView(vue: vue)
-                } else {
-                    NavigationStack {
-                        ContentUnavailableView("Pas encore de progression", systemImage: "chart.line.uptrend.xyaxis")
-                            .navigationTitle("Progression")
+                NavigationStack {
+                    if let vue = vueCourante {
+                        ProgressionView(vue: vue)
+                            .toolbar { boutonParametres }
+                    } else {
+                        sansVue("Progression", icone: "chart.line.uptrend.xyaxis")
                     }
                 }
             }
             Tab("Historique", systemImage: "calendar") {
-                if let vue = vueCourante {
-                    HistoriqueView(vue: vue, surMarquage: surMarquage)
-                } else {
-                    NavigationStack {
-                        ContentUnavailableView("Pas encore d’historique", systemImage: "calendar")
-                            .navigationTitle("Historique")
+                NavigationStack {
+                    if let vue = vueCourante {
+                        HistoriqueView(vue: vue, surMarquage: surMarquage)
+                            .toolbar { boutonParametres }
+                    } else {
+                        sansVue("Historique", icone: "calendar")
                     }
                 }
             }
+        }
+        .sheet(isPresented: $parametresOuverts) {
+            ParametresView(modele: modele, vue: vueCourante)
         }
         .tabBarMinimizeBehavior(.onScrollDown)
         .task {
@@ -63,6 +58,15 @@ struct ContentView: View {
         .onChange(of: phase) { _, nouvelle in
             if nouvelle == .active {
                 Task { await modele.auPremierPlan() }
+            }
+        }
+    }
+
+    /// Le bouton Paramètres, dans la barre de chaque onglet (maquette : « Les Paramètres passent dans le bouton en haut à droite »).
+    private var boutonParametres: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Paramètres", systemImage: "slider.horizontal.3") {
+                parametresOuverts = true
             }
         }
     }
@@ -86,6 +90,27 @@ struct ContentView: View {
             return vue
         default:
             return nil
+        }
+    }
+
+    /// Un onglet sans Vue : il montre l'état en cours (chargement, import, erreur), pas « Pas encore de … » pendant l'import.
+    @ViewBuilder
+    private func sansVue(_ titre: String, icone: String) -> some View {
+        switch modele.etat {
+        case .chargement:
+            ProgressView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.fond.ignoresSafeArea())
+                .navigationTitle(titre)
+        case let .importEnCours(traitees, total):
+            ImportView(traitees: traitees, total: total)
+                .navigationTitle(titre)
+        case let .erreur(message, nil):
+            ErreurView(message: message, modele: modele)
+                .navigationTitle(titre)
+        default:
+            ContentUnavailableView("Pas encore de \(titre.lowercased())", systemImage: icone)
+                .navigationTitle(titre)
         }
     }
 

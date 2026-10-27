@@ -76,8 +76,8 @@ private struct TableauNiveau: View {
 
     @ViewBuilder
     private func celluleEcart(_ ligne: LigneNiveauAffichee) -> some View {
-        if ligne.ecart == ModeleProgression.tiret {
-            Text(ModeleProgression.tiret)
+        if ligne.ecart == ModeleApercu.tiret {
+            Text(ModeleApercu.tiret)
                 .foregroundStyle(.encre3)
         } else {
             Pastille(texte: ligne.ecart, ton: ligne.bat ? .bon : .neutre)
@@ -86,7 +86,7 @@ private struct TableauNiveau: View {
 
     private func libelleAccessible(_ ligne: LigneNiveauAffichee) -> String {
         var texte = "\(ligne.distance) : équivalence \(ligne.equivalence), allure \(ligne.allure), record \(ligne.record) le \(ligne.dateRecord)"
-        if ligne.ecart != ModeleProgression.tiret {
+        if ligne.ecart != ModeleApercu.tiret {
             texte += ", écart \(ligne.ecart)"
             texte += ligne.bat ? ", l’équivalence bat le record" : ""
         }

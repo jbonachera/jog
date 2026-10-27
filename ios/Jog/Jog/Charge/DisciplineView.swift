@@ -7,9 +7,11 @@ import JogCore
 struct DisciplineView: View {
     let vue: Vue
     @State private var doigt: Double?
+    /// Le modèle des semaines, gardé tant que la Vue ne change pas (un geste ne le recalcule pas).
+    @State private var memo = Memo<Vue, ModeleCharge.Discipline?>()
 
     var body: some View {
-        let modele = ModeleCharge.discipline(vue)
+        let modele = memo.valeur(pour: vue) { ModeleCharge.discipline(vue) }
 
         return VStack(alignment: .leading, spacing: 12) {
             TitreSection(
@@ -41,7 +43,7 @@ struct DisciplineView: View {
                 .foregroundStyle(.encre2)
                 .monospacedDigit()
 
-            GraphiqueOuTableauApercu(tableau: ModeleCharge.tableauDiscipline(modele)) {
+            GraphiqueOuTableau(tableau: ModeleCharge.tableauDiscipline(modele)) {
                 graphique(modele, lecture: lecture)
                     .frame(height: 180)
             }
@@ -103,11 +105,11 @@ struct DisciplineView: View {
         }
         .chartYScale(domain: modele.domaine)
         .chartYAxis {
-            AxisMarks(position: .leading, values: ModeleApercu.graduations(modele.domaine, pas: 5)) { valeur in
+            AxisMarks(position: .leading, values: Axes.graduations(modele.domaine, pas: 5)) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {
-                        Text(ModeleCharge.pourcent(nombre))
+                        Text(ModeleApercu.pourcentage(nombre))
                     }
                 }
                 .font(.caption2.monospacedDigit())
@@ -128,7 +130,7 @@ struct DisciplineView: View {
         .chartXSelection(value: $doigt)
         .accessibilityLabel("Part du temps en sous-seuil par semaine, avec la bande cible")
         .accessibilityValue(lecture)
-        .accessibilityChartDescriptor(DescripteurApercu(donnees: ModeleCharge.donneesDiscipline(modele)))
+        .accessibilityChartDescriptor(DescripteurGraphique(donnees: ModeleCharge.donneesDiscipline(modele)))
     }
 }
 

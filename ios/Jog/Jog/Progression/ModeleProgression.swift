@@ -72,19 +72,12 @@ enum SerieTendance: Sendable {
         }
     }
 
-    var pas: Double {
+    /// Le réglage d'axe de D-009 de cette série.
+    var preset: CleDePreset {
         switch self {
-        case .allure: 5
-        case .ef: 0.05
-        case .decouplage: 1
-        }
-    }
-
-    var etendueMin: Double {
-        switch self {
-        case .allure: 20
-        case .ef: 0.10
-        case .decouplage: 10
+        case .allure: .allure
+        case .ef: .efficacite
+        case .decouplage: .decouplage
         }
     }
 
@@ -134,12 +127,6 @@ struct RepetitionAffichee: Identifiable, Equatable, Sendable {
     let libelleAccessible: String
 }
 
-/// Un tableau de séries (D-011) : en-têtes réels, une ligne par point.
-struct TableauSerie: Equatable, Sendable {
-    let entetes: [String]
-    let lignes: [[String]]
-}
-
 /// Une ligne du niveau estimé (P5).
 struct LigneNiveauAffichee: Identifiable, Equatable, Sendable {
     let id: Int
@@ -153,8 +140,6 @@ struct LigneNiveauAffichee: Identifiable, Equatable, Sendable {
 }
 
 enum ModeleProgression {
-    static let tiret = "–"
-    private static let moins = "−"
 
     // MARK: - Dates
 
@@ -230,49 +215,49 @@ enum ModeleProgression {
         )
     }
 
-    /// Une valeur de mesure, dans l'unité affichée (08, « Rédaction »). Absente : tiret.
+    /// Une valeur de mesure, dans l'unité affichée (08, « Rédaction »). Absente : ModeleApercu.tiret.
     static func valeur(_ cle: CleMesure, _ valeur: Double?) -> String {
-        guard let v = valeur, v.isFinite else { return tiret }
+        guard let v = valeur, v.isFinite else { return ModeleApercu.tiret }
         switch cle {
-        case .km, .seances, .formeMoy, .formeMax: return nombre(v, 1)
+        case .km, .seances, .formeMoy, .formeMax: return ModeleApercu.nombre(v, 1)
         case .heures: return formatDuree(v * 60)
-        case .minutesSS, .fcFin: return nombre(v)
-        case .partSS, .footings: return pourcentage(v, 0)
-        case .decouplage: return pourcentage(v, 1)
+        case .minutesSS, .fcFin: return ModeleApercu.nombre(v)
+        case .partSS, .footings: return ModeleApercu.pourcentage(v, 0)
+        case .decouplage: return ModeleApercu.pourcentage(v, 1)
         case .allure: return formatAllure(v)
-        case .ef, .picRatio: return nombre(v, 2)
+        case .ef, .picRatio: return ModeleApercu.nombre(v, 2)
         case .test5: return formatTempsCourse(v)
         }
     }
 
     /// Écart tel qu'il s'affiche (D-015) : allure en s/km, points pour les pourcentages, h:mm, m:ss pour un test.
     static func texteEcart(_ mesure: Mesure) -> String {
-        guard let ecart = mesure.ecartAffiche else { return tiret }
+        guard let ecart = mesure.ecartAffiche else { return ModeleApercu.tiret }
         if mesure.etat == .egal { return "=" }
         switch mesure.cle {
         case .allure:
-            return signe(ecart, 0, unite: " s/km")
+            return ModeleApercu.signe(ecart, 0, unite: " s/km")
         case .partSS, .footings:
-            return (try? formatEcartPoints(ecart, 0)) ?? tiret
+            return (try? formatEcartPoints(ecart, 0)) ?? ModeleApercu.tiret
         case .decouplage:
-            return (try? formatEcartPoints(ecart, 1)) ?? tiret
+            return (try? formatEcartPoints(ecart, 1)) ?? ModeleApercu.tiret
         case .heures:
             let minutes = ecart * 60
-            return signeTexte(minutes) + formatDuree(abs(minutes))
+            return ModeleApercu.signeTexte(minutes) + formatDuree(abs(minutes))
         case .test5:
-            return signeTexte(ecart) + formatTempsCourse(abs(ecart))
+            return ModeleApercu.signeTexte(ecart) + formatTempsCourse(abs(ecart))
         case .km:
-            return signe(ecart, 1, unite: " km")
+            return ModeleApercu.signe(ecart, 1, unite: " km")
         case .seances:
-            return signe(ecart, 1)
+            return ModeleApercu.signe(ecart, 1)
         case .minutesSS:
-            return signe(ecart, 0, unite: " min")
+            return ModeleApercu.signe(ecart, 0, unite: " min")
         case .fcFin:
-            return signe(ecart, 0, unite: " bpm")
+            return ModeleApercu.signe(ecart, 0, unite: " bpm")
         case .ef, .picRatio:
-            return signe(ecart, 2)
+            return ModeleApercu.signe(ecart, 2)
         case .formeMoy, .formeMax:
-            return signe(ecart, 0)
+            return ModeleApercu.signe(ecart, 0)
         }
     }
 
@@ -304,18 +289,18 @@ enum ModeleProgression {
     static func valeurTendance(_ serie: SerieTendance, _ v: Double) -> String {
         switch serie {
         case .allure: formatAllure(v) + "/km"
-        case .ef: nombre(v, 2)
-        case .decouplage: pourcentage(v, 1)
+        case .ef: ModeleApercu.nombre(v, 2)
+        case .decouplage: ModeleApercu.pourcentage(v, 1)
         }
     }
 
     /// L'écart depuis le début de la série, avec son signe. Le ton vient de `bonSens`, jugé par JogCore.
     static func ecartTendance(_ serie: SerieTendance, ecart: Double?) -> String {
-        guard let ecart, ecart.isFinite else { return tiret }
+        guard let ecart, ecart.isFinite else { return ModeleApercu.tiret }
         switch serie {
-        case .allure: return signe(ecart, 0, unite: " s/km")
-        case .ef: return signe(ecart, 2)
-        case .decouplage: return (try? formatEcartPoints(ecart, 1)) ?? tiret
+        case .allure: return ModeleApercu.signe(ecart, 0, unite: " s/km")
+        case .ef: return ModeleApercu.signe(ecart, 2)
+        case .decouplage: return (try? formatEcartPoints(ecart, 1)) ?? ModeleApercu.tiret
         }
     }
 
@@ -327,13 +312,9 @@ enum ModeleProgression {
         }
     }
 
-    /// Bornes de l'axe Y d'une série (08, « Règles des graphiques »). Le découplage ne descend pas sous 0.
+    /// Bornes de l'axe Y d'une série (D-009) : le découplage ne descend pas sous 0.
     static func domaineTendance(_ serie: SerieTendance, _ valeurs: [Double], reperes: [Double] = []) -> ClosedRange<Double> {
-        let domaine = ModeleApercu.domaineAxe(valeurs, pas: serie.pas, etendueMin: serie.etendueMin, reperes: reperes)
-        if serie == .decouplage {
-            return max(0, domaine.lowerBound)...domaine.upperBound
-        }
-        return domaine
+        domaineAxe(valeurs, preset: serie.preset, reperes: reperes)
     }
 
     static func pointsSemaines(_ serie: [PointSemaine], _ valeurTexte: (Double) -> String) -> [PointAffiche] {
@@ -357,8 +338,8 @@ enum ModeleProgression {
         }
     }
 
-    static func tableauTendance(_ points: [PointAffiche], _ valeurTexte: (Double) -> String) -> TableauSerie {
-        TableauSerie(
+    static func tableauTendance(_ points: [PointAffiche], _ valeurTexte: (Double) -> String) -> TableauAffiche {
+        TableauAffiche(
             entetes: ["Date", "Mesurée", "Lissée"],
             lignes: points.map { [formatDate($0.id), valeurTexte($0.brut), valeurTexte($0.lisse)] }
         )
@@ -368,12 +349,12 @@ enum ModeleProgression {
 
     /// Bornes de l'axe des allures (P3 et P4) : pas de 5 s/km, étendue d'au moins 20 s/km. L'axe est inversé à l'affichage.
     static func domaineAllure(_ valeurs: [Double], reperes: [Double] = []) -> ClosedRange<Double> {
-        ModeleApercu.domaineAxe(valeurs, pas: 5, etendueMin: 20, reperes: reperes)
+        domaineAxe(valeurs, preset: .allure, reperes: reperes)
     }
 
     /// Bornes de l'axe des FC de fin (P3) : pas de 2 bpm, étendue d'au moins 10 bpm, bande de FC incluse.
     static func domaineFC(_ valeurs: [Double], bande: (lo: Double, hi: Double)) -> ClosedRange<Double> {
-        ModeleApercu.domaineAxe(valeurs, pas: 2, etendueMin: 10, reperes: [bande.lo, bande.hi])
+        domaineAxe(valeurs, preset: .fcFin, reperes: [bande.lo, bande.hi])
     }
 
     static func pointsNuage(_ periode: PeriodeRepetitions, role: RoleNuage) -> [PointNuage] {
@@ -385,7 +366,7 @@ enum ModeleProgression {
                 role: role,
                 allure: point.allure_skm,
                 fc: point.fcFin,
-                libelle: "\(formatJourDate(point.date))\(format) · rép. \(Int(point.n)) · \(formatAllure(point.allure_skm))/km · \(nombre(point.fcFin)) bpm"
+                libelle: "\(formatJourDate(point.date))\(format) · rép. \(Int(point.n)) · \(formatAllure(point.allure_skm))/km · \(ModeleApercu.nombre(point.fcFin)) bpm"
             )
         }
     }
@@ -436,14 +417,14 @@ enum ModeleProgression {
         return arrondi > 0 ? "\(Int(arrondi)) s/km plus rapide" : "\(Int(-arrondi)) s/km plus lent"
     }
 
-    static func tableauNuage(_ nuage: Nuage) -> TableauSerie {
+    static func tableauNuage(_ nuage: Nuage) -> TableauAffiche {
         let groupes: [(RoleNuage, PeriodeRepetitions)] = [(.reference, nuage.reference), (.recente, nuage.recente)]
         let lignes: [[String]] = groupes.flatMap { role, periode in
             pointsNuage(periode, role: role).map { point in
                 [nomPeriode(role, nuage.periode), point.libelle]
             }
         }
-        return TableauSerie(entetes: ["Période", "Répétition"], lignes: lignes)
+        return TableauAffiche(entetes: ["Période", "Répétition"], lignes: lignes)
     }
 
     // MARK: - Dernière séance (P4)
@@ -451,7 +432,7 @@ enum ModeleProgression {
     static func repetitions(_ seance: DerniereSeance) -> [RepetitionAffichee] {
         seance.repetitions.enumerated().compactMap { index, rep in
             guard rep.allure_skm.isFinite, rep.fcFin.isFinite else { return nil }
-            let ecart = rep.ecartMoyenne_skm.map { signe($0, 0, unite: " s") } ?? tiret
+            let ecart = rep.ecartMoyenne_skm.map { ModeleApercu.signe($0, 0, unite: " s") } ?? ModeleApercu.tiret
             let raisons = rep.raisons.joined(separator: ", ")
             let statut = rep.horsSousSeuil ? "hors sous-seuil : \(raisons)" : "dans le sous-seuil"
             return RepetitionAffichee(
@@ -462,9 +443,19 @@ enum ModeleProgression {
                 ecart: ecart,
                 horsSousSeuil: rep.horsSousSeuil,
                 raisons: raisons,
-                libelleAccessible: "Répétition \(Int(rep.n)), \(formatAllure(rep.allure_skm)) par km, écart à la moyenne \(ecart), FC de fin \(nombre(rep.fcFin)) bpm, \(statut)"
+                libelleAccessible: "Répétition \(Int(rep.n)), \(formatAllure(rep.allure_skm)) par km, écart à la moyenne \(ecart), FC de fin \(ModeleApercu.nombre(rep.fcFin)) bpm, \(statut)"
             )
         }
+    }
+
+    /// La répétition sous le doigt. Sa position est un réel de l'axe : elle s'arrondit au numéro entier et se borne à la
+    /// séance (D-015, comme `ModeleCharge.rang`). Sans position, nil.
+    static func repetitionLue(_ repetitions: [RepetitionAffichee], position: Double?) -> RepetitionAffichee? {
+        guard let position, position.isFinite, let premiere = repetitions.map(\.n).min(), let derniere = repetitions.map(\.n).max() else {
+            return nil
+        }
+        let numero = min(max(Int(position.rounded()), premiere), derniere)
+        return repetitions.min { abs($0.n - numero) < abs($1.n - numero) }
     }
 
     /// Le sous-titre : date, format et récupération (03, P4).
@@ -479,15 +470,15 @@ enum ModeleProgression {
         return morceaux.joined(separator: " · ")
     }
 
-    static func tableauDerniere(_ seance: DerniereSeance) -> TableauSerie {
-        TableauSerie(
+    static func tableauDerniere(_ seance: DerniereSeance) -> TableauAffiche {
+        TableauAffiche(
             entetes: ["Rép.", "Allure", "Écart à la moyenne", "FC fin", "Hors sous-seuil"],
             lignes: repetitions(seance).map { rep in
                 [
                     "#\(rep.n)",
                     formatAllure(rep.allure) + "/km",
                     rep.ecart,
-                    nombre(rep.fcFin),
+                    ModeleApercu.nombre(rep.fcFin),
                     rep.horsSousSeuil ? "oui" : "non",
                 ]
             }
@@ -500,16 +491,16 @@ enum ModeleProgression {
         lignes.enumerated().map { index, ligne in
             let ecart: String
             if let e = ligne.ecart_s {
-                ecart = e == 0 ? "=" : signeTexte(e) + formatTempsCourse(abs(e))
+                ecart = e == 0 ? "=" : ModeleApercu.signeTexte(e) + formatTempsCourse(abs(e))
             } else {
-                ecart = tiret
+                ecart = ModeleApercu.tiret
             }
             return LigneNiveauAffichee(
                 id: index,
                 distance: ligne.libelle,
                 equivalence: formatTempsCourse(ligne.equivalence_s),
                 allure: formatAllure(ligne.allure_skm) + "/km",
-                record: ligne.record.map { formatTempsCourse($0.temps_s) } ?? tiret,
+                record: ligne.record.map { formatTempsCourse($0.temps_s) } ?? ModeleApercu.tiret,
                 dateRecord: ligne.libelleDateRecord,
                 ecart: ecart,
                 bat: ligne.bat
@@ -523,28 +514,4 @@ enum ModeleProgression {
         return "Équivalences de Riegel depuis le \(nature) de 5 km du \(formatDate(source.date)) (\(formatTempsCourse(source.temps_s))). Un niveau, pas une prédiction : sur longue distance, le volume compte aussi."
     }
 
-    // MARK: - Nombres
-
-    /// Nombre à décimales fixes, sans signe forcé. Un tiret si la valeur n'est pas finie.
-    static func nombre(_ valeur: Double, _ decimales: Int = 0) -> String {
-        (try? formatNombre(valeur, decimales)) ?? tiret
-    }
-
-    static func pourcentage(_ valeur: Double, _ decimales: Int) -> String {
-        guard let texte = try? formatPourcentage(valeur, decimales) else { return tiret }
-        return texte
-    }
-
-    /// Écart signé : + pour une valeur positive, vrai signe moins pour une négative (08).
-    static func signe(_ valeur: Double, _ decimales: Int, unite: String = "") -> String {
-        guard let texte = try? formatEcart(valeur, decimales) else { return tiret }
-        return texte + unite
-    }
-
-    /// Signe seul d'une différence (« + » ou « − »), vide pour zéro.
-    static func signeTexte(_ valeur: Double) -> String {
-        if valeur > 0 { return "+" }
-        if valeur < 0 { return moins }
-        return ""
-    }
 }

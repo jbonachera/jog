@@ -34,11 +34,16 @@ public struct PivotSansFlux: Codable, Sendable, Equatable {
     public var sousType: SousType
     public var pasFC_s: Double?
     public var tours: [Tour]
+    /// Bundle de l'app source (HealthKit), absent pour les autres sources (migration-ios, décision 5).
+    public var appSource: String?
+    /// Nombre de mesures de FC, pour départager deux doublons (migration-ios, décision 3).
+    public var nbMesuresFC: Int?
 
     public init(
         cleSource: String, source: Source, versionAdaptateur: String, empreinteBrute: String, debutUtc: Double,
         decalageLocal_min: Double, dateLocale: DateCivile, duree_s: Double, distance_m: Double, nom: String?,
-        competition: Bool, sousType: SousType, pasFC_s: Double?, tours: [Tour]
+        competition: Bool, sousType: SousType, pasFC_s: Double?, tours: [Tour],
+        appSource: String? = nil, nbMesuresFC: Int? = nil
     ) {
         self.cleSource = cleSource
         self.source = source
@@ -54,6 +59,8 @@ public struct PivotSansFlux: Codable, Sendable, Equatable {
         self.sousType = sousType
         self.pasFC_s = pasFC_s
         self.tours = tours
+        self.appSource = appSource
+        self.nbMesuresFC = nbMesuresFC
     }
 
     /// Le pivot d'une activité complète, sans son flux.
@@ -62,7 +69,8 @@ public struct PivotSansFlux: Codable, Sendable, Equatable {
             cleSource: pivot.cleSource, source: pivot.source, versionAdaptateur: pivot.versionAdaptateur,
             empreinteBrute: pivot.empreinteBrute, debutUtc: pivot.debutUtc, decalageLocal_min: pivot.decalageLocal_min,
             dateLocale: pivot.dateLocale, duree_s: pivot.duree_s, distance_m: pivot.distance_m, nom: pivot.nom,
-            competition: pivot.competition, sousType: pivot.sousType, pasFC_s: pivot.pasFC_s, tours: pivot.tours
+            competition: pivot.competition, sousType: pivot.sousType, pasFC_s: pivot.pasFC_s, tours: pivot.tours,
+            appSource: pivot.appSource, nbMesuresFC: pivot.nbMesuresFC
         )
     }
 
@@ -72,7 +80,7 @@ public struct PivotSansFlux: Codable, Sendable, Equatable {
             cleSource: cleSource, source: source, versionAdaptateur: versionAdaptateur, empreinteBrute: empreinteBrute,
             debutUtc: debutUtc, decalageLocal_min: decalageLocal_min, dateLocale: dateLocale, duree_s: duree_s,
             distance_m: distance_m, nom: nom, competition: competition, sousType: sousType, pasFC_s: pasFC_s,
-            flux: flux, tours: tours
+            flux: flux, tours: tours, appSource: appSource, nbMesuresFC: nbMesuresFC
         )
     }
 }

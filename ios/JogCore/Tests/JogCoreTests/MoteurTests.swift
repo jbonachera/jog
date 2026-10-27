@@ -13,11 +13,17 @@ private actor Lectures {
     func incrementer() { nombre += 1 }
 }
 
+/// Début UTC (ms) de la journée `date` à 08 h UTC : deux activités de dates différentes ne se recouvrent pas, donc
+/// aucun doublon (décision 3).
+func debutUtcDeLaDate(_ date: DateCivile) -> Double {
+    (ISO8601DateFormatter().date(from: date + "T08:00:00Z")!.timeIntervalSince1970) * 1000
+}
+
 /// Une activité synthétique datée de `date`. Son flux vient de la fonction de lecture injectée dans chaque test.
 private func activite(_ cle: String, _ date: DateCivile) -> PivotSansFlux {
     PivotSansFlux(
         cleSource: cle, source: .fit, versionAdaptateur: "1.0.0", empreinteBrute: "empreinte-\(cle)",
-        debutUtc: 1_000_000, decalageLocal_min: 0, dateLocale: date, duree_s: 600, distance_m: 3000, nom: nil,
+        debutUtc: debutUtcDeLaDate(date), decalageLocal_min: 0, dateLocale: date, duree_s: 600, distance_m: 3000, nom: nil,
         competition: false, sousType: .route, pasFC_s: nil, tours: []
     )
 }

@@ -21,7 +21,8 @@ extension CalculsProgression {
             niveau: try niveauEstime(vue),
             prereglage: { nom in try JogCore.prereglage(vue, nom) },
             comparer: { a, b in try JogCore.comparer(vue, a, b, paramsAuJour) },
-            nuage: { periode in try JogCore.nuage(vue, periode) }
+            nuage: { periode in try JogCore.nuage(vue, periode) },
+            cle: vue
         )
     }
 }

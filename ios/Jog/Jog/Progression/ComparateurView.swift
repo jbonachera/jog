@@ -3,10 +3,23 @@ import JogCore
 
 /// P1 · Comparer deux périodes (03, P1). Préréglage segmenté, dates de A et de B, puis le tableau des mesures.
 /// Le préréglage et les dates sont mémorisés localement ; une date modifiée bascule sur « Dates personnalisées ».
+/// Les deux périodes et la comparaison sont mémorisées sur (Vue, préréglage, dates) : un geste ne les refait pas.
 struct ComparateurView: View {
     let calculs: CalculsProgression
     @AppStorage("jog-cmp-p") private var choixBrut = ChoixComparaison.precedentes.rawValue
     @AppStorage("jog-cmp-dates") private var datesBrut = ""
+    @State private var memo = Memo<Cle, Calcul>()
+
+    private struct Cle: Equatable {
+        let vue: Vue?
+        let choix: ChoixComparaison
+        let dates: String
+    }
+
+    private struct Calcul {
+        let periodes: Result<DatesComparateur, Error>
+        let comparaison: Result<Comparaison, Error>
+    }
 
     private var choix: ChoixComparaison {
         ChoixComparaison(rawValue: choixBrut) ?? .precedentes
@@ -30,14 +43,17 @@ struct ComparateurView: View {
         return DatesComparateur(a: depart.a, b: depart.b)
     }
 
-    private var resultat: Result<Comparaison, Error> {
-        Result {
-            let dates = try periodes()
-            return try calculs.comparer(dates.a, dates.b)
+    private func calculer() -> Calcul {
+        let resultatPeriodes = Result { try self.periodes() }
+        let comparaison = resultatPeriodes.flatMap { dates in
+            Result { try calculs.comparer(dates.a, dates.b) }
         }
+        return Calcul(periodes: resultatPeriodes, comparaison: comparaison)
     }
 
     var body: some View {
+        let calcul = memo.valeur(pour: Cle(vue: calculs.cle, choix: choix, dates: datesBrut)) { calculer() }
+
         VStack(alignment: .leading, spacing: 12) {
             TitreSection(titre: "Comparer deux périodes")
 
@@ -53,9 +69,9 @@ struct ComparateurView: View {
                     .font(.caption)
                     .foregroundStyle(.encre2)
 
-                dates
+                dates(calcul.periodes)
 
-                contenu
+                contenu(calcul.comparaison)
             }
             .carte()
         }
@@ -64,9 +80,9 @@ struct ComparateurView: View {
     // MARK: - Dates
 
     @ViewBuilder
-    private var dates: some View {
+    private func dates(_ periodes: Result<DatesComparateur, Error>) -> some View {
         if let bornes = calculs.bornes {
-            let dates = (try? periodes()) ?? DatesComparateur(a: .vide, b: .vide)
+            let dates = (try? periodes.get()) ?? DatesComparateur(a: .vide, b: .vide)
             VStack(alignment: .leading, spacing: 8) {
                 ligneDates("A · référence", periode: .a, dates: dates.a, bornes: bornes)
                 ligneDates("B · comparée", periode: .b, dates: dates.b, bornes: bornes)
@@ -144,7 +160,7 @@ struct ComparateurView: View {
     // MARK: - Contenu
 
     @ViewBuilder
-    private var contenu: some View {
+    private func contenu(_ resultat: Result<Comparaison, Error>) -> some View {
         switch resultat {
         case let .success(comparaison):
             VStack(alignment: .leading, spacing: 10) {

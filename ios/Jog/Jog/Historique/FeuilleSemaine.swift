@@ -38,14 +38,18 @@ struct FeuilleSemaine: View {
                             ForEach(seances) { seance in
                                 LigneSeanceView(seance: seance)
                                     .contextMenu {
-                                        Button("Marquer comme course", systemImage: "flag.checkered") {
-                                            surMarquage(seance.id, .course)
+                                        Text(ModeleApercu.libelleMarquageActuel(seance.marquage))
+                                        ForEach(ModeleApercu.optionsMarquage(seance.marquage), id: \.titre) { option in
+                                            Button(option.titre) {
+                                                surMarquage(seance.id, option.valeur)
+                                            }
                                         }
-                                        Button("Marquer comme test", systemImage: "stopwatch") {
-                                            surMarquage(seance.id, .test)
-                                        }
-                                        Button("Retirer le marquage", systemImage: "xmark.circle") {
-                                            surMarquage(seance.id, nil)
+                                    }
+                                    .accessibilityActions {
+                                        ForEach(ModeleApercu.optionsMarquage(seance.marquage), id: \.titre) { option in
+                                            Button(option.titre) {
+                                                surMarquage(seance.id, option.valeur)
+                                            }
                                         }
                                     }
                             }

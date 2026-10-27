@@ -230,11 +230,17 @@ public struct ActivitePivot: Codable, Sendable, Equatable {
     @ChampNul public var pasFC_s: Double?
     public var flux: Flux
     public var tours: [Tour]
+    /// Bundle de l'app qui a enregistré la séance (migration-ios, décision 5). Chaîne vide si inconnue. Nil pour les
+    /// activités d'avant cette règle (FIT, GPX, Strava) : absent du JSON.
+    public var appSource: String?
+    /// Nombre de mesures de FC de la séance, pour départager deux doublons (migration-ios, décision 3). Nil si inconnu.
+    public var nbMesuresFC: Int?
 
     public init(
         cleSource: String, source: Source, versionAdaptateur: String, empreinteBrute: String,
         debutUtc: Double, decalageLocal_min: Double, dateLocale: DateCivile, duree_s: Double, distance_m: Double,
-        nom: String?, competition: Bool, sousType: SousType, pasFC_s: Double?, flux: Flux, tours: [Tour]
+        nom: String?, competition: Bool, sousType: SousType, pasFC_s: Double?, flux: Flux, tours: [Tour],
+        appSource: String? = nil, nbMesuresFC: Int? = nil
     ) {
         self.cleSource = cleSource
         self.source = source
@@ -251,6 +257,8 @@ public struct ActivitePivot: Codable, Sendable, Equatable {
         self.pasFC_s = pasFC_s
         self.flux = flux
         self.tours = tours
+        self.appSource = appSource
+        self.nbMesuresFC = nbMesuresFC
     }
 }
 
@@ -271,7 +279,8 @@ public enum RaisonIgnoree: String, Codable, Sendable, Equatable {
     case doublon
     case pasUneCourse = "pas-une-course"
     case illisible
-    /// Séance d'une autre app que l'app Exercice (filtre HealthKit, migration-ios, décision 5).
+    /// Ancien filtre de source HealthKit (migration-ios, décision 5). N'est plus émise : toutes les apps sont importées.
+    /// Gardée pour l'écran Paramètres, qui la lit encore.
     case autreSource = "autre-source"
 }
 

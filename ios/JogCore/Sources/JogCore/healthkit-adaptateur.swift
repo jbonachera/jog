@@ -35,24 +35,26 @@ public struct ErreurSeanceHealthKit: Error, Sendable, Equatable {
     }
 }
 
-/// Filtre de source et de type (migration-ios, décision 5) : seule l'app Exercice d'Apple est retenue (séances de la
-/// Watch, bundle « com.apple.health. », ou « com.apple.workout »), et seulement les courses. Nil si la séance passe.
+/// Filtre de type (migration-ios, décision 5) : seules les courses sont retenues, quelle que soit l'app qui les a
+/// enregistrées (la source ne filtre plus). Nil si la séance passe.
 public func raisonIgnoreeHealthKit(_ brute: SeanceBrute) -> Ignoree? {
-    let bundle = brute.sourceRevision?.bundleId ?? ""
-    if let ignoree = raisonIgnoreeSourceHealthKit(id: brute.id, bundleId: bundle) { return ignoree }
     guard brute.activityType == TYPE_ACTIVITE_COURSE else {
         return Ignoree(cleSource: "hk:" + brute.id, raison: .pasUneCourse, detail: "type \(brute.activityType)")
     }
     return nil
 }
 
-/// Filtre de source seul, pour écarter une séance avant de lire ses séries (migration-ios, décision 5). Le bundle
-/// « com.apple.health. » ou « com.apple.workout » est celui de l'app Exercice d'Apple. Nil si la source est retenue.
-public func raisonIgnoreeSourceHealthKit(id: String, bundleId: String) -> Ignoree? {
-    guard bundleId.hasPrefix("com.apple.health.") || bundleId == "com.apple.workout" else {
-        return Ignoree(cleSource: "hk:" + id, raison: .autreSource, detail: bundleId.isEmpty ? nil : bundleId)
-    }
-    return nil
+/// Vrai pour l'app Exercice d'Apple : séances de la Watch (bundle « com.apple.health. ») et « com.apple.workout ».
+public func estExerciceApple(_ bundleId: String?) -> Bool {
+    guard let bundleId else { return false }
+    return bundleId.hasPrefix("com.apple.health.") || bundleId == "com.apple.workout"
+}
+
+/// Seule l'analyse des intervalles (tours, répétitions) est réservée à l'Exercice d'Apple (migration-ios, décision 2).
+/// Une séance HealthKit d'une autre app, ou d'origine inconnue, n'en a aucune. Les autres sources (FIT, Strava) gardent
+/// leur analyse.
+public func analyseDesIntervallesAutorisee(source: Source, appSource: String?) -> Bool {
+    source != .healthkit || estExerciceApple(appSource)
 }
 
 /// Décalage du fuseau de l'appareil, en minutes, à la date `date` (heure d'été comprise). Repli de l'adaptateur quand
@@ -66,7 +68,7 @@ public func adapterSeance(_ brute: SeanceBrute, decalageAppareil_min: Int) throw
     try adapterSeance(brute, decalageAppareil: { _ in decalageAppareil_min })
 }
 
-/// Transforme une séance HealthKit en pivot. Nil si le filtre l'écarte (voir `raisonIgnoreeHealthKit`).
+/// Transforme une séance HealthKit en pivot. Nil si le filtre de type l'écarte (voir `raisonIgnoreeHealthKit`).
 /// `decalageAppareil` ne sert que si la séance ne donne pas son fuseau : il reçoit le début de la séance (ADR 0007).
 public func adapterSeance(_ brute: SeanceBrute, decalageAppareil: (Date) -> Int) throws -> ActivitePivot? {
     if raisonIgnoreeHealthKit(brute) != nil { return nil }
@@ -115,6 +117,9 @@ public func adapterSeance(_ brute: SeanceBrute, decalageAppareil: (Date) -> Int)
 
     let decalage = decalageLocal(brute, decalageAppareil: decalageAppareil)
     let debutUtc = brute.debut.timeIntervalSince1970 * 1000
+    let appSource = brute.sourceRevision?.bundleId ?? ""
+    // Les intervalles ne s'analysent que pour l'Exercice d'Apple : pour les autres apps, aucun tour (décision 2).
+    let tourDeLaSeance = estExerciceApple(appSource) ? tours(brute, grille: grille, relatif: relatif) : []
 
     return ActivitePivot(
         cleSource: "hk:" + brute.id,
@@ -137,7 +142,9 @@ public func adapterSeance(_ brute: SeanceBrute, decalageAppareil: (Date) -> Int)
             alt_m: altitudes.isEmpty ? nil : colonne(altitudes, grille),
             vitesse_ms: vitesses.isEmpty ? nil : colonne(vitesses, grille)
         ),
-        tours: tours(brute, grille: grille, relatif: relatif)
+        tours: tourDeLaSeance,
+        appSource: appSource,
+        nbMesuresFC: fcMesurees.count
     )
 }
 
@@ -358,7 +365,8 @@ private func nomDeLaSeance(_ brute: SeanceBrute) -> String? {
     return nom
 }
 
-/// SHA-256 d'une chaîne déterministe : identifiant, début et fin en ms, métadonnées triées, nombres d'échantillons.
+/// SHA-256 d'une chaîne déterministe : identifiant, app source, début et fin en ms, métadonnées triées, nombres
+/// d'échantillons.
 private func empreinte(_ brute: SeanceBrute) -> String {
     let debutMs = Int((brute.debut.timeIntervalSince1970 * 1000).rounded())
     let finMs = Int((brute.fin.timeIntervalSince1970 * 1000).rounded())
@@ -367,7 +375,7 @@ private func empreinte(_ brute: SeanceBrute) -> String {
         .map { "\($0.key)=\($0.value)" }
         .joined(separator: ";")
     let texte = [
-        brute.id, "\(debutMs)", "\(finMs)", metadonnees,
+        brute.id, brute.sourceRevision?.bundleId ?? "", "\(debutMs)", "\(finMs)", metadonnees,
         "fc=\(brute.frequenceCardiaque?.count ?? 0)", "dist=\(brute.distanceEchantillonsFins?.count ?? 0)",
     ].joined(separator: "|")
     return SHA256.hash(data: Data(texte.utf8)).map { String(format: "%02x", $0) }.joined()

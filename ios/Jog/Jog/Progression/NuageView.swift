@@ -4,10 +4,17 @@ import JogCore
 
 /// P3 · Allure × FC par répétition (03, P3). Un point par répétition sous-seuil ; la référence en ronds, la période
 /// récente en carrés (la forme double la couleur). Les centres des deux nuages sont reliés par une flèche.
+/// Le nuage et ses bornes sont calculés une fois par période et par Vue ; un geste ne les refait pas.
 struct NuageView: View {
     let calculs: CalculsProgression
     @AppStorage("jog-phr") private var periodeBrute = PeriodeNuage.annee.rawValue
     @State private var selection: String?
+    @State private var memo = Memo<CleNuage, Result<ModeleNuage, Error>>()
+
+    private struct CleNuage: Equatable {
+        let vue: Vue?
+        let periode: PeriodeNuage
+    }
 
     private var periode: PeriodeNuage {
         PeriodeNuage(rawValue: periodeBrute) ?? .annee
@@ -18,6 +25,10 @@ struct NuageView: View {
     }
 
     var body: some View {
+        let resultat = memo.valeur(pour: CleNuage(vue: calculs.cle, periode: periode)) {
+            Result { ModeleNuage(nuage: try calculs.nuage(periode), bande: calculs.bandeFC) }
+        }
+
         VStack(alignment: .leading, spacing: 12) {
             TitreSection(titre: "Allure × FC par répétition")
 
@@ -29,9 +40,9 @@ struct NuageView: View {
                 }
                 .pickerStyle(.segmented)
 
-                switch Result(catching: { try calculs.nuage(periode) }) {
-                case let .success(nuage):
-                    contenu(nuage)
+                switch resultat {
+                case let .success(modele):
+                    contenu(modele)
                 case .failure:
                     EtatVide(texte: "Impossible de calculer le nuage pour le moment.")
                 }
@@ -42,22 +53,19 @@ struct NuageView: View {
     }
 
     @ViewBuilder
-    private func contenu(_ nuage: Nuage) -> some View {
-        let tous = ModeleProgression.pointsNuage(nuage.reference, role: .reference)
-            + ModeleProgression.pointsNuage(nuage.recente, role: .recente)
-        if tous.isEmpty {
+    private func contenu(_ modele: ModeleNuage) -> some View {
+        if modele.tous.isEmpty {
             EtatVide(texte: "Aucune répétition sous-seuil sur ces deux périodes.")
         } else {
             VStack(alignment: .leading, spacing: 12) {
-                GraphiqueOuTableau(
-                    graphique: GraphiqueNuage(nuage: nuage, bande: calculs.bandeFC, selection: $selection)
-                        .frame(height: 250),
-                    tableau: TableauVue(tableau: ModeleProgression.tableauNuage(nuage))
-                )
+                GraphiqueOuTableau(tableau: modele.tableau) {
+                    GraphiqueNuage(modele: modele, bande: calculs.bandeFC, selection: $selection)
+                        .frame(height: 250)
+                }
 
-                legende(nuage)
+                legende(modele.nuage)
 
-                Text(note(nuage))
+                Text(note(modele.nuage))
                     .font(.footnote)
                     .foregroundStyle(.encre2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -68,12 +76,12 @@ struct NuageView: View {
     private func legende(_ nuage: Nuage) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             LegendeForme(
-                texte: "\(ModeleProgression.nomPeriode(.reference, nuage.periode)) · \(plage(nuage.reference)) · \(ModeleProgression.nombre(nuage.reference.nombre)) rép.",
+                texte: "\(ModeleProgression.nomPeriode(.reference, nuage.periode)) · \(plage(nuage.reference)) · \(ModeleApercu.nombre(nuage.reference.nombre)) rép.",
                 forme: .rond,
                 couleur: Zone.facile.couleur
             )
             LegendeForme(
-                texte: "\(ModeleProgression.nomPeriode(.recente, nuage.periode)) · \(plage(nuage.recente)) · \(ModeleProgression.nombre(nuage.recente.nombre)) rép.",
+                texte: "\(ModeleProgression.nomPeriode(.recente, nuage.periode)) · \(plage(nuage.recente)) · \(ModeleApercu.nombre(nuage.recente.nombre)) rép.",
                 forme: .carre,
                 couleur: Zone.sousSeuil.couleur
             )
@@ -89,51 +97,38 @@ struct NuageView: View {
     private func note(_ nuage: Nuage) -> String {
         let centres: String
         if let reference = ModeleProgression.centre(nuage.reference), let recente = ModeleProgression.centre(nuage.recente) {
-            centres = "Centres : \(formatAllure(reference.allure))/km à \(ModeleProgression.nombre(reference.fc)) bpm → \(formatAllure(recente.allure))/km à \(ModeleProgression.nombre(recente.fc)) bpm. "
+            centres = "Centres : \(formatAllure(reference.allure))/km à \(ModeleApercu.nombre(reference.fc)) bpm → \(formatAllure(recente.allure))/km à \(ModeleApercu.nombre(recente.fc)) bpm. "
         } else {
             centres = "Pas assez de répétitions pour les centres. "
         }
-        return centres + "Ramené à \(ModeleProgression.nombre(calculs.refHr)) bpm : \(ModeleProgression.texteEcartNuage(nuage.ecart_skm))."
+        return centres + "Ramené à \(ModeleApercu.nombre(calculs.refHr)) bpm : \(ModeleProgression.texteEcartNuage(nuage.ecart_skm))."
     }
 }
 
-/// Un segment de la flèche (03, P3), identifié pour que chaque segment se trace à part.
-private struct SegmentFleche: Identifiable {
-    let id: String
-    let x1: Double
-    let y1: Double
-    let x2: Double
-    let y2: Double
-}
-
-/// Le nuage lui-même : axe des allures inversé (plus rapide à droite), bande de FC, centres et flèche (03, P3).
-private struct GraphiqueNuage: View {
+/// Les données dérivées du nuage d'une période : points, bornes des deux axes, flèche et tableau.
+private struct ModeleNuage {
     let nuage: Nuage
-    let bande: (lo: Double, hi: Double)
-    @Binding var selection: String?
+    let reference: [PointNuage]
+    let recente: [PointNuage]
+    let tous: [PointNuage]
+    let domaineX: ClosedRange<Double>
+    let domaineY: ClosedRange<Double>
+    let segmentsFleche: [SegmentFleche]
+    let tableau: TableauAffiche
 
-    private var pointsReference: [PointNuage] {
-        ModeleProgression.pointsNuage(nuage.reference, role: .reference)
+    init(nuage: Nuage, bande: (lo: Double, hi: Double)) {
+        self.nuage = nuage
+        reference = ModeleProgression.pointsNuage(nuage.reference, role: .reference)
+        recente = ModeleProgression.pointsNuage(nuage.recente, role: .recente)
+        tous = reference + recente
+        domaineX = ModeleProgression.domaineAllure(tous.map(\.allure))
+        domaineY = ModeleProgression.domaineFC(tous.map(\.fc), bande: bande)
+        segmentsFleche = ModeleNuage.fleche(nuage, domaineX: domaineX, domaineY: domaineY)
+        tableau = ModeleProgression.tableauNuage(nuage)
     }
 
-    private var pointsRecente: [PointNuage] {
-        ModeleProgression.pointsNuage(nuage.recente, role: .recente)
-    }
-
-    private var tous: [PointNuage] {
-        pointsReference + pointsRecente
-    }
-
-    private var domaineX: ClosedRange<Double> {
-        ModeleProgression.domaineAllure(tous.map(\.allure))
-    }
-
-    private var domaineY: ClosedRange<Double> {
-        ModeleProgression.domaineFC(tous.map(\.fc), bande: bande)
-    }
-
-    /// Segments de la flèche : du centre de référence au centre récent, et les deux ailes de la pointe.
-    private var segmentsFleche: [SegmentFleche] {
+    /// Segments de la flèche : du centre de référence au centre récent, et les deux ailes de la pointe (03, P3).
+    private static func fleche(_ nuage: Nuage, domaineX: ClosedRange<Double>, domaineY: ClosedRange<Double>) -> [SegmentFleche] {
         guard let depart = ModeleProgression.centre(nuage.reference),
               let arrivee = ModeleProgression.centre(nuage.recente)
         else { return [] }
@@ -148,15 +143,34 @@ private struct GraphiqueNuage: View {
         }
         return segments
     }
+}
+
+/// Un segment de la flèche (03, P3), identifié pour que chaque segment se trace à part.
+private struct SegmentFleche: Identifiable {
+    let id: String
+    let x1: Double
+    let y1: Double
+    let x2: Double
+    let y2: Double
+}
+
+/// Le nuage lui-même : axe des allures inversé (plus rapide à droite), bande de FC, centres et flèche (03, P3).
+private struct GraphiqueNuage: View {
+    let modele: ModeleNuage
+    let bande: (lo: Double, hi: Double)
+    @Binding var selection: String?
 
     private var lecture: String {
-        guard let selection, let point = tous.first(where: { $0.id == selection }) else {
+        guard let selection, let point = modele.tous.first(where: { $0.id == selection }) else {
             return "Touchez un point pour le lire."
         }
         return point.libelle
     }
 
     var body: some View {
+        let domaineX = modele.domaineX
+        let domaineY = modele.domaineY
+
         Chart {
             RectangleMark(
                 xStart: .value("Bas", domaineX.upperBound),
@@ -166,20 +180,20 @@ private struct GraphiqueNuage: View {
             )
             .foregroundStyle(Color.bande)
 
-            ForEach(pointsReference) { point in
+            ForEach(modele.reference) { point in
                 PointMark(x: .value("Allure", point.allure), y: .value("FC de fin", point.fc))
                     .symbol(.circle)
                     .symbolSize(44)
                     .foregroundStyle(Zone.facile.couleur)
             }
-            ForEach(pointsRecente) { point in
+            ForEach(modele.recente) { point in
                 PointMark(x: .value("Allure", point.allure), y: .value("FC de fin", point.fc))
                     .symbol(.square)
                     .symbolSize(38)
                     .foregroundStyle(Zone.sousSeuil.couleur)
             }
 
-            ForEach(segmentsFleche) { segment in
+            ForEach(modele.segmentsFleche) { segment in
                 LineMark(x: .value("Allure", segment.x1), y: .value("FC", segment.y1), series: .value("Segment", segment.id))
                     .foregroundStyle(Color.encre)
                     .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round))
@@ -188,7 +202,7 @@ private struct GraphiqueNuage: View {
                     .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round))
             }
 
-            if let depart = ModeleProgression.centre(nuage.reference) {
+            if let depart = ModeleProgression.centre(modele.nuage.reference) {
                 PointMark(x: .value("Allure", depart.allure), y: .value("FC", depart.fc))
                     .symbol(.circle)
                     .symbolSize(260)
@@ -198,7 +212,7 @@ private struct GraphiqueNuage: View {
                     .symbolSize(150)
                     .foregroundStyle(Zone.facile.couleur)
             }
-            if let arrivee = ModeleProgression.centre(nuage.recente) {
+            if let arrivee = ModeleProgression.centre(modele.nuage.recente) {
                 PointMark(x: .value("Allure", arrivee.allure), y: .value("FC", arrivee.fc))
                     .symbol(.square)
                     .symbolSize(300)
@@ -212,7 +226,7 @@ private struct GraphiqueNuage: View {
         .chartXScale(domain: [domaineX.upperBound, domaineX.lowerBound])
         .chartYScale(domain: domaineY)
         .chartXAxis {
-            AxisMarks(values: ModeleApercu.graduations(domaineX, pas: 5)) { valeur in
+            AxisMarks(values: Axes.graduations(domaineX, pas: 5)) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {
@@ -224,32 +238,33 @@ private struct GraphiqueNuage: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .leading, values: ModeleApercu.graduations(domaineY, pas: 2)) { valeur in
+            AxisMarks(position: .leading, values: Axes.graduations(domaineY, pas: 2)) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {
-                        Text(ModeleProgression.nombre(nombre))
+                        Text(ModeleApercu.nombre(nombre))
                     }
                 }
                 .font(.caption2.monospacedDigit())
                 .foregroundStyle(Color.encre3)
             }
         }
+        // Une pression touche le point le plus proche. Le geste est simultané au défilement : il ne le bloque pas.
         .chartOverlay { proxy in
             GeometryReader { geometrie in
                 Rectangle()
                     .fill(.clear)
                     .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { valeur in
+                    .simultaneousGesture(
+                        SpatialTapGesture()
+                            .onEnded { valeur in
                                 guard let plage = proxy.plotFrame else { return }
                                 let origine = geometrie[plage]
                                 let x: Double? = proxy.value(atX: valeur.location.x - origine.minX)
                                 let y: Double? = proxy.value(atY: valeur.location.y - origine.minY)
                                 guard let x, let y else { return }
                                 selection = pointLePlusProche(
-                                    tous, x: \.allure, y: \.fc, cible: (x: x, y: y),
+                                    modele.tous, x: \.allure, y: \.fc, cible: (x: x, y: y),
                                     etendueX: domaineX.upperBound - domaineX.lowerBound,
                                     etendueY: domaineY.upperBound - domaineY.lowerBound
                                 )?.id
@@ -265,10 +280,10 @@ private struct GraphiqueNuage: View {
             intervalleX: domaineX,
             intervalleY: domaineY,
             libelleX: { formatAllure($0) },
-            libelleY: { ModeleProgression.nombre($0) },
+            libelleY: { ModeleApercu.nombre($0) },
             series: [
-                .init(nom: "Référence", points: pointsReference.map { (x: $0.allure, y: $0.fc) }),
-                .init(nom: "Récente", points: pointsRecente.map { (x: $0.allure, y: $0.fc) }),
+                .init(nom: "Référence", continu: false, points: modele.reference.map { .init(x: $0.allure, y: $0.fc) }),
+                .init(nom: "Récente", continu: false, points: modele.recente.map { .init(x: $0.allure, y: $0.fc) }),
             ]
         ))
         .accessibilityLabel("Allure et FC de fin par répétition, deux périodes")

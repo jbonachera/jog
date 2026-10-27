@@ -17,7 +17,7 @@ private actor CompteurLectures {
 private func activite(_ cle: String, _ date: DateCivile = "2026-09-01", nom: String? = nil) -> PivotSansFlux {
     PivotSansFlux(
         cleSource: cle, source: .fit, versionAdaptateur: "1.0.0", empreinteBrute: "empreinte-\(cle)",
-        debutUtc: 1_000_000, decalageLocal_min: 0, dateLocale: date, duree_s: 1500, distance_m: 5100, nom: nom,
+        debutUtc: debutUtcDeLaDate(date), decalageLocal_min: 0, dateLocale: date, duree_s: 1500, distance_m: 5100, nom: nom,
         competition: false, sousType: .route, pasFC_s: nil, tours: []
     )
 }

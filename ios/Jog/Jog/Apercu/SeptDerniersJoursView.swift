@@ -33,6 +33,8 @@ struct SeptDerniersJoursView: View {
 private struct LigneJourView: View {
     let ligne: ModeleApercu.LigneJour
     let surMarquage: (String, MarquageUtilisateur?) -> Void
+    /// La colonne du jour grandit avec Dynamic Type : le quantième et le jour court ne se coupent pas.
+    @ScaledMetric(relativeTo: .body) private var largeurJour: CGFloat = 44
 
     private var marquages: [String] {
         ligne.seances.compactMap { ModeleApercu.libelleMarquage($0.marquage) }
@@ -49,7 +51,7 @@ private struct LigneJourView: View {
                     .monospacedDigit()
                     .foregroundStyle(ligne.estRepos ? .encre3 : .encre)
             }
-            .frame(minWidth: 44, alignment: .leading)
+            .frame(minWidth: largeurJour, alignment: .leading)
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(ligne.titre)

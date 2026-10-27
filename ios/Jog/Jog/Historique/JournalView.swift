@@ -60,20 +60,16 @@ private struct LigneSemaineView: View {
 
                 BarreRepartition(kmParZone: ligne.kmParZone)
 
-                HStack(alignment: .center, spacing: 8) {
+                // Les pastilles passent à la ligne quand la largeur ou Dynamic Type l'exigent : une grille adaptative, jamais une rangée coupée.
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), spacing: 6, alignment: .leading)], alignment: .leading, spacing: 6) {
                     Text(ligne.dureeTexte)
                         .font(.footnote)
                         .foregroundStyle(.encre2)
                         .monospacedDigit()
                     Pastille(texte: "SS \(ligne.sousSeuil.texte)", ton: ligne.sousSeuil.ton)
                     Pastille(texte: "Ratio \(ligne.ratio.texte)", ton: ligne.ratio.ton)
-                }
-
-                if !ligne.types.isEmpty {
-                    HStack(spacing: 6) {
-                        ForEach(ligne.types, id: \.self) { type in
-                            Pastille(texte: ModeleApercu.libelleType(type), ton: .neutre)
-                        }
+                    ForEach(ligne.types, id: \.self) { type in
+                        Pastille(texte: ModeleApercu.libelleType(type), ton: .neutre)
                     }
                 }
             }

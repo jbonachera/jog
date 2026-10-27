@@ -4,9 +4,10 @@
 // `LecteurHealthKit` et, dans les tests, par un faux.
 //
 // Règles (migration-ios) :
+// - toutes les séances de course sont lues, quelle que soit l'app (seul le type filtre) ;
 // - une séance dont la lecture échoue (erreur transitoire) n'est pas perdue : les lots réussis sont persistés, l'erreur
 //   remonte, et l'ancre n'avance pas ;
-// - une séance écartée par le filtre de source, ou refusée par l'adaptateur (erreur permanente), est journalisée et
+// - une séance écartée par le filtre de type, ou refusée par l'adaptateur (erreur permanente), est journalisée et
 //   l'ancre avance ;
 // - une relecture complète (ancre absente ou illisible) retire du moteur les activités HealthKit qui ne sont plus là.
 import Foundation
@@ -71,9 +72,9 @@ public func adapterLot(_ seances: [SeanceBrute], decalageAppareil: (Date) -> Int
 
 /// Ce qu'une source signale depuis une ancre : les séances à lire, les écartées, les supprimées, la nouvelle ancre.
 public struct ChangementsSeances: Sendable, Equatable {
-    /// Identifiants des séances ajoutées ou modifiées, dont le filtre de source a laissé passer la séance.
+    /// Identifiants des séances ajoutées ou modifiées, à lire (toutes les apps sont lues, décision 1).
     public var aLire: [UUID]
-    /// Séances écartées par le filtre de source, avant toute lecture de leurs séries.
+    /// Séances écartées avant toute lecture de leurs séries. Vide depuis que la source ne filtre plus.
     public var ecartees: [Ignoree]
     /// Clés source (« hk:UUID ») des séances supprimées.
     public var supprimees: Set<String>

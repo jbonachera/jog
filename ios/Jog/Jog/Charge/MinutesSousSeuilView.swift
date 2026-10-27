@@ -8,9 +8,11 @@ struct MinutesSousSeuilView: View {
     let vue: Vue
     /// Position de la semaine sous le doigt (rang dans la série).
     @State private var doigt: Double?
+    /// Le modèle des semaines, gardé tant que la Vue ne change pas : un geste sur le graphique ne le recalcule pas.
+    @State private var memo = Memo<Vue, ModeleCharge.MinutesSousSeuil>()
 
     var body: some View {
-        let modele = ModeleCharge.minutesSousSeuil(vue)
+        let modele = memo.valeur(pour: vue) { ModeleCharge.minutesSousSeuil(vue) }
         let lecture = ModeleCharge.lectureMinutes(modele, doigt)
 
         return VStack(alignment: .leading, spacing: 12) {
@@ -25,7 +27,7 @@ struct MinutesSousSeuilView: View {
                         .foregroundStyle(.encre2)
                         .monospacedDigit()
 
-                    GraphiqueOuTableauApercu(tableau: ModeleCharge.tableauMinutes(modele)) {
+                    GraphiqueOuTableau(tableau: ModeleCharge.tableauMinutes(modele)) {
                         graphique(modele, lecture: lecture)
                             .frame(height: 180)
                     }
@@ -67,7 +69,7 @@ struct MinutesSousSeuilView: View {
         }
         .chartYScale(domain: modele.domaine)
         .chartYAxis {
-            AxisMarks(position: .leading, values: ModeleApercu.graduations(modele.domaine, pas: 20)) { _ in
+            AxisMarks(position: .leading, values: Axes.graduations(modele.domaine, pas: 20)) { _ in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel()
                     .font(.caption2.monospacedDigit())
@@ -88,7 +90,7 @@ struct MinutesSousSeuilView: View {
         .chartXSelection(value: $doigt)
         .accessibilityLabel("Minutes de sous-seuil par semaine sur les 26 dernières semaines terminées")
         .accessibilityValue(lecture)
-        .accessibilityChartDescriptor(DescripteurApercu(donnees: ModeleCharge.donneesMinutes(modele)))
+        .accessibilityChartDescriptor(DescripteurGraphique(donnees: ModeleCharge.donneesMinutes(modele)))
     }
 }
 

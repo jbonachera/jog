@@ -30,6 +30,7 @@ public actor Moteur {
         let vue: Vue
         let memoire: [String: SeanceIntrinseque]
         let ecartees: [EcartIntrinseque]
+        let doublons: [Ignoree]
     }
 
     private let stockage: Stockage
@@ -49,6 +50,9 @@ public actor Moteur {
     private var generation = 0
     /// Séances écartées du dernier calcul persisté, avec leur raison. En mémoire seulement.
     public private(set) var ecartees: [EcartIntrinseque] = []
+    /// Activités écartées comme doublons d'une autre app au dernier calcul persisté (décision 3). Elles restent stockées
+    /// et réapparaissent si l'original disparaît. En mémoire seulement.
+    public private(set) var doublons: [Ignoree] = []
 
     public init(stockage: Stockage, lireFlux: @escaping LectureFlux) {
         self.stockage = stockage
@@ -205,6 +209,7 @@ public actor Moteur {
         activitesIllisiblesFichier = false
         marquages = [:]
         ecartees = []
+        doublons = []
         charge = true
         generation += 1
     }
@@ -272,20 +277,25 @@ public actor Moteur {
     // MARK: - Calcul et persistance
 
     private func calculer(_ s: Instantane, J: DateCivile, derniereSynchro: String?) async throws -> Calcul {
+        // Les doublons se décident sur toutes les activités connues, à chaque calcul : ils n'entrent pas dans la Vue.
+        let doublons = doublonsEcartes(s.activites)
+        let ecartees = Set(doublons.map(\.cleSource))
+        let retenues = s.activites.filter { !ecartees.contains($0.cleSource) }
+
         var memoireLocale = MemoireSeances(entrees: s.memoire)
         let intrinseques = try await seancesIntrinseques(
-            activites: s.activites, lireFlux: lireFlux, parametres: s.parametres, J: J, memoire: &memoireLocale,
+            activites: retenues, lireFlux: lireFlux, parametres: s.parametres, J: J, memoire: &memoireLocale,
             marquages: s.marquages
         )
         // Une clé qui ne sert plus (activité retirée, paramètre ou marquage changé) est oubliée, pour que la mémoire ne
         // grossisse pas.
-        let utilisees = clesUtilisees(s, J)
+        let utilisees = clesUtilisees(retenues, s, J)
         memoireLocale.entrees = memoireLocale.entrees.filter { utilisees.contains($0.key) }
 
         let vue = try calculerVue(EntreeVue(
             intrinseques: intrinseques.seances, parametres: s.parametres, J: J, derniereSynchro: derniereSynchro
         ))
-        return Calcul(vue: vue, memoire: memoireLocale.entrees, ecartees: intrinseques.ecartees)
+        return Calcul(vue: vue, memoire: memoireLocale.entrees, ecartees: intrinseques.ecartees, doublons: doublons)
     }
 
     /// Écrit la mémoire (si elle a changé) puis la Vue, et diffuse la Vue.
@@ -296,6 +306,7 @@ public actor Moteur {
         }
         try stockage.ecrireVue(calcul.vue)
         ecartees = calcul.ecartees
+        doublons = calcul.doublons
         for abonne in abonnes.values {
             abonne.yield(calcul.vue)
         }
@@ -306,10 +317,10 @@ public actor Moteur {
     }
 
     /// Clés de mémorisation des séances qui entrent dans le calcul de `J` : celles de `seancesIntrinseques`.
-    private func clesUtilisees(_ s: Instantane, _ J: DateCivile) -> Set<String> {
+    private func clesUtilisees(_ activites: [PivotSansFlux], _ s: Instantane, _ J: DateCivile) -> Set<String> {
         guard let index = try? indexerParametres(s.parametres) else { return [] }
         var cles: Set<String> = []
-        for activite in s.activites where activite.dateLocale < J {
+        for activite in activites where activite.dateLocale < J {
             cles.insert(cleDeSeance(
                 EmpreinteActivite(activite), index.auJour(activite.dateLocale), marquage: s.marquages[activite.cleSource]
             ))

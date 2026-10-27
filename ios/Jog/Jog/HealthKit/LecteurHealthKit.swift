@@ -47,8 +47,8 @@ public actor LecteurHealthKit: SourceSeances {
         try await store.requestAuthorization(toShare: [], read: Self.typesLecture)
     }
 
-    /// Séances ajoutées et supprimées depuis `ancre` (nil pour tout lire). Ne lit aucune série : la source filtre
-    /// d'abord (seul l'exercice d'Apple, les courses), puis la synchronisation lit les séances retenues.
+    /// Séances ajoutées et supprimées depuis `ancre` (nil pour tout lire). Ne lit aucune série : seules les courses
+    /// sont demandées (toutes les apps), puis la synchronisation lit ces séances. Aucune n'est écartée ici.
     public func synchroniser(ancre: Data?) async throws -> ChangementsSeances {
         let predicat = HKSamplePredicate.workout(HKQuery.predicateForWorkouts(with: .running))
         let descripteur = HKAnchoredObjectQueryDescriptor(
@@ -62,20 +62,9 @@ public actor LecteurHealthKit: SourceSeances {
             throw ErreurLecteur.nonAutorise
         }
 
-        var ecartees: [Ignoree] = []
-        var retenues: [UUID] = []
-        for seance in resultat.addedSamples {
-            let bundle = seance.sourceRevision.source.bundleIdentifier
-            if let ignoree = raisonIgnoreeSourceHealthKit(id: seance.uuid.uuidString, bundleId: bundle) {
-                ecartees.append(ignoree)
-            } else {
-                retenues.append(seance.uuid)
-            }
-        }
-
         return ChangementsSeances(
-            aLire: retenues,
-            ecartees: ecartees,
+            aLire: resultat.addedSamples.map(\.uuid),
+            ecartees: [],
             supprimees: Set(resultat.deletedObjects.map { cleSourceHealthKit($0.uuid) }),
             ancre: try Self.archiverAncre(resultat.newAnchor)
         )

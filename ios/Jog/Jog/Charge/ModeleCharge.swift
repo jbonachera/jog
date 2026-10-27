@@ -22,30 +22,18 @@ enum ModeleCharge {
         }
     }
 
-    /// Un pourcentage, avec l'espace insécable de la rédaction (22 %).
-    static func pourcent(_ valeur: Double) -> String {
-        nombre(valeur) + "\u{00A0}%"
-    }
-
-    static func pourcentOuTiret(_ valeur: Double?) -> String {
-        valeur.map { pourcent($0) } ?? ModeleApercu.tiret
-    }
-
     /// Libellé de la bande cible, « cible 20–25 % » (03, C3).
     static func libelleCible(_ lo: Double, _ hi: Double) -> String {
-        "cible \(nombre(lo))–\(nombre(hi))\u{00A0}%"
-    }
-
-    private static func nombre(_ valeur: Double, _ decimales: Int = 0) -> String {
-        ModeleApercu.nombre(valeur, decimales)
+        "cible \(ModeleApercu.nombre(lo))–\(ModeleApercu.nombre(hi))\u{00A0}%"
     }
 
     /// Domaine d'un axe de barres : il part toujours de zéro (08, « Règles des graphiques »).
     static func domaineDepuisZero(
         _ valeurs: [Double], pas: Double, etendueMin: Double, reperes: [Double] = []
     ) -> ClosedRange<Double> {
-        let domaine = ModeleApercu.domaineAxe(valeurs, pas: pas, etendueMin: etendueMin, reperes: reperes + [0])
-        return 0...domaine.upperBound
+        domaineAxe(ParamsDomaine(
+            valeurs: valeurs, reperes: reperes + [0], plageMin: .etendue(etendueMin), pas: pas, plancher: 0
+        ))
     }
 
     /// Position entière (semaine) sous le doigt, bornée à la série ; sans doigt, la dernière semaine.
@@ -94,9 +82,7 @@ enum ModeleCharge {
             points: points,
             derniere: derniere,
             domaineVolume: domaineDepuisZero(points.flatMap { [$0.s7, $0.chronic] }, pas: 10, etendueMin: 20),
-            domaineRatio: ModeleApercu.domaineAxe(
-                points.map(\.r), pas: 0.2, etendueMin: 0.4, reperes: [0.4, 0.8, 1.3, 1.5, 1.8]
-            )
+            domaineRatio: domaineAxe(points.map(\.r), preset: .ratio, reperes: [0.8, 1.3, 1.5])
         )
     }
 
@@ -109,20 +95,20 @@ enum ModeleCharge {
     static func lectureProgressivite(_ point: PointRatio?, surDoigt: Bool) -> String {
         guard let point else { return "Pas encore de jour à lire." }
         let quand = surDoigt ? formatDate(point.id) : "Hier"
-        return "\(quand) : \(nombre(point.s7, 1)) km sur 7 jours · moyenne sur 30 jours \(nombre(point.chronic, 1)) km · ratio \(nombre(point.r, 2))"
+        return "\(quand) : \(ModeleApercu.nombre(point.s7, 1)) km sur 7 jours · moyenne sur 30 jours \(ModeleApercu.nombre(point.chronic, 1)) km · ratio \(ModeleApercu.nombre(point.r, 2))"
     }
 
     static func tableauVolume(_ points: [PointRatio]) -> TableauAffiche {
         TableauAffiche(
             entetes: ["Date", "7 derniers jours (km)", "Moyenne 30 jours (km)"],
-            lignes: points.map { [formatDate($0.id), nombre($0.s7, 1), nombre($0.chronic, 1)] }
+            lignes: points.map { [formatDate($0.id), ModeleApercu.nombre($0.s7, 1), ModeleApercu.nombre($0.chronic, 1)] }
         )
     }
 
     static func tableauRatio(_ points: [PointRatio]) -> TableauAffiche {
         TableauAffiche(
             entetes: ["Date", "Ratio 7 j / 30 j", "Lecture"],
-            lignes: points.map { [formatDate($0.id), nombre($0.r, 2), libelleEtat($0.etat)] }
+            lignes: points.map { [formatDate($0.id), ModeleApercu.nombre($0.r, 2), libelleEtat($0.etat)] }
         )
     }
 
@@ -198,17 +184,17 @@ enum ModeleCharge {
         guard let rang = rang(position, dans: modele.semaines.count) else { return "Pas encore de semaine terminée." }
         let semaine = modele.semaines[rang]
         let prefixe = position == nil ? "Dernière semaine terminée, " : ""
-        return "\(prefixe)\(formatSemaine(semaine.lundi)) : \(nombre(semaine.minutes)) min de sous-seuil · \(ModeleApercu.pluriel(semaine.seances, "séance", "séances"))"
+        return "\(prefixe)\(formatSemaine(semaine.lundi)) : \(ModeleApercu.nombre(semaine.minutes)) min de sous-seuil · \(ModeleApercu.pluriel(semaine.seances, "séance", "séances"))"
     }
 
     static func libelleMoyenne(_ moyenne: Double) -> String {
-        "moyenne 4 sem. : \(nombre(moyenne)) min"
+        "moyenne 4 sem. : \(ModeleApercu.nombre(moyenne)) min"
     }
 
     static func tableauMinutes(_ modele: MinutesSousSeuil) -> TableauAffiche {
         TableauAffiche(
             entetes: ["Semaine du", "Minutes de sous-seuil", "Séances"],
-            lignes: modele.semaines.map { [formatDate($0.lundi), nombre($0.minutes), String($0.seances)] }
+            lignes: modele.semaines.map { [formatDate($0.lundi), ModeleApercu.nombre($0.minutes), String($0.seances)] }
         )
     }
 
@@ -269,15 +255,15 @@ enum ModeleCharge {
         let hi = selection.cible.hi
         let note = selection.note
         let monotonie = note.monotonieMoyenne.map {
-            "Monotonie de Foster moyenne \(nombre($0, 1)) : élevée par construction en NSA, à lire avec la charge et non comme une alerte isolée."
+            "Monotonie de Foster moyenne \(ModeleApercu.nombre($0, 1)) : élevée par construction en NSA, à lire avec la charge et non comme une alerte isolée."
         } ?? "Monotonie de Foster : pas encore de valeur."
         return Discipline(
             semaines: semaines,
             cibleLo: lo,
             cibleHi: hi,
-            domaine: domaineDepuisZero(semaines.compactMap(\.partPct) + [lo, hi], pas: 5, etendueMin: 35, reperes: [35]),
+            domaine: domaineAxe(semaines.compactMap(\.partPct) + [lo, hi], preset: .partSousSeuil),
             etiquettes: semaines.indices.filter { (semaines.count - 1 - $0) % 5 == 0 }.map { Double($0) },
-            footings: "Footings sous \(nombre(note.plafondBpm)) bpm : \(pourcentOuTiret(note.footingsSousPlafondPct)) sur \(ModeleApercu.pluriel(Int(note.semaines.rounded()), "semaine", "semaines")).",
+            footings: "Footings sous \(ModeleApercu.nombre(note.plafondBpm)) bpm : \(ModeleApercu.pourcentageOuTiret(note.footingsSousPlafondPct)) sur \(ModeleApercu.pluriel(Int(note.semaines.rounded()), "semaine", "semaines")).",
             monotonie: monotonie
         )
     }
@@ -290,7 +276,7 @@ enum ModeleCharge {
             return "\(prefixe)\(formatSemaine(semaine.lundi)) : aucune minute enregistrée."
         }
         let verdict = semaine.dansCible == true ? "dans la cible" : "hors cible"
-        return "\(prefixe)\(formatSemaine(semaine.lundi)) : \(pourcent(part)) du temps en sous-seuil · \(verdict)"
+        return "\(prefixe)\(formatSemaine(semaine.lundi)) : \(ModeleApercu.pourcentage(part)) du temps en sous-seuil · \(verdict)"
     }
 
     static func tableauDiscipline(_ modele: Discipline) -> TableauAffiche {
@@ -298,7 +284,7 @@ enum ModeleCharge {
             entetes: ["Semaine du", "Part en sous-seuil", "Cible"],
             lignes: modele.semaines.map { semaine in
                 let cible = semaine.dansCible.map { $0 ? "dans la cible" : "hors cible" } ?? ModeleApercu.tiret
-                return [formatDate(semaine.lundi), pourcentOuTiret(semaine.partPct), cible]
+                return [formatDate(semaine.lundi), ModeleApercu.pourcentageOuTiret(semaine.partPct), cible]
             }
         )
     }

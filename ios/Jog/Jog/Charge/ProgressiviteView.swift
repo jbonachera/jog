@@ -9,6 +9,13 @@ struct ProgressiviteView: View {
     @State private var fenetre: FenetreProgressivite = .semaines16
     /// Le jour sous le doigt, partagé par les deux graphiques.
     @State private var doigt: Date?
+    /// Le calcul de la fenêtre, gardé tant que la Vue et la fenêtre ne changent pas.
+    @State private var memo = Memo<CleProgressivite, ModeleCharge.Progressivite?>()
+
+    private struct CleProgressivite: Equatable {
+        let vue: Vue
+        let fenetre: FenetreProgressivite
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -23,7 +30,7 @@ struct ProgressiviteView: View {
                 .pickerStyle(.segmented)
                 .labelsHidden()
 
-                if let modele = ModeleCharge.progressivite(vue, fenetre) {
+                if let modele = memo.valeur(pour: CleProgressivite(vue: vue, fenetre: fenetre), calcul: { ModeleCharge.progressivite(vue, fenetre) }) {
                     if modele.points.isEmpty {
                         EtatVide(texte: "Pas encore assez d’historique : le ratio demande 30 jours d’historique.")
                     } else {
@@ -47,12 +54,12 @@ struct ProgressiviteView: View {
                 .foregroundStyle(.encre2)
                 .monospacedDigit()
 
-            GraphiqueOuTableauApercu(tableau: ModeleCharge.tableauVolume(modele.points)) {
+            GraphiqueOuTableau(tableau: ModeleCharge.tableauVolume(modele.points)) {
                 volume(modele, lecture: lecture)
                     .frame(height: 220)
             }
 
-            GraphiqueOuTableauApercu(tableau: ModeleCharge.tableauRatio(modele.points)) {
+            GraphiqueOuTableau(tableau: ModeleCharge.tableauRatio(modele.points)) {
                 ratio(modele, lecture: lecture)
                     .frame(height: 140)
             }
@@ -62,6 +69,9 @@ struct ProgressiviteView: View {
                 LegendeForme(texte: "Moyenne 30 jours", forme: .ligne, couleur: .encre)
                 LegendeForme(texte: "Zone 0,8–1,3", forme: .carre, couleur: .bande)
             }
+            Text("▲ ratio à surveiller · ◆ alerte, au-delà de 1,5")
+                .font(.caption)
+                .foregroundStyle(.encre2)
         }
     }
 
@@ -98,7 +108,7 @@ struct ProgressiviteView: View {
         }
         .chartYScale(domain: modele.domaineVolume)
         .chartYAxis {
-            AxisMarks(position: .leading, values: ModeleApercu.graduations(modele.domaineVolume, pas: 10)) { _ in
+            AxisMarks(position: .leading, values: Axes.graduations(modele.domaineVolume, pas: 10)) { _ in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel()
                     .font(.caption2.monospacedDigit())
@@ -109,7 +119,7 @@ struct ProgressiviteView: View {
         .chartXSelection(value: $doigt)
         .accessibilityLabel("Volume des 7 derniers jours et moyenne sur 30 jours")
         .accessibilityValue(lecture)
-        .accessibilityChartDescriptor(DescripteurApercu(donnees: ModeleCharge.donneesVolume(modele)))
+        .accessibilityChartDescriptor(DescripteurGraphique(donnees: ModeleCharge.donneesVolume(modele)))
     }
 
     private func ratio(_ modele: ModeleCharge.Progressivite, lecture: String) -> some View {
@@ -140,10 +150,12 @@ struct ProgressiviteView: View {
                 .foregroundStyle(Color.accentFjord)
                 .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
             }
-            ForEach(modele.points.filter { $0.r > 1.3 }) { point in
+            // Les points hors de la bande portent l'état du moteur (D-015) : la forme (▲ surveiller, ◆ alerte) et la couleur.
+            ForEach(modele.points.filter { $0.etat != .ok }) { point in
                 PointMark(x: .value("Jour", point.date), y: .value("Ratio", point.r))
-                    .foregroundStyle(point.r > 1.5 ? Ton.mauvais.couleur : Ton.attention.couleur)
-                    .symbolSize(16)
+                    .symbol(point.etat == .alerte ? BasicChartSymbolShape.diamond : BasicChartSymbolShape.triangle)
+                    .foregroundStyle(point.etat == .alerte ? Ton.mauvais.couleur : Ton.attention.couleur)
+                    .symbolSize(22)
             }
             if let derniere = modele.derniere {
                 PointMark(x: .value("Jour", derniere.date), y: .value("Ratio", derniere.r))
@@ -164,7 +176,7 @@ struct ProgressiviteView: View {
         }
         .chartYScale(domain: modele.domaineRatio)
         .chartYAxis {
-            AxisMarks(position: .leading, values: ModeleApercu.graduations(modele.domaineRatio, pas: 0.2)) { valeur in
+            AxisMarks(position: .leading, values: Axes.graduations(modele.domaineRatio, pas: 0.2)) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {
@@ -188,7 +200,7 @@ struct ProgressiviteView: View {
         .chartXSelection(value: $doigt)
         .accessibilityLabel("Ratio 7 jours sur 30 jours, bande de 0,8 à 1,3, vigilance à 1,5")
         .accessibilityValue(lecture)
-        .accessibilityChartDescriptor(DescripteurApercu(donnees: ModeleCharge.donneesRatio(modele)))
+        .accessibilityChartDescriptor(DescripteurGraphique(donnees: ModeleCharge.donneesRatio(modele)))
     }
 }
 

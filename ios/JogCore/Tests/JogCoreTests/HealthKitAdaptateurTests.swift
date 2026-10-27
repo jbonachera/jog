@@ -45,13 +45,13 @@ private func entrainementPersonnalise(
     return c
 }
 
-// MARK: - Filtre de source et de type
+// MARK: - Filtre de type et analyse réservée à l'Exercice
 
-@Test func filtreRetientLAppExerciceEtLesCoursesSeulement() throws {
+@Test func leFiltreDeTypeRetientLesCoursesDeToutesLesApps() throws {
     var workoutDoors = ConstructeurSeance()
     workoutDoors.bundle = "net.workoutdoors.workoutdoors"
-    #expect(try adapterSeance(workoutDoors.brute(), decalageAppareil_min: 120) == nil)
-    #expect(raisonIgnoreeHealthKit(try workoutDoors.brute())?.raison == .autreSource)
+    #expect(raisonIgnoreeHealthKit(try workoutDoors.brute()) == nil)
+    #expect(try adapterSeance(workoutDoors.brute(), decalageAppareil_min: 120) != nil)
 
     var marche = ConstructeurSeance()
     marche.activityType = 52
@@ -64,6 +64,30 @@ private func entrainementPersonnalise(
     var exerciceDeBundleGenerique = ConstructeurSeance()
     exerciceDeBundleGenerique.bundle = "com.apple.workout"
     #expect(try adapterSeance(exerciceDeBundleGenerique.brute(), decalageAppareil_min: 120) != nil)
+}
+
+@Test func lAppExerciceDAppleEstReconnueParSonBundle() {
+    #expect(estExerciceApple("com.apple.health.7D1E1FAC-B565-45D1-9D90-C0C92AA39647"))
+    #expect(estExerciceApple("com.apple.workout"))
+    #expect(!estExerciceApple("net.workoutdoors.workoutdoors"))
+    #expect(!estExerciceApple(""))
+    #expect(!estExerciceApple(nil))
+}
+
+@Test func leBundleDeLaSeanceEstMemoriseDansLePivot() throws {
+    #expect(try pivotDe(ConstructeurSeance()).appSource == "com.apple.health.7D1E1FAC-B565-45D1-9D90-C0C92AA39647")
+    var autre = ConstructeurSeance()
+    autre.bundle = nil
+    #expect(try pivotDe(autre).appSource == "")
+    #expect(try pivotDe(ConstructeurSeance()).nbMesuresFC == 0)
+}
+
+@Test func uneAutreAppNAPasDeTourNiDeFiltreDeSourceSansIntervalles() throws {
+    var c = entrainementPersonnalise()
+    c.bundle = "net.workoutdoors.workoutdoors"
+    let pivot = try pivotDe(c)
+    #expect(pivot.tours.isEmpty)
+    #expect(try calculerSeanceIntrinseque(pivot, parametresHK).repetitions.isEmpty)
 }
 
 // MARK: - Pivot
