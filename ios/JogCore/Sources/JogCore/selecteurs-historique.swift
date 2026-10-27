@@ -6,7 +6,7 @@ private let LIBELLES_DISTANCE = ["5 km", "10 km", "Semi", "Marathon"]
 
 /// Les semaines de la période (la semaine en cours incluse), avec leurs courses. Le sélecteur de la période
 /// (12, 26, toutes) ne change que la fenêtre ; chaque semaine est la même, quelle que soit la période.
-func selectionHistorique(_ vue: Vue, _ periode: PeriodeHistorique) throws -> SelectionHistorique {
+public func selectionHistorique(_ vue: Vue, _ periode: PeriodeHistorique) throws -> SelectionHistorique {
     let lo = vue.parametresEnVigueur.globaux.subtPctLo
     let hi = vue.parametresEnVigueur.globaux.subtPctHi
     let toutes = vue.semaines

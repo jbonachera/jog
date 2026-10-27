@@ -104,7 +104,7 @@ public struct MemoireSeances: Sendable {
     }
 }
 
-/// Le flux d'une activité est absent de la base : le calcul de ②a échoue (vue.ts, `seancesIntrinseques`).
+/// Le flux d'une activité est absent de la base : la séance est écartée de ②a (`EcartIntrinseque`).
 public struct FluxAbsent: Error, Sendable, Equatable {
     public let cleSource: String
 
@@ -195,11 +195,34 @@ private func hacher(_ champs: [String]) -> String {
 
 // MARK: - Étape ②a mémorisée
 
+/// Séance écartée du calcul de ②a : son flux manque, ou sa lecture ou son calcul échoue. Journalisée, sans bloquer le reste.
+public struct EcartIntrinseque: Sendable, Equatable {
+    public var cleSource: String
+    public var detail: String
+
+    public init(cleSource: String, detail: String) {
+        self.cleSource = cleSource
+        self.detail = detail
+    }
+}
+
+/// Résultat de `seancesIntrinseques` : les séances calculées, et celles qui ont été écartées.
+public struct ResultatIntrinseques: Sendable, Equatable {
+    public var seances: [SeanceIntrinseque]
+    public var ecartees: [EcartIntrinseque]
+
+    public init(seances: [SeanceIntrinseque] = [], ecartees: [EcartIntrinseque] = []) {
+        self.seances = seances
+        self.ecartees = ecartees
+    }
+}
+
 /// Étape ②a pour chaque activité datée strictement avant J (ADR 0006). Si une clé de mémorisation est présente dans
 /// `memoire`, la séance est reprise sans lire le flux. Sinon le flux est demandé à `lireFlux`, utilisé, puis oublié, et
-/// la séance est rangée dans `memoire`. Les paramètres sont ceux du jour de la séance (D-006). Une activité sans flux
-/// fait échouer le calcul (`FluxAbsent`). `marquages` (D-020) : marquage saisi par clé source ; une activité absente de
-/// ce dictionnaire garde son marquage déduit.
+/// la séance est rangée dans `memoire`. Les paramètres sont ceux du jour de la séance (D-006). Une activité dont le flux
+/// manque, ou dont la lecture ou le calcul échoue, est écartée (`ecartees`) : elle ne bloque pas les autres. Seule
+/// l'annulation se propage. `marquages` (D-020) : marquage saisi par clé source ; une activité absente de ce
+/// dictionnaire garde son marquage déduit.
 public func seancesIntrinseques(
     activites: [PivotSansFlux],
     lireFlux: (String) async throws -> Flux?,
@@ -207,24 +230,31 @@ public func seancesIntrinseques(
     J: DateCivile,
     memoire: inout MemoireSeances,
     marquages: [String: MarquageUtilisateur] = [:]
-) async throws -> [SeanceIntrinseque] {
+) async throws -> ResultatIntrinseques {
     let parametresDates = try indexerParametres(parametres)
-    var resultat: [SeanceIntrinseque] = []
+    var resultat = ResultatIntrinseques()
     for pivot in activites {
         if pivot.dateLocale >= J { continue }
         let p = parametresDates.auJour(pivot.dateLocale)
         let marquage = marquages[pivot.cleSource]
         let cle = cleDeSeance(EmpreinteActivite(pivot), p, marquage: marquage)
         if let memorisee = memoire.entrees[cle] {
-            resultat.append(identifiee(memorisee, pivot))
+            resultat.seances.append(identifiee(memorisee, pivot))
             continue
         }
-        guard let flux = try await lireFlux(pivot.cleSource) else {
-            throw FluxAbsent(cleSource: pivot.cleSource)
+        do {
+            guard let flux = try await lireFlux(pivot.cleSource) else {
+                throw FluxAbsent(cleSource: pivot.cleSource)
+            }
+            let calculee = try calculerSeanceIntrinseque(pivot.avecFlux(flux), p, marquageUtilisateur: marquage)
+            memoire.entrees[cle] = calculee
+            resultat.seances.append(identifiee(calculee, pivot))
+        } catch let annulation as CancellationError {
+            throw annulation
+        } catch {
+            let detail = error is FluxAbsent ? "flux absent" : String(describing: error)
+            resultat.ecartees.append(EcartIntrinseque(cleSource: pivot.cleSource, detail: detail))
         }
-        let calculee = try calculerSeanceIntrinseque(pivot.avecFlux(flux), p, marquageUtilisateur: marquage)
-        memoire.entrees[cle] = calculee
-        resultat.append(identifiee(calculee, pivot))
     }
     return resultat
 }

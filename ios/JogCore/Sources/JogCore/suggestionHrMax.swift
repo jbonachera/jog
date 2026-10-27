@@ -9,7 +9,7 @@ private let PAS_KM = 0.1
 
 /// Séances examinées : celles de la Vue datées de J−365 à J−1, et au plus tôt du jour d'effet de la dernière
 /// modification de hrMax (D-006, D-019).
-func seancesExaminees(_ vue: Vue) throws -> [SeanceVue] {
+public func seancesExaminees(_ vue: Vue) throws -> [SeanceVue] {
     let debut = plusTard(try ajouterJours(vue.J, -FENETRE_JOURS), dateDerniereModifHrMax(vue))
     let fin = try ajouterJours(vue.J, -1)
     return vue.seances.filter { $0.date >= debut && $0.date <= fin }
@@ -18,7 +18,7 @@ func seancesExaminees(_ vue: Vue) throws -> [SeanceVue] {
 /// Pic retenu parmi les séances examinées : le plus haut fcPic, arrondi au bpm. À égalité, la séance la plus récente :
 /// la Vue les range par (date, debutUtc, cleSource), donc la dernière retenue gagne. Nil sans séance avec un pic.
 /// `vue` doit être la Vue brute (pics non arrondis à 4 décimales), voir `avecSuggestion`.
-func picRetenu(_ vue: Vue) throws -> (seance: SeanceVue, bpm: Double)? {
+public func picRetenu(_ vue: Vue) throws -> (seance: SeanceVue, bpm: Double)? {
     var meilleure: (seance: SeanceVue, bpm: Double)?
     for seance in try seancesExaminees(vue) {
         guard let fcPic = seance.fcPic else { continue }
@@ -31,7 +31,7 @@ func picRetenu(_ vue: Vue) throws -> (seance: SeanceVue, bpm: Double)? {
 
 /// La suggestion n'est faite que si le pic retenu atteint hrMax(J−1) plus MARGE_HRMAX_BPM (D-019).
 /// `vue` doit être la Vue brute, voir `avecSuggestion`.
-func suggestionHrMax(_ vue: Vue) throws -> SuggestionHrMax? {
+public func suggestionHrMax(_ vue: Vue) throws -> SuggestionHrMax? {
     let hrMaxVeille = vue.parametresEnVigueur.datesAJm1.hrMax
     guard let meilleure = try picRetenu(vue), meilleure.bpm >= hrMaxVeille + MARGE_HRMAX_BPM else { return nil }
 

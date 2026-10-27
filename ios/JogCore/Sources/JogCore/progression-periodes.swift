@@ -2,7 +2,7 @@
 
 /// La période [du, au] ramenée à l'historique : pas avant le premier jour, pas après J−1 (04, « Notations »).
 /// Une période sans recouvrement avec l'historique n'a aucun jour.
-func borner(_ vue: Vue, _ du: DateCivile, _ au: DateCivile) throws -> PeriodeBornee {
+public func borner(_ vue: Vue, _ du: DateCivile, _ au: DateCivile) throws -> PeriodeBornee {
     guard let premierJour = vue.premierJour else { return aucuneDate() }
     let veille = try ajouterJours(vue.J, -1)
     let debut = du < premierJour ? premierJour : du
@@ -13,7 +13,7 @@ func borner(_ vue: Vue, _ du: DateCivile, _ au: DateCivile) throws -> PeriodeBor
 }
 
 /// Vrai si la date tombe dans la période bornée.
-func contient(_ periode: PeriodeBornee, _ date: DateCivile) -> Bool {
+public func contient(_ periode: PeriodeBornee, _ date: DateCivile) -> Bool {
     guard let debut = periode.debut, let fin = periode.fin else { return false }
     return debut <= date && date <= fin
 }

@@ -59,8 +59,8 @@ private func modification(_ cle: String, _ valeur: Double, effet: DateCivile) ->
         parametres: parametresDefaut(), J: J, memoire: &memoire
     )
     #expect(lectures == 1)
-    #expect(reprise.map(\.cleSource) == ["b"])
-    #expect(reprise.map(\.date) == ["2026-09-03"])
+    #expect(reprise.seances.map(\.cleSource) == ["b"])
+    #expect(reprise.seances.map(\.date) == ["2026-09-03"])
 }
 
 @Test func adr0006UnParametreLuParLa2aRelitLeFlux() async throws {
@@ -102,16 +102,40 @@ private func modification(_ cle: String, _ valeur: Double, effet: DateCivile) ->
         lireFlux: { _ in lectures += 1; return fluxSynthetique() },
         parametres: parametresDefaut(), J: J, memoire: &memoireVide
     )
-    #expect(resultat.isEmpty)
+    #expect(resultat.seances.isEmpty)
+    #expect(resultat.ecartees.isEmpty)
     #expect(lectures == 0)
 }
 
-@Test func unFluxAbsentFaitEchouerLeCalcul() async throws {
-    // Une activité sans flux fait échouer le calcul de ②a (vue.ts : « flux absent pour … »).
-    await #expect(throws: FluxAbsent(cleSource: "a")) {
-        var memoireVide = MemoireSeances()
+@Test func unFluxAbsentEstEcarteSansBloquerLesAutres() async throws {
+    // Une activité sans flux est écartée de ②a et journalisée ; les autres séances sont calculées.
+    var memoireVide = MemoireSeances()
+    let resultat = try await seancesIntrinseques(
+        activites: [activite("sans-flux", "2026-09-01"), activite("avec-flux", "2026-09-02")],
+        lireFlux: { cle in cle == "sans-flux" ? nil : fluxSynthetique() },
+        parametres: parametresDefaut(), J: J, memoire: &memoireVide
+    )
+    #expect(resultat.seances.map(\.cleSource) == ["avec-flux"])
+    #expect(resultat.ecartees == [EcartIntrinseque(cleSource: "sans-flux", detail: "flux absent")])
+}
+
+@Test func uneErreurDeLectureDUnFluxEstEcartee() async throws {
+    // Une erreur de lecture (transitoire ou non) écarte la séance ; seule l'annulation se propage.
+    struct Panne: Error {}
+    var memoireVide = MemoireSeances()
+    let resultat = try await seancesIntrinseques(
+        activites: [activite("a", "2026-09-01")], lireFlux: { _ in throw Panne() },
+        parametres: parametresDefaut(), J: J, memoire: &memoireVide
+    )
+    #expect(resultat.seances.isEmpty)
+    #expect(resultat.ecartees.map(\.cleSource) == ["a"])
+}
+
+@Test func uneAnnulationSePropage() async throws {
+    var memoireVide = MemoireSeances()
+    await #expect(throws: CancellationError.self) {
         _ = try await seancesIntrinseques(
-            activites: [activite("a", "2026-09-01")], lireFlux: { _ in nil },
+            activites: [activite("a", "2026-09-01")], lireFlux: { _ in throw CancellationError() },
             parametres: parametresDefaut(), J: J, memoire: &memoireVide
         )
     }

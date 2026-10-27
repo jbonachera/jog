@@ -3,7 +3,7 @@
 /// Moyenne glissante sur les `fenetre` derniers points, point courant inclus. Au début de la série, la fenêtre
 /// est tronquée : on moyenne les points disponibles (comme la maquette, sans valeur absente).
 /// (Nommée ainsi pour ne pas heurter `moyenneGlissante` du module séance.)
-func moyenneGlissanteProgression(_ valeurs: [Double], _ fenetre: Int) -> [Double] {
+public func moyenneGlissanteProgression(_ valeurs: [Double], _ fenetre: Int) -> [Double] {
     var resultat: [Double] = []
     resultat.reserveCapacity(valeurs.count)
     for i in valeurs.indices {

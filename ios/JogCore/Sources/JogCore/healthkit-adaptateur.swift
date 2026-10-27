@@ -55,9 +55,20 @@ public func raisonIgnoreeSourceHealthKit(id: String, bundleId: String) -> Ignore
     return nil
 }
 
-/// Transforme une séance HealthKit en pivot. Nil si le filtre l'écarte (voir `raisonIgnoreeHealthKit`).
-/// `decalageAppareil_min` ne sert que si la séance ne donne pas son fuseau (métadonnée HKTimeZone), ADR 0007.
+/// Décalage du fuseau de l'appareil, en minutes, à la date `date` (heure d'été comprise). Repli de l'adaptateur quand
+/// une séance ne donne pas son fuseau (métadonnée HKTimeZone), ADR 0007.
+public func decalageAppareilMinutesDefaut(_ date: Date) -> Int {
+    TimeZone.autoupdatingCurrent.secondsFromGMT(for: date) / 60
+}
+
+/// Transforme une séance HealthKit en pivot, avec un décalage d'appareil fixe. Voir `adapterSeance(_:decalageAppareil:)`.
 public func adapterSeance(_ brute: SeanceBrute, decalageAppareil_min: Int) throws -> ActivitePivot? {
+    try adapterSeance(brute, decalageAppareil: { _ in decalageAppareil_min })
+}
+
+/// Transforme une séance HealthKit en pivot. Nil si le filtre l'écarte (voir `raisonIgnoreeHealthKit`).
+/// `decalageAppareil` ne sert que si la séance ne donne pas son fuseau : il reçoit le début de la séance (ADR 0007).
+public func adapterSeance(_ brute: SeanceBrute, decalageAppareil: (Date) -> Int) throws -> ActivitePivot? {
     if raisonIgnoreeHealthKit(brute) != nil { return nil }
 
     let W = brute.fin.timeIntervalSince(brute.debut)
@@ -102,7 +113,7 @@ public func adapterSeance(_ brute: SeanceBrute, decalageAppareil_min: Int) throw
         return (t: p.t, valeur: vitesse)
     }
 
-    let decalage = decalageLocal(brute, decalageAppareil_min: decalageAppareil_min)
+    let decalage = decalageLocal(brute, decalageAppareil: decalageAppareil)
     let debutUtc = brute.debut.timeIntervalSince1970 * 1000
 
     return ActivitePivot(
@@ -334,9 +345,9 @@ private func ecartsPositifs(_ instants: [Double]) -> [Double] {
 }
 
 /// Fuseau du lieu (HKTimeZone, ADR 0007) au début de la séance, sinon le décalage de l'appareil.
-private func decalageLocal(_ brute: SeanceBrute, decalageAppareil_min: Int) -> Int {
+private func decalageLocal(_ brute: SeanceBrute, decalageAppareil: (Date) -> Int) -> Int {
     guard let identifiant = brute.metadata?["HKTimeZone"], let fuseau = TimeZone(identifier: identifiant) else {
-        return decalageAppareil_min
+        return decalageAppareil(brute.debut)
     }
     return fuseau.secondsFromGMT(for: brute.debut) / 60
 }

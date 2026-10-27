@@ -1,7 +1,7 @@
 // P3 · Allure × FC par répétition (03, P3 ; 04, « Centres du nuage allure × FC » ; traduit de src/core/progression/nuage.ts).
 
 /// Le nuage de P3 : la période récente (J−84 à J−1) contre la référence choisie, toutes deux bornées à l'historique.
-func nuage(_ vue: Vue, _ periode: PeriodeNuage) throws -> Nuage {
+public func nuage(_ vue: Vue, _ periode: PeriodeNuage) throws -> Nuage {
     let g = Globaux(refHr: vue.parametresEnVigueur.globaux.refHr, paceHrK: vue.parametresEnVigueur.globaux.paceHrK)
     let J = vue.J
     let recente = try borner(vue, ajouterJours(J, -84), ajouterJours(J, -1))

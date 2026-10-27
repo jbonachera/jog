@@ -3,7 +3,7 @@
 
 /// Précisions des mesures du comparateur (P1) et des tendances (P2), en unité affichée. Table complète : une entrée
 /// par `CleMesure`.
-let PRECISIONS: [CleMesure: Precision] = [
+public let PRECISIONS: [CleMesure: Precision] = [
     .km: Precision(pas: 0.1, echelle: 1),
     .heures: Precision(pas: 1, echelle: 60),
     .seances: Precision(pas: 0.1, echelle: 1),
@@ -21,19 +21,19 @@ let PRECISIONS: [CleMesure: Precision] = [
 ]
 
 /// La table des précisions couvre toutes les mesures : l'erreur ne signale qu'une table incomplète.
-struct ErreurPrecisionAbsente: Error, Equatable {
+public struct ErreurPrecisionAbsente: Error, Equatable {
     let cle: CleMesure
 }
 
 /// La valeur telle qu'elle s'affiche, en unité affichée (minutes pour les heures).
-func arrondiAffiche(_ valeur: Double, _ precision: Precision) throws -> Double {
+public func arrondiAffiche(_ valeur: Double, _ precision: Precision) throws -> Double {
     try arrondir(valeur * precision.echelle, precision.pas)
 }
 
 /// L'écart entre deux valeurs, tel qu'il s'affiche : différence des valeurs arrondies, arrondie au pas, puis ramenée
 /// à l'unité naturelle. Une différence nulle après arrondi vaut 0, même si les valeurs brutes diffèrent. Nil si une
 /// valeur manque.
-func ecartAffiche(_ a: Double?, _ b: Double?, _ precision: Precision) throws -> Double? {
+public func ecartAffiche(_ a: Double?, _ b: Double?, _ precision: Precision) throws -> Double? {
     guard let a, let b else { return nil }
     let difference = try arrondir(arrondiAffiche(b, precision) - arrondiAffiche(a, precision), precision.pas)
     return difference / precision.echelle

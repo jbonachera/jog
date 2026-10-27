@@ -11,7 +11,7 @@ private func joursDeLaFenetre(_ fenetre: FenetreProgressivite) -> Int {
 
 /// Les jours de la fenêtre qui se termine à J−1, avec leur ratio. Un jour dont r est nul (historique de moins de
 /// 30 jours) n'est ni tracé, ni compté parmi les pics. La série de la Vue s'arrête à J−1 : rien ne reste à couper.
-func selectionProgressivite(_ vue: Vue, _ fenetre: FenetreProgressivite) throws -> SelectionProgressivite {
+public func selectionProgressivite(_ vue: Vue, _ fenetre: FenetreProgressivite) throws -> SelectionProgressivite {
     let jours = joursDeLaFenetre(fenetre)
     let premier = try ajouterJours(vue.J, -jours)
     let veille = try ajouterJours(vue.J, -1)

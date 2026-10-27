@@ -5,7 +5,7 @@ private let FENETRE_SEMAINES = 4
 private let FENETRE_SORTIES = 3
 
 /// Les trois tendances de P2, à partir de la Vue.
-func tendances(_ vue: Vue) throws -> Tendances {
+public func tendances(_ vue: Vue) throws -> Tendances {
     let g = Globaux(refHr: vue.parametresEnVigueur.globaux.refHr, paceHrK: vue.parametresEnVigueur.globaux.paceHrK)
     let semaines = try groupesParSemaine(vue.seances)
 

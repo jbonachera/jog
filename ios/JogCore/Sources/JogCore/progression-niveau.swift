@@ -5,7 +5,7 @@ private let LIBELLES_NIVEAU = ["5 km", "10 km", "Semi", "Marathon"]
 
 /// Le niveau estimé, depuis le dernier test ou la dernière course de 5 km (04). Les records portent sur les courses
 /// et les tests de chaque distance de référence (D-014). Sans test ni course de 5 km, il n'y a pas de source.
-func niveauEstime(_ vue: Vue) throws -> NiveauEstime {
+public func niveauEstime(_ vue: Vue) throws -> NiveauEstime {
     let chronos = vue.seances.filter { estChrono($0) && $0.distanceRef_km == DISTANCE_SOURCE_KM && $0.temps_s != nil }
     guard let derniere = chronos.last, let tempsSource = derniere.temps_s else {
         return .indisponible(raison: "Aucun test ni course de 5 km dans l’historique : pas de niveau estimé.")

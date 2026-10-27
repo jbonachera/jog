@@ -8,7 +8,7 @@ private let SEMAINES_NOTE = 8
 
 /// Le graphique montre les 30 dernières semaines terminées. La note porte sur les 8 dernières. Chaque footing a été
 /// jugé contre le plafond de sa date (D-006, `semaines`) ; la part se calcule à partir des effectifs de chaque semaine.
-func selectionDiscipline(_ vue: Vue) throws -> SelectionDiscipline {
+public func selectionDiscipline(_ vue: Vue) throws -> SelectionDiscipline {
     let lo = vue.parametresEnVigueur.globaux.subtPctLo
     let hi = vue.parametresEnVigueur.globaux.subtPctHi
     let terminees = vue.semaines.filter { $0.statut == .terminee }

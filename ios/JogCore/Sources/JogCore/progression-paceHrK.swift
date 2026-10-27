@@ -20,7 +20,7 @@ private struct FootingUtilisable {
 ///
 /// vE = Σ km ÷ Σ h sur les footings utilisables ; hrE = FC moyenne des footings, pondérée par leur durée.
 /// vR = Σ km des répétitions ÷ Σ h des répétitions (km = durée ÷ allure) ; hrR = FC de fin, pondérée par la durée.
-func suggestionPaceHrK(_ vue: Vue) throws -> Double? {
+public func suggestionPaceHrK(_ vue: Vue) throws -> Double? {
     let debut = try ajouterJours(vue.J, -FENETRE_JOURS)
     let fin = try ajouterJours(vue.J, -1)
     let dansFenetre = vue.seances.filter { $0.date >= debut && $0.date <= fin }

@@ -68,7 +68,7 @@ private struct ValeursPeriode {
 
 /// Compare deux périodes, A (référence) et B (comparée). Chaque période est bornée à l'historique. Les valeurs
 /// sont ramenées à la semaine pour les volumes. `paramsAuJour` donne le plafond des footings à leur date (D-006).
-func comparer(_ vue: Vue, _ a: PeriodeDates, _ b: PeriodeDates, _ paramsAuJour: ParamsAuJour) throws -> Comparaison {
+public func comparer(_ vue: Vue, _ a: PeriodeDates, _ b: PeriodeDates, _ paramsAuJour: ParamsAuJour) throws -> Comparaison {
     try verifier(.a, a)
     try verifier(.b, b)
     let periodeA = try borner(vue, a.debut, a.fin)
@@ -97,7 +97,7 @@ func comparer(_ vue: Vue, _ a: PeriodeDates, _ b: PeriodeDates, _ paramsAuJour: 
 }
 
 /// Les périodes des préréglages de P1 : B est toujours les 84 derniers jours (J−84 à J−1).
-func prereglage(_ vue: Vue, _ nom: Prereglage) throws -> (a: PeriodeDates, b: PeriodeDates) {
+public func prereglage(_ vue: Vue, _ nom: Prereglage) throws -> (a: PeriodeDates, b: PeriodeDates) {
     let b = PeriodeDates(debut: try ajouterJours(vue.J, -84), fin: try ajouterJours(vue.J, -1))
     let a: PeriodeDates
     switch nom {

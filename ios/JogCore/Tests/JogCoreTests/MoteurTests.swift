@@ -139,15 +139,16 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     #expect(await lectures.nombre == 1)
 }
 
-@Test func uneActiviteSansFluxFaitEchouerLeCalcul() async throws {
+@Test func uneActiviteSansFluxEstEcarteeSansBloquerLaVue() async throws {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }
-    let moteur = Moteur(stockage: Stockage(racine: dossier), lireFlux: { _ in nil })
-    try await moteur.ajouterOuMettreAJour(activites: [activite("sans-flux", "2026-09-01")])
+    let moteur = Moteur(stockage: Stockage(racine: dossier), lireFlux: { cle in cle == "sans-flux" ? nil : fluxSynthetique() })
+    try await moteur.ajouterOuMettreAJour(activites: [activite("sans-flux", "2026-09-01"), activite("a", "2026-09-02")])
 
-    await #expect(throws: FluxAbsent.self) {
-        _ = try await moteur.recalculer(J: J, derniereSynchro: nil)
-    }
+    let vue = try await moteur.recalculer(J: J, derniereSynchro: nil)
+
+    #expect(vue.seances.map(\.cleSource) == ["a"])
+    #expect(await moteur.ecartees == [EcartIntrinseque(cleSource: "sans-flux", detail: "flux absent")])
 }
 
 @Test func ajouterOuMettreAJourRemplaceLaMemeCleSource() async throws {
@@ -249,4 +250,91 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     let redemarre = Moteur(stockage: Stockage(racine: dossier), lireFlux: lecteur(Lectures()))
     let vue = try await redemarre.recalculer(J: J, derniereSynchro: nil)
     #expect(vue.seances.map(\.cleSource) == ["b"])
+}
+
+// MARK: - Lecture paresseuse et états illisibles
+
+@Test func unLotMemoriseEvitLaLectureDesFluxAuRecalcul() async throws {
+    // Import par lots : `memoriser` calcule l'étape ②a pendant l'import ; le recalcul ne relit alors aucun flux.
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (moteur, lectures) = moteurNeuf(dossier)
+    let brute = try ConstructeurSeance().brute()
+    let pivot = try #require(try adapterSeance(brute, decalageAppareil_min: 120))
+    try await moteur.ajouterOuMettreAJour(activites: [PivotSansFlux(pivot)])
+    try await moteur.memoriser([pivot])
+
+    let vue = try await moteur.recalculer(J: J, derniereSynchro: nil)
+
+    #expect(vue.seances.map(\.cleSource) == [pivot.cleSource])
+    #expect(await lectures.nombre == 0)
+}
+
+@Test func uneLectureImpossibleNEcraseRienEtSeRefaitPlusTard() async throws {
+    // Fichier présent mais illisible (accès refusé, téléphone verrouillé) : l'écriture échoue, sans écraser les activités.
+    let dossier = try dossierTemporaire()
+    defer {
+        try? FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: dossier.appendingPathComponent("activites.json").path)
+        try? FileManager.default.removeItem(at: dossier)
+    }
+    let stockage = Stockage(racine: dossier)
+    try stockage.ecrireActivites([activite("ancienne", "2026-09-01")])
+    try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: dossier.appendingPathComponent("activites.json").path)
+    let moteur = Moteur(stockage: stockage, lireFlux: { _ in fluxSynthetique() })
+
+    var echoue = false
+    do {
+        try await moteur.ajouterOuMettreAJour(activites: [activite("nouvelle", "2026-09-02")])
+    } catch {
+        echoue = true
+    }
+    #expect(echoue)
+
+    try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: dossier.appendingPathComponent("activites.json").path)
+    #expect(try stockage.lireActivites() == .valeur([activite("ancienne", "2026-09-01")]))
+    #expect(try await moteur.clesActivites() == ["ancienne"])
+}
+
+@Test func activitesIllisiblesSontSignaleesSansEcraserLeFichier() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    try FileManager.default.createDirectory(at: dossier, withIntermediateDirectories: true)
+    try Data("}{".utf8).write(to: dossier.appendingPathComponent("activites.json"))
+    let moteur = Moteur(stockage: Stockage(racine: dossier), lireFlux: { _ in fluxSynthetique() })
+
+    #expect(try await moteur.activitesIllisibles())
+    #expect(try await moteur.clesActivites().isEmpty)
+}
+
+/// Relais d'un test : le moteur qu'une lecture de flux doit modifier, une seule fois.
+private actor Relais {
+    private var moteur: Moteur?
+    private var dejaFait = false
+    func definir(_ moteur: Moteur) { self.moteur = moteur }
+    func premierePassage() -> Moteur? {
+        guard !dejaFait else { return nil }
+        dejaFait = true
+        return moteur
+    }
+}
+
+@Test func uneModificationPendantLeCalculRelanceLeCalcul() async throws {
+    // Une activité ajoutée pendant la lecture d'un flux rend le calcul périmé : il est refait, et la Vue finale
+    // contient les deux activités, sans qu'une Vue périmée ne soit renvoyée.
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let relais = Relais()
+    let moteur = Moteur(stockage: Stockage(racine: dossier), lireFlux: { _ in
+        if let autre = await relais.premierePassage() {
+            try await autre.ajouterOuMettreAJour(activites: [activite("b", "2026-09-02")])
+        }
+        return fluxSynthetique()
+    })
+    await relais.definir(moteur)
+    try await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01")])
+
+    let vue = try await moteur.recalculer(J: J, derniereSynchro: nil)
+
+    #expect(vue.seances.map(\.cleSource).sorted() == ["a", "b"])
+    #expect(await moteur.charger() == vue)
 }

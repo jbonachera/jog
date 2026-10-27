@@ -176,7 +176,7 @@ private func sourceNiveau(_ vue: Vue) throws -> TypeSourceNiveau? {
 
     #expect(vue == avant)
     // Le marquage reste stocké : il s'appliquera si l'activité revient.
-    #expect(Stockage(racine: dossier).lireMarquages() == ["fantome": .course])
+    #expect(try Stockage(racine: dossier).lireMarquages() == .valeur(["fantome": .course]))
 }
 
 @Test func laCleDeMemorisationChangeAvecLeMarquage() throws {

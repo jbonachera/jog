@@ -10,7 +10,7 @@ private let PAS_ETIQUETTE = 5
 
 /// La semaine en cours n'entre jamais dans la sélection (03, C2 : « semaines terminées »). Si l'historique
 /// compte moins de 26 semaines terminées, la série est plus courte.
-func selectionMinutesSS(_ vue: Vue) -> SelectionMinutesSS {
+public func selectionMinutesSS(_ vue: Vue) -> SelectionMinutesSS {
     let terminees = vue.semaines.filter { $0.statut == .terminee }
 
     let semaines = terminees.suffix(SEMAINES_AFFICHEES).map { s in
