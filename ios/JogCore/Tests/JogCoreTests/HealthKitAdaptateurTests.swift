@@ -15,9 +15,12 @@ private func pivotDe(_ constructeur: ConstructeurSeance, decalage: Int = 120) th
     try #require(try adapterSeance(constructeur.brute(), decalageAppareil_min: decalage))
 }
 
-/// Entrainement personnalisé : échauffement de 10 min, quatre répétitions de 4 min à 170 bpm séparées de 90 s de
-/// récupération (la dernière de 89 s), retour au calme de 10 min. Chaque étape a son rang dans l'export.
-private func entrainementPersonnalise() -> ConstructeurSeance {
+/// Entrainement personnalisé : échauffement de 10 min, `nombre` étapes de travail de `duree` s à `fcTravail` bpm,
+/// séparées de `recuperation` s de récupération (la dernière de 89 s), retour au calme de 10 min. Chaque étape a son
+/// rang dans l'export.
+private func entrainementPersonnalise(
+    nombre: Int = 4, duree: Double = 240, recuperation: Double = 90, fcTravail: Double = 170
+) -> ConstructeurSeance {
     var etapes: [(cle: String, debut: Double, fin: Double, vitesse: Double, fc: Double)] = []
     var t = 0.0
     func ajouter(_ cle: String, _ duree: Double, _ vitesse: Double, _ fc: Double) {
@@ -25,9 +28,9 @@ private func entrainementPersonnalise() -> ConstructeurSeance {
         t += duree
     }
     ajouter("0.0.0", 600, 1000 / 330, 135)
-    for i in 0..<4 {
-        ajouter("1.\(i).0", 240, 1000 / 230, 170)
-        ajouter("1.\(i).1", i == 3 ? 89 : 90, 1000 / 360, 130)
+    for i in 0..<nombre {
+        ajouter("1.\(i).0", duree, 1000 / 230, fcTravail)
+        ajouter("1.\(i).1", i == nombre - 1 ? 89 : recuperation, 1000 / 360, 130)
     }
     ajouter("2.0.0", 600, 1000 / 330, 135)
 
@@ -210,6 +213,102 @@ private func entrainementPersonnalise() -> ConstructeurSeance {
     #expect(pivot.tours.filter { $0.declenchement == .manuel }.isEmpty)
 }
 
+@Test func recuperationsDe6Min48EntreEtapesDeTravailDonnentQuatreRepetitions() throws {
+    // Écart 07 règle 2 levé : travail « actif », récupération « recuperation », travail « actif ».
+    let seance = try calculerSeanceIntrinseque(
+        try pivotDe(entrainementPersonnalise(duree: 360, recuperation: 408)), parametresHK
+    )
+    #expect(seance.repetitions.count == 4)
+    #expect(seance.format == "4×6′")
+    #expect(seance.recup_s == 408)
+}
+
+@Test func laDerniereRecuperationDe89SNeChangeRien() throws {
+    // La seule récupération de 89 s sépare la quatrième étape de travail du retour : elle n'entre pas dans la série.
+    let avec = try calculerSeanceIntrinseque(try pivotDe(entrainementPersonnalise(duree: 360, recuperation: 408)), parametresHK)
+    let sansRetourDeTravail = try calculerSeanceIntrinseque(
+        try pivotDe(entrainementPersonnalise(nombre: 4, duree: 360, recuperation: 408)), parametresHK
+    )
+    #expect(avec.repetitions.count == 4)
+    #expect(avec.repetitions.map(\.duree_s) == sansRetourDeTravail.repetitions.map(\.duree_s))
+    #expect(avec.repetitions.allSatisfy { $0.duree_s == 360 })
+}
+
+@Test func lesFiltresDeDureeEtDeFcRestentAppliquesAuxEtapesDeTravail() throws {
+    // Étapes de travail trop courtes (100 s), ou à 140 bpm (sous 155) : aucune répétition.
+    let courtes = try calculerSeanceIntrinseque(try pivotDe(entrainementPersonnalise(duree: 100, recuperation: 408)), parametresHK)
+    let sansFc = try calculerSeanceIntrinseque(try pivotDe(entrainementPersonnalise(duree: 360, recuperation: 408, fcTravail: 140)), parametresHK)
+    #expect(courtes.repetitions.isEmpty)
+    #expect(sansFc.repetitions.isEmpty)
+}
+
+/// Tours manuels (type 3) de 6 min à 170 bpm, séparés de `ecart` s à 130 bpm, sans étape ni intensité : une séance
+/// « sans intensité explicite », comme un export FIT.
+private func toursManuels(ecart: Double, nombre: Int = 4) -> ConstructeurSeance {
+    var c = ConstructeurSeance()
+    var t = 300.0
+    var travaux: [(debut: Double, fin: Double)] = []
+    for _ in 0..<nombre {
+        travaux.append((debut: t, fin: t + 360))
+        t += 360 + ecart
+    }
+    let total = t + 300
+    c.dureeEcoulee = total
+    c.tours = travaux
+    c.fc = stride(from: 0.0, to: total, by: 5).map { seconde in
+        (t: seconde, bpm: travaux.contains { seconde >= $0.debut && seconde < $0.fin } ? 170 : 130)
+    }
+    c.distances = echantillonsTroncon(debut: 0, fin: total, vitesse: 3, fc: nil).distances
+    return c
+}
+
+@Test func sansIntensiteExpliciteLAncienneRegleDEcartSApplique() throws {
+    // Mêmes tours de 6 min : séparés de 6 min 48, ils ne forment aucune série ; séparés de 90 s, quatre répétitions.
+    let ecartLong = try calculerSeanceIntrinseque(try pivotDe(toursManuels(ecart: 408)), parametresHK)
+    let ecartCourt = try calculerSeanceIntrinseque(try pivotDe(toursManuels(ecart: 90)), parametresHK)
+    #expect(ecartLong.repetitions.isEmpty)
+    #expect(ecartLong.format == nil)
+    #expect(ecartCourt.repetitions.count == 4)
+    #expect(ecartCourt.format == "4×6′")
+}
+
+@Test func footingAuxSegmentsDeKmAvecIntensitesDeTravailNADAucuneRepetition() throws {
+    // Footing à 170 bpm (la FC passerait le seuil) : les segments de km ne sont pas des tours de travail, même alternés
+    // « actif » et « recuperation ». La règle de récupération non plafonnée ne les touche pas.
+    var c = ConstructeurSeance()
+    c.dureeEcoulee = 2400
+    c.fc = echantillonsTroncon(debut: 0, fin: 2400, vitesse: 1000.0 / 330, fc: 170).fc
+    c.distances = echantillonsTroncon(debut: 0, fin: 2400, vitesse: 1000.0 / 330, fc: nil).distances
+    for k in 1...7 {
+        c.segments.append((Double(k - 1) * 330, Double(k) * 330))
+    }
+    var pivot = try pivotDe(c)
+    pivot.tours = pivot.tours.enumerated().map { indice, tour in
+        var entre = tour
+        entre.intensite = indice % 2 == 0 ? .actif : .recuperation
+        return entre
+    }
+    #expect(pivot.tours.count == 7)
+    #expect(try calculerSeanceIntrinseque(pivot, parametresHK).repetitions.isEmpty)
+}
+
+@Test func unResumeSeulDonneLaDistanceSansEchantillonFin() throws {
+    // Repli : aucun échantillon fin, le résumé compte entièrement.
+    var c = ConstructeurSeance()
+    c.dureeEcoulee = 600
+    c.distances = [(0, 600, 1800)]
+    #expect(abs(try pivotDe(c).distance_m - 1800) < 1e-6)
+}
+
+@Test func unEchantillonDeDixHuitSecondesEstFinEtLeResumeEstIgnore() throws {
+    // Le seuil des fins est 30 s : un échantillon de 18 s (près d'une pause, sur l'export) compte comme fin, et le
+    // résumé qui le recouvre ne s'ajoute pas.
+    var c = ConstructeurSeance()
+    c.dureeEcoulee = 600
+    c.distances = [(0, 18, 54), (0, 600, 1800)]
+    #expect(abs(try pivotDe(c).distance_m - 54) < 1e-6)
+}
+
 @Test func lesToursManuelsSontIgnoresQuandLesEtapesExistent() throws {
     // Avec des étapes, les tours manuels (type 3) ne servent pas : ils feraient double emploi avec les étapes.
     var c = entrainementPersonnalise()
@@ -334,4 +433,16 @@ private func entrainementPersonnalise() -> ConstructeurSeance {
     let pivot = try pivotDe(c)
     #expect(pivot.flux.fc_bpm == nil)
     #expect(pivot.distance_m == 0)
+}
+
+@Test func lesPassagesAutomatiquesNeCassentPasLEnchainementDUnEntrainementStructure() throws {
+    // Constat sur un vrai export : les segments au km, intercalés dans l'ordre des tours, cassaient la suite
+    // travail, récupération, travail. Un entraînement structuré n'a que ses étapes pour tours.
+    var c = entrainementPersonnalise(duree: 360, recuperation: 408)
+    for k in 1...13 { c.segments.append((Double(k - 1) * 330, Double(k) * 330)) }
+    let pivot = try pivotDe(c)
+    #expect(pivot.tours.allSatisfy { $0.intensite != nil })
+    let seance = try calculerSeanceIntrinseque(pivot, parametresHK)
+    #expect(seance.repetitions.count == 4)
+    #expect(seance.format == "4×6′")
 }

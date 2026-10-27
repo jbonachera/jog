@@ -55,7 +55,7 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }
     let (moteur, _) = moteurNeuf(dossier)
-    await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01"), activite("b", "2026-09-02")])
+    try await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01"), activite("b", "2026-09-02")])
 
     let vue = try await moteur.recalculer(J: J, derniereSynchro: "2026-09-10T08:00:00Z")
 
@@ -77,7 +77,7 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }
     let (moteur, lectures) = moteurNeuf(dossier)
-    await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01"), activite("b", "2026-09-02")])
+    try await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01"), activite("b", "2026-09-02")])
 
     let premiere = try await moteur.recalculer(J: J, derniereSynchro: nil)
     #expect(await lectures.nombre == 2)
@@ -91,7 +91,7 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }
     let (moteur, lectures) = moteurNeuf(dossier)
-    await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01"), activite("b", "2026-09-02")])
+    try await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01"), activite("b", "2026-09-02")])
     _ = try await moteur.recalculer(J: J, derniereSynchro: nil)
 
     // hrMax entre dans la clé de mémorisation : les deux séances sont relues.
@@ -109,7 +109,7 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }
     let (moteur, lectures) = moteurNeuf(dossier)
-    await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01")])
+    try await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01")])
     _ = try await moteur.recalculer(J: J, derniereSynchro: nil)
 
     // refHr sert à ⑤, pas à ②a : aucune séance n'est relue.
@@ -126,7 +126,7 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }
     let (moteur, lectures) = moteurNeuf(dossier)
-    await moteur.ajouterOuMettreAJour(activites: [
+    try await moteur.ajouterOuMettreAJour(activites: [
         activite("hier", "2026-09-09"), activite("aujourdhui", J),
     ])
 
@@ -143,7 +143,7 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }
     let moteur = Moteur(stockage: Stockage(racine: dossier), lireFlux: { _ in nil })
-    await moteur.ajouterOuMettreAJour(activites: [activite("sans-flux", "2026-09-01")])
+    try await moteur.ajouterOuMettreAJour(activites: [activite("sans-flux", "2026-09-01")])
 
     await #expect(throws: FluxAbsent.self) {
         _ = try await moteur.recalculer(J: J, derniereSynchro: nil)
@@ -154,8 +154,8 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }
     let (moteur, _) = moteurNeuf(dossier)
-    await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01")])
-    await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-02"), activite("b", "2026-09-03")])
+    try await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01")])
+    try await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-02"), activite("b", "2026-09-03")])
 
     let vue = try await moteur.recalculer(J: "2026-09-10", derniereSynchro: nil)
 
@@ -167,7 +167,7 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }
     let (moteur, _) = moteurNeuf(dossier)
-    await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01")])
+    try await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01")])
     let flux = await moteur.vues()
 
     let vue = try await moteur.recalculer(J: J, derniereSynchro: nil)
@@ -180,7 +180,7 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }
     let (moteur, _) = moteurNeuf(dossier)
-    await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01")])
+    try await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01")])
     _ = try await moteur.recalculer(J: J, derniereSynchro: nil)
 
     try await moteur.supprimerTout()
@@ -217,4 +217,36 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     // Los Angeles, heure d'été pacifique : minuit local est 7 h UTC.
     #expect(moteur.prochainChangementDeJour(après: instant("2026-10-21T12:00:00Z"), fuseau: fuseau("America/Los_Angeles"))
         == instant("2026-10-22T07:00:00Z"))
+}
+
+// MARK: - Activités persistées
+
+@Test func activitesEtVueSurviventAuRedemarrage() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (moteur, _) = moteurNeuf(dossier)
+    try await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01"), activite("b", "2026-09-02")])
+    let vue = try await moteur.recalculer(J: J, derniereSynchro: "2026-09-10T08:00:00Z")
+
+    // Un nouveau moteur sur le même dossier, sans synchro : mêmes activités, même Vue, aucune lecture de flux.
+    let lectures = Lectures()
+    let redemarre = Moteur(stockage: Stockage(racine: dossier), lireFlux: lecteur(lectures))
+    let revue = try await redemarre.recalculer(J: J, derniereSynchro: "2026-09-10T08:00:00Z")
+
+    #expect(revue == vue)
+    #expect(revue.seances.map(\.cleSource).sorted() == ["a", "b"])
+    #expect(await lectures.nombre == 0)
+}
+
+@Test func retirerEnleveLesActivitesDurablement() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (moteur, _) = moteurNeuf(dossier)
+    try await moteur.ajouterOuMettreAJour(activites: [activite("a", "2026-09-01"), activite("b", "2026-09-02")])
+
+    try await moteur.retirer(cles: ["a", "inconnue"])
+
+    let redemarre = Moteur(stockage: Stockage(racine: dossier), lireFlux: lecteur(Lectures()))
+    let vue = try await redemarre.recalculer(J: J, derniereSynchro: nil)
+    #expect(vue.seances.map(\.cleSource) == ["b"])
 }

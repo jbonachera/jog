@@ -17,7 +17,9 @@ private let EVENEMENT_REPRISE = 2
 private let EVENEMENT_TOUR = 3
 private let EVENEMENT_SEGMENT = 7
 /// Un échantillon de distance d'au plus ce temps est « fin » ; au-delà, c'est un résumé qui recouvre des fins.
-private let DUREE_ECHANTILLON_FIN_MAX_S = 10.0
+/// Sur l'export réel, les fins durent 2,5 s (jusqu'à 18 s près des pauses), les résumés environ 600 s (le plus court
+/// observé : 208 s). Tout seuil entre 18 et 200 s les sépare ; 30 s laisse une marge.
+private let DUREE_ECHANTILLON_FIN_MAX_S = 30.0
 /// Bornes de plausibilité de la FC, en bpm (contrats.md, D5).
 private let FC_MIN_PLAUSIBLE = 30.0
 private let FC_MAX_PLAUSIBLE = 250.0
@@ -218,9 +220,11 @@ private struct IntervalleMetres {
 /// Intervalles de distance sans double comptage, dans la séance (ADR 0003, D-013).
 ///
 /// 1. Chaque échantillon est rogné sur [0, W] au prorata de sa durée : le premier peut déborder avant le début.
-/// 2. Les échantillons fins (quelques secondes) font foi. Chacun est rogné sur le précédent : pas de chevauchement.
-/// 3. Un résumé (plusieurs minutes) ne compte que pour la part de son intervalle que les fins ne couvrent pas.
-///    Sur l'export réel, les résumés doublent les fins : sans cette règle, la distance vaut le double du total.
+/// 2. Seuls les échantillons fins (au plus `DUREE_ECHANTILLON_FIN_MAX_S`) comptent. Chacun est rogné sur le précédent :
+///    pas de chevauchement. Ils donnent le total HealthKit à moins de 0,5 % sur les trois exports Exercice.
+/// 3. Les résumés (plusieurs minutes) ne servent qu'en repli, quand la séance n'a AUCUN échantillon fin. Ils recouvrent
+///    alors les fins absentes, sans chevauchement entre eux. Sur l'export réel, ils doublent les fins : les compter
+///    en plus donnait 0,7 à 2,3 % de trop.
 private func intervallesDistance(_ echantillons: [(debut: Double, fin: Double, metres: Double)], W: Double) -> [IntervalleMetres] {
     var rognes: [IntervalleMetres] = []
     for echantillon in echantillons where echantillon.metres.isFinite && echantillon.metres >= 0 {
@@ -255,6 +259,8 @@ private func intervallesDistance(_ echantillons: [(debut: Double, fin: Double, m
         curseur = max(curseur, fine.fin)
     }
 
+    // Repli : sans échantillon fin, les résumés donnent la distance (ils ne se doublent pas entre eux, grâce à `couverts`).
+    guard fins.isEmpty else { return nets.sorted { ($0.debut, $0.fin) < ($1.debut, $1.fin) } }
     let resumes = rognes
         .filter { $0.fin - $0.debut > DUREE_ECHANTILLON_FIN_MAX_S }
         .sorted { $0.debut < $1.debut }
@@ -358,13 +364,16 @@ private func empreinte(_ brute: SeanceBrute) -> String {
 /// - Segments (type 7) : passages automatiques au km ou au mile. Déclenchement « distance », jamais de travail.
 private func tours(_ brute: SeanceBrute, grille: Grille, relatif: (Date) -> Double) -> [Tour] {
     var tours: [Tour] = []
-    for evenement in brute.workoutEvents ?? [] where evenement.type == EVENEMENT_SEGMENT {
-        if let plage = grille.plage(relatif(evenement.debut), relatif(evenement.fin)) {
-            tours.append(Tour(iDebut: plage.lowerBound, iFin: plage.upperBound, declenchement: .distance))
+    let etapes = etapesDeLEntrainement(brute, relatif: relatif)
+    // Un entraînement structuré n'a que ses étapes pour tours : les passages automatiques s'intercaleraient dans leur
+    // ordre et casseraient l'enchaînement travail, récupération, travail.
+    if etapes.isEmpty {
+        for evenement in brute.workoutEvents ?? [] where evenement.type == EVENEMENT_SEGMENT {
+            if let plage = grille.plage(relatif(evenement.debut), relatif(evenement.fin)) {
+                tours.append(Tour(iDebut: plage.lowerBound, iFin: plage.upperBound, declenchement: .distance))
+            }
         }
     }
-
-    let etapes = etapesDeLEntrainement(brute, relatif: relatif)
     if !etapes.isEmpty {
         for (etape, intensite) in zip(etapes, roles(des: etapes)) {
             if let plage = grille.plage(etape.debut, etape.fin) {

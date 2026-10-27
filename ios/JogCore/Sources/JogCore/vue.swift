@@ -19,7 +19,7 @@ private let DECISION_VIDE = Decision(verdict: .aucun, phrase: "", signaux: [], f
 private let SEPARATEUR_CHAMPS = "\u{1F}"
 
 /// Une activité sans son flux : ce que le Worker lit dans la base, sans les échantillons (`Omit<ActivitePivot, 'flux'>`).
-public struct PivotSansFlux: Sendable, Equatable {
+public struct PivotSansFlux: Codable, Sendable, Equatable {
     public var cleSource: String
     public var source: Source
     public var versionAdaptateur: String

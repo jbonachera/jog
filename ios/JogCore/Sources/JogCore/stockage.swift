@@ -98,9 +98,27 @@ public struct Stockage: Sendable {
         try ecrire(marquages, "marquages.json")
     }
 
+    // MARK: - Activités sans flux (migration-ios, « Stockage » ; le moteur les relit au lancement)
+
+    /// `activites.json` : les activités connues, sans leurs flux. Vide si absent ou illisible.
+    public func lireActivites() -> [PivotSansFlux] {
+        lire([PivotSansFlux].self, "activites.json") ?? []
+    }
+
+    public func ecrireActivites(_ activites: [PivotSansFlux]) throws {
+        try ecrire(activites, "activites.json")
+    }
+
+    /// Supprime `activites.json` s'il existe.
+    public func supprimerActivites() throws {
+        let fichier = racine.appendingPathComponent("activites.json")
+        guard FileManager.default.fileExists(atPath: fichier.path) else { return }
+        try FileManager.default.removeItem(at: fichier)
+    }
+
     // MARK: - Suppression (D-016)
 
-    /// Supprime tout le dossier : paramètres, séances, ancre, vue et marquages.
+    /// Supprime tout le dossier : paramètres, séances, activités, ancre, vue et marquages.
     public func supprimerTout() throws {
         guard FileManager.default.fileExists(atPath: racine.path) else { return }
         try FileManager.default.removeItem(at: racine)

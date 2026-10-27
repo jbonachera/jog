@@ -11,7 +11,7 @@ public actor Moteur {
     private let lireFlux: LectureFlux
     private var parametres: Parametres
     private var memoire: MemoireSeances
-    /// Activités sans flux, connues depuis la dernière synchronisation. Non persistées (voir le journal de migration).
+    /// Activités sans flux connues, persistées dans `activites.json` à chaque changement.
     private var activites: [PivotSansFlux] = []
     private var abonnes: [UUID: AsyncStream<Vue>.Continuation] = [:]
     /// Incrémenté à chaque changement d'entrée. Un calcul plus ancien que le dernier ne persiste pas sa Vue.
@@ -22,6 +22,7 @@ public actor Moteur {
         self.lireFlux = lireFlux
         self.parametres = stockage.lireParametres()
         self.memoire = stockage.lireMemoire()
+        self.activites = stockage.lireActivites()
     }
 
     /// La dernière Vue persistée, pour un affichage instantané au lancement. nil avant le premier calcul.
@@ -71,20 +72,33 @@ public actor Moteur {
         generation += 1
     }
 
-    /// Ajoute les activités sans flux, ou remplace celles qui ont la même clé source.
-    public func ajouterOuMettreAJour(activites nouvelles: [PivotSansFlux]) {
+    /// Ajoute les activités sans flux, ou remplace celles qui ont la même clé source. Persiste la liste.
+    public func ajouterOuMettreAJour(activites nouvelles: [PivotSansFlux]) throws {
+        var resultat = activites
         var positions: [String: Int] = [:]
-        for (indice, activite) in activites.enumerated() {
+        for (indice, activite) in resultat.enumerated() {
             positions[activite.cleSource] = indice
         }
         for activite in nouvelles {
             if let indice = positions[activite.cleSource] {
-                activites[indice] = activite
+                resultat[indice] = activite
             } else {
-                positions[activite.cleSource] = activites.count
-                activites.append(activite)
+                positions[activite.cleSource] = resultat.count
+                resultat.append(activite)
             }
         }
+        try stockage.ecrireActivites(resultat)
+        activites = resultat
+        generation += 1
+    }
+
+    /// Retire les activités de ces clés source (suppressions HealthKit). Persiste la liste. Sans effet si aucune ne
+    /// correspond. Les mémoires de ②a orphelines sont oubliées au prochain calcul.
+    public func retirer(cles: Set<String>) throws {
+        let restantes = activites.filter { !cles.contains($0.cleSource) }
+        guard restantes.count != activites.count else { return }
+        try stockage.ecrireActivites(restantes)
+        activites = restantes
         generation += 1
     }
 
@@ -94,7 +108,7 @@ public actor Moteur {
         let identifiant = UUID()
         abonnes[identifiant] = continuation
         continuation.onTermination = { [weak self] _ in
-            Task { await self?.retirer(identifiant) }
+            Task { await self?.retirerAbonne(identifiant) }
         }
         return flux
     }
@@ -123,7 +137,7 @@ public actor Moteur {
             ?? maintenant.addingTimeInterval(86_400)
     }
 
-    private func retirer(_ identifiant: UUID) {
+    private func retirerAbonne(_ identifiant: UUID) {
         abonnes[identifiant] = nil
     }
 

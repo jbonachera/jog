@@ -58,18 +58,37 @@ private func toursExclus(_ g: GrilleSeance, _ ordonnes: [Tour]) -> Set<Int> {
     return exclus
 }
 
+/// Candidat à une répétition, dans le chemin par les tours.
+private struct Candidat {
+    let plage: Plage
+    /// Rang du tour dans l'ordre trié (nil dans le chemin dans le flux).
+    var rang: Int?
+    /// Rang du tour de travail qui précède ce candidat, si les deux sont séparés exactement par une récupération
+    /// (« actif », « recuperation », « actif », écart 07 non plafonné). Nil sinon.
+    var liePrecedent: Int?
+}
+
 // Chemin par les tours : chaque tour de travail est un candidat, sans autre condition de forme.
 private func cheminParTours(_ g: GrilleSeance, _ tours: [Tour], _ seuilFcFin: Double) -> [[Plage]] {
     let ordonnes = toursTries(tours)
     let exclus = toursExclus(g, ordonnes)
-    var candidats: [Plage] = []
+    var candidats: [Candidat] = []
     for (k, tour) in ordonnes.enumerated() {
         if exclus.contains(k) || !estTourDeTravail(tour) { continue }
         let plage = Plage(a: Swift.max(0, tour.iDebut), b: Swift.min(g.n - 1, tour.iFin))
         if plage.b < plage.a { continue }
-        candidats.append(plage)
+        candidats.append(Candidat(plage: plage, rang: k, liePrecedent: travailRecupTravail(ordonnes, k, exclus)))
     }
-    return enSeries(g, candidats.filter { estCandidat(g, $0, seuilFcFin) })
+    return enSeries(g, candidats.filter { estCandidat(g, $0.plage, seuilFcFin) })
+}
+
+// Rang du tour de travail k-2 si les tours k-2, k-1 et k sont « actif », « recuperation », « actif » (k-2 et k non
+// exclus) : la récupération entre eux n'est pas plafonnée. Les séances sans intensité explicite n'ont jamais ce motif.
+private func travailRecupTravail(_ ordonnes: [Tour], _ k: Int, _ exclus: Set<Int>) -> Int? {
+    guard k >= 2, !exclus.contains(k), !exclus.contains(k - 2) else { return nil }
+    let avant = ordonnes[k - 2], entre = ordonnes[k - 1], courant = ordonnes[k]
+    guard avant.intensite == .actif, entre.intensite == .recuperation, courant.intensite == .actif else { return nil }
+    return k - 2
 }
 
 // Chemin dans le flux : vitesse lissée sur 10 s, allure « rapide » ≤ lt2Pace + 40 s/km, trous courts fusionnés.
@@ -101,7 +120,7 @@ private func cheminFlux(_ g: GrilleSeance, _ p: ParamsDates, _ seuilFcFin: Doubl
         }
     }
 
-    return enSeries(g, plages.filter { estCandidat(g, $0, seuilFcFin) })
+    return enSeries(g, plages.filter { estCandidat(g, $0, seuilFcFin) }.map { Candidat(plage: $0) })
 }
 
 private struct Segment {
@@ -131,21 +150,28 @@ private func estCandidat(_ g: GrilleSeance, _ r: Plage, _ seuilFcFin: Double) ->
 }
 
 // Enchaîne des candidats déjà filtrés : deux candidats consécutifs restent dans la même série si l'écart entre eux
-// est ≤ 2 min. Une série ne compte que si elle a au moins trois répétitions.
-private func enSeries(_ g: GrilleSeance, _ candidats: [Plage]) -> [[Plage]] {
+// est ≤ 2 min, ou s'ils sont reliés par une récupération « actif, recuperation, actif » (écart non plafonné, écart
+// de migration-ios, lots.md). Une série ne compte que si elle a au moins trois répétitions.
+private func enSeries(_ g: GrilleSeance, _ candidats: [Candidat]) -> [[Plage]] {
     var series: [[Plage]] = []
     var serie: [Plage] = []
-    var precedente: Plage?
+    var precedent: Candidat?
     for c in candidats {
-        if let p = precedente, ecartEntre(g, p, c) > RECUPERATION_MAX_S {
+        if let p = precedent, ecartEntre(g, p.plage, c.plage) > RECUPERATION_MAX_S, !lies(p, c) {
             series.append(serie)
             serie = []
         }
-        serie.append(c)
-        precedente = c
+        serie.append(c.plage)
+        precedent = c
     }
     if !serie.isEmpty { series.append(serie) }
     return series.filter { $0.count >= NOMBRE_MIN_REPETITIONS }
+}
+
+/// Vrai si `c` suit `p` directement par une récupération « actif, recuperation, actif » (voir `travailRecupTravail`).
+private func lies(_ p: Candidat, _ c: Candidat) -> Bool {
+    guard let rang = p.rang, let lie = c.liePrecedent else { return false }
+    return lie == rang
 }
 
 private func mettreEnForme(_ g: GrilleSeance, _ series: [[Plage]]) throws -> Repetitions {

@@ -122,3 +122,38 @@ private func enveloppe(version: Int, donnees: Parametres) throws -> Data {
 
     try stockage.supprimerTout()
 }
+
+@Test func activitesFontUnAllerRetourEtDefautVide() throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let stockage = Stockage(racine: dossier)
+    #expect(stockage.lireActivites().isEmpty)
+
+    let activites = [
+        PivotSansFlux(
+            cleSource: "hk:A", source: .healthkit, versionAdaptateur: "healthkit-1.0.0", empreinteBrute: "e1",
+            debutUtc: 1_700_000_000_000, decalageLocal_min: 120, dateLocale: "2023-11-14", duree_s: 1800, distance_m: 5000,
+            nom: nil, competition: false, sousType: .route, pasFC_s: 5,
+            tours: [Tour(iDebut: 0, iFin: 10, declenchement: .manuel, intensite: .actif)]
+        ),
+    ]
+    try stockage.ecrireActivites(activites)
+
+    #expect(stockage.lireActivites() == activites)
+}
+
+@Test func supprimerActivitesRemetLaListeAVide() throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let stockage = Stockage(racine: dossier)
+    try stockage.supprimerActivites()
+    try stockage.ecrireActivites([PivotSansFlux(
+        cleSource: "a", source: .fit, versionAdaptateur: "1.0.0", empreinteBrute: "e", debutUtc: 0, decalageLocal_min: 0,
+        dateLocale: "2026-09-01", duree_s: 600, distance_m: 3000, nom: nil, competition: false, sousType: .route,
+        pasFC_s: nil, tours: []
+    )])
+
+    try stockage.supprimerActivites()
+
+    #expect(stockage.lireActivites().isEmpty)
+}
