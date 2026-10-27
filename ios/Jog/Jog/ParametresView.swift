@@ -53,7 +53,7 @@ struct ParametresView: View {
                             retirerModification: { id in Task { await retirer(id) } },
                             utiliserPaceHrK: { valeur in brouillon.definir(.globale(.paceHrK), texteNombre(valeur)) },
                             utiliserFCMax: { suggestion in
-                                dateEffet = preremplirFCMax(suggestion, dans: &brouillon)
+                                Task { await utiliserFCMax(suggestion) }
                             }
                         )
                     )
@@ -167,6 +167,25 @@ struct ParametresView: View {
         }
     }
 
+    /// « Utiliser » : enregistre la FC max observée, datée de la séance, sans toucher au formulaire en cours. L'annonce
+    /// VoiceOver suit la zone de statut.
+    private func utiliserFCMax(_ suggestion: SuggestionHrMax) async {
+        enregistrement = true
+        erreur = nil
+        statut = nil
+        defer { enregistrement = false }
+        do {
+            base = try await modele.utiliserFCMax(suggestion)
+            let message = "FC max enregistrée : \(Int(suggestion.bpm)) bpm à partir du \(formatDate(suggestion.date)). "
+                + "Tableau de bord recalculé."
+            statut = message
+            AccessibilityNotification.Announcement(message).post()
+            etat = await modele.etatDonnees()
+        } catch {
+            erreur = error.localizedDescription
+        }
+    }
+
     private func retirer(_ id: String) async {
         guard let base else { return }
         let nouveaux = sansModification(id, de: base)
@@ -188,6 +207,7 @@ struct ParametresView: View {
             fermer()
         } catch {
             erreur = error.localizedDescription
+            etat = await modele.etatDonnees()
         }
     }
 }

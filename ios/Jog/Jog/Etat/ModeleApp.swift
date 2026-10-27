@@ -151,47 +151,79 @@ final class ModeleApp {
     /// Enregistre l'ensemble des paramètres, puis recalcule. Le calcul se fait hors du fil principal, dans la file.
     /// Si le recalcul échoue, les paramètres précédents sont rétablis et l'erreur est levée.
     func enregistrerParametres(_ nouveaux: Parametres) async throws {
-        guard let services else { throw ErreurParametres.indisponible }
-        let anciens = try await services.moteur.lireParametres()
-        var erreur: ErreurParametres?
-        await enfiler { [self] in
-            do {
-                try await services.moteur.modifierParametres(nouveaux)
-            } catch {
-                erreur = .ecriture(error.localizedDescription)
-                return
-            }
-            do {
-                let J = services.moteur.jourCourant(maintenant: Date(), fuseau: .current)
-                let vue = try await services.moteur.recalculer(J: J, derniereSynchro: derniereSynchro)
-                if case .erreur(let message, _) = etat {
-                    etat = .erreur(message: message, vue: vue)
-                } else {
-                    recevoir(vue)
-                }
-            } catch {
-                erreur = .recalcul
-                try? await services.moteur.modifierParametres(anciens)
-            }
-        }.value
-        if let erreur { throw erreur }
+        _ = try await enregistrer { _ in nouveaux }
     }
 
-    /// Compteurs de l'état des données (D-017, adapté) : versions, séances importées, écartées, ignorées, synchro.
+    /// « Utiliser » (D-019, ADR 0013) : ajoute une modification de FC max, datée de la séance, aux paramètres stockés,
+    /// puis recalcule. Le formulaire en cours n'est pas repris. Rend les paramètres enregistrés.
+    func utiliserFCMax(_ suggestion: SuggestionHrMax) async throws -> Parametres {
+        let instant = Date().formatted(Date.ISO8601FormatStyle())
+        return try await enregistrer { base in
+            ajouterFCMaxObservee(suggestion, base: base, enregistreLe: instant)
+        }
+    }
+
+    /// Lit les paramètres stockés DANS la file (et non avant : une autre écriture peut précéder), leur applique
+    /// `modifier`, les valide, les enregistre puis recalcule. Si le recalcul échoue, les paramètres lus sont rétablis ;
+    /// si ce rétablissement échoue aussi, son erreur est levée à la place de « précédents conservés ».
+    private func enregistrer(_ modifier: @escaping (Parametres) -> Parametres) async throws -> Parametres {
+        guard let services else { throw ErreurParametres.indisponible }
+        var issue: Result<Parametres, ErreurParametres> = .failure(.indisponible)
+        await enfiler { [self] in
+            do {
+                let anciens = try await services.moteur.lireParametres()
+                let nouveaux = modifier(anciens)
+                let J = services.moteur.jourCourant(maintenant: Date(), fuseau: .current)
+                if case let .echec(_, message) = validerParametres(nouveaux, J) {
+                    throw ErreurParametres.ecriture(message)
+                }
+                try await services.moteur.modifierParametres(nouveaux)
+                do {
+                    let vue = try await services.moteur.recalculer(J: J, derniereSynchro: derniereSynchro)
+                    if case .erreur(let message, _) = etat {
+                        etat = .erreur(message: message, vue: vue)
+                    } else {
+                        recevoir(vue)
+                    }
+                    issue = .success(nouveaux)
+                } catch {
+                    do {
+                        try await services.moteur.modifierParametres(anciens)
+                    } catch {
+                        throw ErreurParametres.ecriture(
+                            "les paramètres précédents n’ont pas pu être rétablis (\(error.localizedDescription))"
+                        )
+                    }
+                    throw ErreurParametres.recalcul
+                }
+            } catch let erreur as ErreurParametres {
+                issue = .failure(erreur)
+            } catch {
+                issue = .failure(.ecriture(error.localizedDescription))
+            }
+        }.value
+        return try issue.get()
+    }
+
+    /// Compteurs de l'état des données (D-017, adapté) : versions, séances importées, écartées, ignorées, synchro. Les
+    /// doublons du moteur comptent parmi les ignorées ; ils ne sont pas des séances importées.
     func etatDonnees() async -> EtatDonnees? {
         guard let services else { return nil }
-        let importees = (try? await services.moteur.nombreActivites()) ?? 0
+        let stockees = (try? await services.moteur.nombreActivites()) ?? 0
+        let doublons = await services.moteur.doublons
         let ecartees = await services.moteur.ecartees.count
         let ignorees = await services.synchro.ignorees.values.map(\.raison)
         let echecs = await services.synchro.echecs.count
         return EtatDonnees(
-            reglesVersion: REGLES_VERSION, seancesImportees: importees, ecartees: ecartees, raisonsIgnorees: ignorees,
-            echecs: echecs, derniereSynchro: derniereSynchro
+            reglesVersion: REGLES_VERSION, seancesImportees: max(0, stockees - doublons.count), ecartees: ecartees,
+            raisonsIgnorees: ignorees + doublons.map(\.raison), echecs: echecs, derniereSynchro: derniereSynchro
         )
     }
 
-    /// « Supprimer toutes mes données » (D-016) : efface le stockage (paramètres, séances, marquages, ancre, Vue), les
-    /// préférences de l'app, puis ramène à l'écran d'accueil. Les données Santé d'Apple ne sont pas touchées.
+    /// « Supprimer toutes mes données » (D-016) : efface le stockage (paramètres, séances, marquages, ancre, Vue), arrête
+    /// la livraison en arrière-plan, oublie les séances écartées en mémoire, retire les préférences de l'app, puis
+    /// ramène à l'écran d'accueil. Les données Santé d'Apple ne sont pas touchées. En cas d'échec, la Vue est recalculée
+    /// à partir de ce qui reste sur le disque, et l'erreur est levée.
     func supprimerToutesLesDonnees() async throws {
         guard let services else { throw ErreurParametres.indisponible }
         var erreur: Error?
@@ -202,12 +234,18 @@ final class ModeleApp {
                 erreur = error
                 return
             }
+            // Un échec d'arrêt n'empêche pas la suppression : sans autorisation, la synchronisation ne réimporte rien.
+            try? await services.lecteur.arreterLivraisonEnArrierePlan()
+            await services.synchro.reinitialiser()
             UserDefaults.standard.removeObject(forKey: CLE_AUTORISATION_DEMANDEE)
             UserDefaults.standard.removeObject(forKey: CLE_HRMAX_IGNOREE)
             derniereSynchro = nil
             etat = .premiereOuverture
         }.value
-        if let erreur { throw ErreurParametres.ecriture(erreur.localizedDescription) }
+        if let erreur {
+            await recalculerJour()
+            throw ErreurParametres.suppression(erreur.localizedDescription)
+        }
     }
 
     // MARK: - Synchronisation et recalcul
@@ -216,7 +254,7 @@ final class ModeleApp {
     /// en cours la relance une fois à la fin, et attend cette fin : l'appelant (la livraison en arrière-plan) ne rend
     /// la main à iOS qu'une fois toutes les séances traitées.
     private func synchroniser() async {
-        guard let services else { return }
+        guard let services, autorisationDemandee else { return }
         if let tache = synchroTache {
             aRelancer = true
             await tache.value
@@ -225,6 +263,8 @@ final class ModeleApp {
         let tache = enfiler { [self] in
             defer { synchroTache = nil }
             repeat {
+                // Revérifié dans la file : une suppression survenue entre-temps a retiré l'autorisation.
+                guard autorisationDemandee else { return }
                 aRelancer = false
                 progressionRecue = 0
                 do {

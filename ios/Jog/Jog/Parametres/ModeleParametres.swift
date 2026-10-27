@@ -95,10 +95,28 @@ func texteNombre(_ valeur: Double) -> String {
     return String(valeur).replacingOccurrences(of: ".", with: ",")
 }
 
-/// Lit un nombre tapé (virgule ou point). NaN si le texte n'est pas un nombre : la validation le signale (06).
+/// Espaces tolérées dans un nombre tapé : séparateurs de milliers, espaces fines et insécables comprises.
+private let ESPACES_NOMBRE: Set<Character> = [" ", "\u{00A0}", "\u{202F}", "\u{2009}"]
+/// Caractères d'un nombre tapé : chiffres, signe, virgule ou point. Rien d'autre (ni « 0x », ni « e », ni « inf »).
+private let CARACTERES_NOMBRE: Set<Character> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", ",", "."]
+
+/// Lit un nombre tapé, en virgule ou en point. NaN si la saisie n'est pas un nombre décimal : un caractère hors de
+/// `CARACTERES_NOMBRE`, un signe ailleurs qu'en tête, plus d'un séparateur décimal, ou aucun chiffre. La validation
+/// signale alors le champ comme manquant ou invalide (06, règle 1).
 func lireNombre(_ texte: String) -> Double {
-    let propre = texte.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: ".")
-    return Double(propre) ?? .nan
+    var propre = ""
+    for caractere in texte where !ESPACES_NOMBRE.contains(caractere) {
+        guard CARACTERES_NOMBRE.contains(caractere) else { return .nan }
+        propre.append(caractere)
+    }
+    var corps = Substring(propre)
+    if let signe = corps.first, signe == "+" || signe == "-" {
+        corps = corps.dropFirst()
+    }
+    let separateurs = corps.filter { $0 == "," || $0 == "." }.count
+    let chiffres = corps.count - separateurs
+    guard separateurs <= 1, chiffres > 0, !corps.contains("+"), !corps.contains("-") else { return .nan }
+    return Double(propre.replacingOccurrences(of: ",", with: ".")) ?? .nan
 }
 
 /// Allure au seuil tapée en m:ss (« 4:02 ») : secondes par km, ou nil si le format n'est pas m:ss (06).
@@ -168,22 +186,29 @@ struct Verification: Equatable, Sendable {
 
 /// Construit les paramètres à enregistrer à partir du brouillon, puis les valide à la date J (JogCore).
 /// Une modification n'est ajoutée que pour un paramètre daté dont la valeur diffère de celle en vigueur à J (D-006) ;
-/// les paramètres globaux remplacent les précédents, sans historique.
+/// les paramètres globaux remplacent les précédents, sans historique. L'ordre des contrôles suit 06 : d'abord la
+/// présence de tous les champs (règle 1), puis le format de l'allure au seuil, puis le reste (JogCore).
 func verifierSaisie(
     _ brouillon: Brouillon, base: Parametres, dateEffet: DateCivile, J: DateCivile, enregistreLe: String,
     nouvelId: @Sendable () -> String = { UUID().uuidString }
 ) -> Verification {
+    for cle in CleGlobale.allCases where !lireNombre(brouillon.texte(.globale(cle))).isFinite {
+        return .refus(champ: cle.rawValue, message: messageManquante(cle.rawValue))
+    }
+    for cle in CleDatee.allCases where cle != .lt2Pace && !lireNombre(brouillon.texte(.datee(cle))).isFinite {
+        return .refus(champ: cle.rawValue, message: messageManquante(cle.rawValue))
+    }
+    let texteAllure = brouillon.texte(.datee(.lt2Pace))
+    if texteAllure.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        return .refus(champ: CleDatee.lt2Pace.rawValue, message: messageManquante(CleDatee.lt2Pace.rawValue))
+    }
+    guard let secondesAllure = secondesDepuisAllure(texteAllure) else {
+        return .refus(champ: CleDatee.lt2Pace.rawValue, message: MESSAGE_FORMAT_ALLURE)
+    }
+
     var datees: [CleDatee: Double] = [:]
     for cle in CleDatee.allCases {
-        let texte = brouillon.texte(.datee(cle))
-        if cle == .lt2Pace, !texte.trimmingCharacters(in: .whitespaces).isEmpty {
-            guard let secondes = secondesDepuisAllure(texte) else {
-                return .refus(champ: cle.rawValue, message: MESSAGE_FORMAT_ALLURE)
-            }
-            datees[cle] = secondes
-        } else {
-            datees[cle] = lireNombre(texte)
-        }
+        datees[cle] = cle == .lt2Pace ? secondesAllure : lireNombre(brouillon.texte(.datee(cle)))
     }
     var globaux = base.globaux
     for cle in CleGlobale.allCases {
@@ -346,11 +371,18 @@ func encartFCMax(_ suggestion: SuggestionHrMax, hrMaxVeille: Double, ignoree: St
     )
 }
 
-/// « Utiliser » (D-019) : préremplit hrMax avec la valeur suggérée, et renvoie la date d'effet à préremplir, celle de la
-/// séance (ADR 0013). Rien n'est enregistré : l'athlète valide ensuite.
-func preremplirFCMax(_ suggestion: SuggestionHrMax, dans brouillon: inout Brouillon) -> DateCivile {
-    brouillon.definir(.datee(.hrMax), texteNombre(suggestion.bpm))
-    return suggestion.date
+/// « Utiliser » (D-019, ADR 0013 §47) : les paramètres stockés plus UNE modification de FC max, datée de la séance.
+/// Le formulaire en cours n'entre pas en jeu ; rien d'autre ne change.
+func ajouterFCMaxObservee(
+    _ suggestion: SuggestionHrMax, base: Parametres, enregistreLe: String,
+    nouvelId: () -> String = { UUID().uuidString }
+) -> Parametres {
+    var modifs = base.modifs
+    modifs.append(ModifDatee(
+        id: nouvelId(), cle: CleDatee.hrMax.rawValue, valeur: suggestion.bpm, dateEffet: suggestion.date,
+        enregistreLe: enregistreLe
+    ))
+    return Parametres(globaux: base.globaux, modifs: modifs)
 }
 
 // MARK: - État des données (D-017, adapté)
@@ -382,7 +414,7 @@ func libelleRaison(_ raison: RaisonIgnoree) -> String {
     case .doublon: "doublon"
     case .pasUneCourse: "pas une course"
     case .illisible: "illisible"
-    case .autreSource: "autre source que l’app Exercice"
+    case .autreSource: "autre source"
     }
 }
 
@@ -401,13 +433,16 @@ func libelleDerniereSynchro(_ iso: String?) -> String {
 enum ErreurParametres: LocalizedError {
     case indisponible
     case ecriture(String)
+    /// Le recalcul a échoué et les paramètres précédents ont été rétablis.
     case recalcul
+    case suppression(String)
 
     var errorDescription: String? {
         switch self {
         case .indisponible: "Les données de l’app ne sont pas disponibles."
         case let .ecriture(detail): "Impossible d’enregistrer les paramètres : \(detail)"
         case .recalcul: "Le recalcul a échoué : les paramètres précédents sont conservés."
+        case let .suppression(detail): "Impossible de supprimer les données : \(detail)"
         }
     }
 }

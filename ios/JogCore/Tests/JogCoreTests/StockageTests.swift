@@ -93,6 +93,31 @@ private func activiteTest(_ cle: String) -> PivotSansFlux {
     #expect(try stockage.lireMarquages() == .valeur(["a": .course]))
 }
 
+@Test func activitesDUneVersionAnterieureSontIllisibles() throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let stockage = Stockage(racine: dossier)
+    // Format d'avant : version 1 de activites.json. Illisible, pour forcer la relecture complète de la synchronisation.
+    let corps = try JSONEncoder().encode([activiteTest("hk:a")])
+    try (Data("{\"version\":1,\"donnees\":".utf8) + corps + Data("}".utf8))
+        .write(to: dossier.appendingPathComponent("activites.json"))
+
+    #expect(try stockage.lireActivites() == .illisible)
+    try stockage.ecrireActivites([activiteTest("hk:a")])
+    #expect(try stockage.lireActivites() == .valeur([activiteTest("hk:a")]))
+}
+
+@Test func laVersionDeActivitesNeTouchePasAuxAutresFichiers() throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let stockage = Stockage(racine: dossier)
+    try stockage.ecrireParametres(parametresPersonnels())
+
+    try stockage.ecrireActivites([])
+
+    #expect(try stockage.lireParametres() == .valeur(parametresPersonnels()))
+}
+
 @Test func parametresFontUnAllerRetour() throws {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }

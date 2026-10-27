@@ -222,6 +222,41 @@ private func contexte(_ dossier: URL) -> (Stockage, Moteur) {
     #expect(try await moteur.clesActivites().count == 13)
 }
 
+@Test func activitesDUneVersionAnterieureDeclenchentUneRelectureComplete() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (stockage, moteur) = contexte(dossier)
+    // Un fichier de la version 1 : illisible, donc l'ancre est effacée et HealthKit est relu en entier.
+    let ancienne = try #require(try adapterSeance(try course(identifiantB), decalageAppareil_min: 120))
+    let corps = try JSONEncoder().encode([PivotSansFlux(ancienne)])
+    try (Data("{\"version\":1,\"donnees\":".utf8) + corps + Data("}".utf8))
+        .write(to: dossier.appendingPathComponent("activites.json"))
+    try stockage.ecrireAncre(Data([7]))
+    let source = FauxSource(changements: changements(aLire: [identifiantA]), seances: [try course(identifiantA)])
+    let synchro = Synchroniseur(source: source, stockage: stockage, moteur: moteur, decalage: { _ in 120 })
+
+    _ = try await synchro.synchroniser(maintenant: maintenant)
+
+    #expect(await source.ancresRecues == [nil])
+    #expect(try await moteur.clesActivites() == ["hk:" + identifiantA.uuidString])
+    #expect(try stockage.lireActivites() == .valeur([PivotSansFlux(try #require(try adapterSeance(try course(identifiantA), decalageAppareil_min: 120)))]))
+}
+
+@Test func reinitialiserVideLesSeancesEcarteesEtRefusees() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (stockage, moteur) = contexte(dossier)
+    let source = FauxSource(changements: changements(aLire: [identifiantA]), seances: [try seanceRefusee(identifiantA)])
+    let synchro = Synchroniseur(source: source, stockage: stockage, moteur: moteur, decalage: { _ in 120 })
+    _ = try await synchro.synchroniser(maintenant: maintenant)
+    #expect(await synchro.echecs.count == 1)
+
+    await synchro.reinitialiser()
+
+    #expect(await synchro.echecs.isEmpty)
+    #expect(await synchro.ignorees.isEmpty)
+}
+
 /// Progressions reçues, dans l'ordre.
 private actor Progressions {
     private(set) var valeurs: [(Int, Int)] = []

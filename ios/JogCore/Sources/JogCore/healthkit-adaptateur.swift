@@ -6,8 +6,9 @@
 import CryptoKit
 import Foundation
 
-/// Version de cet adaptateur, dans le pivot (ADR 0003).
-public let VERSION_ADAPTATEUR_HEALTHKIT = "healthkit-1.0.0"
+/// Version de cet adaptateur, dans le pivot (ADR 0003). 1.1.0 : durée écoulée (`dureeEcoulee_s`) et bundle de l'app
+/// source dans les clés de mémorisation ; changer la version force une relecture complète (voir `VERSION_FORMAT_ACTIVITES`).
+public let VERSION_ADAPTATEUR_HEALTHKIT = "healthkit-1.1.0"
 
 /// HKWorkoutActivityType de la course à pied.
 private let TYPE_ACTIVITE_COURSE = 37
@@ -144,7 +145,8 @@ public func adapterSeance(_ brute: SeanceBrute, decalageAppareil: (Date) -> Int)
         ),
         tours: tourDeLaSeance,
         appSource: appSource,
-        nbMesuresFC: fcMesurees.count
+        nbMesuresFC: fcMesurees.count,
+        dureeEcoulee_s: W
     )
 }
 

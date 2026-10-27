@@ -108,6 +108,16 @@ public actor LecteurHealthKit: SourceSeances {
         try await store.enableBackgroundDelivery(for: HKObjectType.workoutType(), frequency: .immediate)
     }
 
+    /// Arrête l'observation et toute livraison en arrière-plan (« Supprimer toutes mes données »). Sans effet sur les
+    /// données déjà lues.
+    public func arreterLivraisonEnArrierePlan() async throws {
+        if let observation {
+            store.stop(observation)
+        }
+        observation = nil
+        try await store.disableAllBackgroundDelivery()
+    }
+
     // MARK: - Une séance
 
     /// Séance HealthKit par son identifiant. Les séries ne sont pas lues ici.

@@ -187,3 +187,18 @@ private func sourceNiveau(_ vue: Vue) throws -> TypeSourceNiveau? {
     #expect(cleDeSeance(e, p, marquage: .test) != cleDeSeance(e, p))
     #expect(cleDeSeance(e, p, marquage: .test) != cleDeSeance(e, p, marquage: .course))
 }
+
+@Test func laCleDeMemorisationChangeAvecLAppSource() throws {
+    // Migration-ios, décision 5 : deux séances HealthKit de même empreinte, enregistrées par deux apps, n'ont pas la même clé.
+    let p = try indexerParametres(parametresDefaut()).auJour("2026-09-01")
+    let sansApp = EmpreinteActivite(cleSource: "a", empreinteBrute: "empreinte-a", versionAdaptateur: "healthkit-1.1.0")
+    let exercice = EmpreinteActivite(
+        cleSource: "a", empreinteBrute: "empreinte-a", versionAdaptateur: "healthkit-1.1.0", appSource: "com.apple.health.X"
+    )
+    let workoutDoors = EmpreinteActivite(
+        cleSource: "a", empreinteBrute: "empreinte-a", versionAdaptateur: "healthkit-1.1.0", appSource: "net.workoutdoors.workoutdoors"
+    )
+
+    #expect(cleDeSeance(exercice, p) != cleDeSeance(workoutDoors, p))
+    #expect(cleDeSeance(exercice, p) != cleDeSeance(sansApp, p))
+}

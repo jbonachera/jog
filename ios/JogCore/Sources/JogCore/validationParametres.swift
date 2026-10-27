@@ -159,8 +159,14 @@ private func estPositif(_ valeur: Double) -> Bool {
     valeur.isFinite && valeur > 0
 }
 
+/// Message de la règle 1 de 06 pour un champ absent ou invalide. Sert aussi à la saisie, qui vérifie la présence des
+/// champs avant leur format.
+public func messageManquante(_ cle: String) -> String {
+    "Valeur manquante ou invalide : \(LIBELLES[cle] ?? cle)."
+}
+
 private func manquante(_ cle: String) -> ResultatValidation {
-    echec(cle, "Valeur manquante ou invalide : \(LIBELLES[cle] ?? cle).")
+    echec(cle, messageManquante(cle))
 }
 
 private func echec(_ champ: String, _ message: String) -> ResultatValidation {

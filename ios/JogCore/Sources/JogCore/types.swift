@@ -235,12 +235,15 @@ public struct ActivitePivot: Codable, Sendable, Equatable {
     public var appSource: String?
     /// Nombre de mesures de FC de la séance, pour départager deux doublons (migration-ios, décision 3). Nil si inconnu.
     public var nbMesuresFC: Int?
+    /// Durée écoulée, pauses comprises (migration-ios, décision 3). `duree_s` reste le temps en mouvement. Nil si
+    /// inconnue : les bornes de recouvrement retombent alors sur `duree_s`.
+    public var dureeEcoulee_s: Double?
 
     public init(
         cleSource: String, source: Source, versionAdaptateur: String, empreinteBrute: String,
         debutUtc: Double, decalageLocal_min: Double, dateLocale: DateCivile, duree_s: Double, distance_m: Double,
         nom: String?, competition: Bool, sousType: SousType, pasFC_s: Double?, flux: Flux, tours: [Tour],
-        appSource: String? = nil, nbMesuresFC: Int? = nil
+        appSource: String? = nil, nbMesuresFC: Int? = nil, dureeEcoulee_s: Double? = nil
     ) {
         self.cleSource = cleSource
         self.source = source
@@ -259,6 +262,7 @@ public struct ActivitePivot: Codable, Sendable, Equatable {
         self.tours = tours
         self.appSource = appSource
         self.nbMesuresFC = nbMesuresFC
+        self.dureeEcoulee_s = dureeEcoulee_s
     }
 }
 

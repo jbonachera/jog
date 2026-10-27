@@ -95,10 +95,7 @@ public actor Moteur {
         for pivot in pivots {
             let p = index.auJour(pivot.dateLocale)
             let marquage = marquages[pivot.cleSource]
-            let cle = cleDeSeance(
-                EmpreinteActivite(cleSource: pivot.cleSource, empreinteBrute: pivot.empreinteBrute, versionAdaptateur: pivot.versionAdaptateur),
-                p, marquage: marquage
-            )
+            let cle = cleDeSeance(EmpreinteActivite(pivot), p, marquage: marquage)
             guard memoire[cle] == nil else { continue }
             guard let calculee = try? calculerSeanceIntrinseque(pivot, p, marquageUtilisateur: marquage) else { continue }
             memoire[cle] = calculee
@@ -200,9 +197,16 @@ public actor Moteur {
         return flux
     }
 
-    /// Efface toutes les données (D-016) et remet le moteur à zéro.
+    /// Efface toutes les données (D-016) et remet le moteur à zéro. En cas d'échec, l'état en mémoire ne sert plus : la
+    /// prochaine utilisation relit les fichiers restants.
     public func supprimerTout() throws {
-        try stockage.supprimerTout()
+        do {
+            try stockage.supprimerTout()
+        } catch {
+            charge = false
+            generation += 1
+            throw error
+        }
         parametres = parametresDefaut()
         memoire = [:]
         activites = []

@@ -156,6 +156,12 @@ public actor Synchroniseur {
         self.decalage = decalage
     }
 
+    /// Oublie les séances écartées et refusées de la mémoire (suppression des données, D-016).
+    public func reinitialiser() {
+        ignorees = [:]
+        echecs = [:]
+    }
+
     /// Synchronise puis renvoie la Vue à jour. `progression` reçoit (traitées, total) pendant la lecture des séances.
     /// Lève si une lecture transitoire échoue (après persistance des lots réussis) : l'ancre n'avance pas.
     public func synchroniser(
@@ -163,10 +169,12 @@ public actor Synchroniseur {
         fuseau: TimeZone = .current,
         progression: @escaping @Sendable (Int, Int) async -> Void = { _, _ in }
     ) async throws -> Vue {
-        // Des activités illisibles : on repart de zéro, donc sans ancre (relecture complète).
+        // Des activités illisibles (fichier d'une version antérieure compris) : on repart de zéro, donc sans ancre
+        // (relecture complète). Le fichier est réécrit vide, au format courant : la relecture le remplira.
         let illisibles = try await moteur.activitesIllisibles()
         if illisibles {
             try stockage.ecrireAncre(nil)
+            try await moteur.ajouterOuMettreAJour(activites: [])
         }
         let ancre = illisibles ? nil : try stockage.lireAncre()
 

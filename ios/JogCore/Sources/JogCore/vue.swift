@@ -38,12 +38,15 @@ public struct PivotSansFlux: Codable, Sendable, Equatable {
     public var appSource: String?
     /// Nombre de mesures de FC, pour départager deux doublons (migration-ios, décision 3).
     public var nbMesuresFC: Int?
+    /// Durée écoulée, pauses comprises (migration-ios, décision 3). Nil si inconnue, par exemple pour FIT ou Strava :
+    /// les bornes de recouvrement retombent alors sur `duree_s`.
+    public var dureeEcoulee_s: Double?
 
     public init(
         cleSource: String, source: Source, versionAdaptateur: String, empreinteBrute: String, debutUtc: Double,
         decalageLocal_min: Double, dateLocale: DateCivile, duree_s: Double, distance_m: Double, nom: String?,
         competition: Bool, sousType: SousType, pasFC_s: Double?, tours: [Tour],
-        appSource: String? = nil, nbMesuresFC: Int? = nil
+        appSource: String? = nil, nbMesuresFC: Int? = nil, dureeEcoulee_s: Double? = nil
     ) {
         self.cleSource = cleSource
         self.source = source
@@ -61,6 +64,7 @@ public struct PivotSansFlux: Codable, Sendable, Equatable {
         self.tours = tours
         self.appSource = appSource
         self.nbMesuresFC = nbMesuresFC
+        self.dureeEcoulee_s = dureeEcoulee_s
     }
 
     /// Le pivot d'une activité complète, sans son flux.
@@ -70,7 +74,7 @@ public struct PivotSansFlux: Codable, Sendable, Equatable {
             empreinteBrute: pivot.empreinteBrute, debutUtc: pivot.debutUtc, decalageLocal_min: pivot.decalageLocal_min,
             dateLocale: pivot.dateLocale, duree_s: pivot.duree_s, distance_m: pivot.distance_m, nom: pivot.nom,
             competition: pivot.competition, sousType: pivot.sousType, pasFC_s: pivot.pasFC_s, tours: pivot.tours,
-            appSource: pivot.appSource, nbMesuresFC: pivot.nbMesuresFC
+            appSource: pivot.appSource, nbMesuresFC: pivot.nbMesuresFC, dureeEcoulee_s: pivot.dureeEcoulee_s
         )
     }
 
@@ -80,7 +84,7 @@ public struct PivotSansFlux: Codable, Sendable, Equatable {
             cleSource: cleSource, source: source, versionAdaptateur: versionAdaptateur, empreinteBrute: empreinteBrute,
             debutUtc: debutUtc, decalageLocal_min: decalageLocal_min, dateLocale: dateLocale, duree_s: duree_s,
             distance_m: distance_m, nom: nom, competition: competition, sousType: sousType, pasFC_s: pasFC_s,
-            flux: flux, tours: tours, appSource: appSource, nbMesuresFC: nbMesuresFC
+            flux: flux, tours: tours, appSource: appSource, nbMesuresFC: nbMesuresFC, dureeEcoulee_s: dureeEcoulee_s
         )
     }
 }
@@ -90,15 +94,28 @@ public struct EmpreinteActivite: Sendable, Equatable {
     public var cleSource: String
     public var empreinteBrute: String
     public var versionAdaptateur: String
+    /// Bundle de l'app source (migration-ios, décision 5). Nil pour les sources sans bundle (FIT, Strava).
+    public var appSource: String?
 
-    public init(cleSource: String, empreinteBrute: String, versionAdaptateur: String) {
+    public init(cleSource: String, empreinteBrute: String, versionAdaptateur: String, appSource: String? = nil) {
         self.cleSource = cleSource
         self.empreinteBrute = empreinteBrute
         self.versionAdaptateur = versionAdaptateur
+        self.appSource = appSource
     }
 
     public init(_ pivot: PivotSansFlux) {
-        self.init(cleSource: pivot.cleSource, empreinteBrute: pivot.empreinteBrute, versionAdaptateur: pivot.versionAdaptateur)
+        self.init(
+            cleSource: pivot.cleSource, empreinteBrute: pivot.empreinteBrute,
+            versionAdaptateur: pivot.versionAdaptateur, appSource: pivot.appSource
+        )
+    }
+
+    public init(_ pivot: ActivitePivot) {
+        self.init(
+            cleSource: pivot.cleSource, empreinteBrute: pivot.empreinteBrute,
+            versionAdaptateur: pivot.versionAdaptateur, appSource: pivot.appSource
+        )
     }
 }
 
@@ -141,7 +158,8 @@ public struct EntreeVue: Codable, Sendable, Equatable {
 /// Clé de mémorisation de ②a (ADR 0006) : hash de l'empreinte du fichier, de la version de l'adaptateur, de
 /// `REGLES_VERSION`, des paramètres que ②a lit au jour de la séance et de `FORMAT_SEANCE`. `lt2Pace` figure dans la clé
 /// (la détection des répétitions s'en sert). `subtHrHi` n'est lu qu'à ④, et `refHr` et `paceHrK` ne servent qu'à ⑤ :
-/// aucun des trois n'entre dans la clé. `cleSource` et la date n'y entrent pas non plus : voir `identifiee`. Le marquage
+/// aucun des trois n'entre dans la clé. `appSource` y entre s'il existe (migration-ios, décision 5). `cleSource` et la
+/// date n'y entrent pas non plus : voir `identifiee`. Le marquage
 /// saisi (D-020) y entre s'il existe : changer de marquage recalcule la séance. Sans marquage saisi, la clé est celle
 /// d'avant D-020.
 public func cleDeSeance(_ pivot: EmpreinteActivite, _ p: ParamsDates, marquage: MarquageUtilisateur? = nil) -> String {
@@ -156,6 +174,11 @@ public func cleDeSeance(_ pivot: EmpreinteActivite, _ p: ParamsDates, marquage: 
         "subtHrLo=\(p.subtHrLo)",
         "FORMAT_SEANCE=\(FORMAT_SEANCE)",
     ]
+    // Le bundle de l'app source entre dans la clé (migration-ios, décision 5) : une séance HealthKit d'une autre app
+    // n'a pas la même analyse. Absent pour FIT et Strava, la clé de ces sources reste celle d'avant.
+    if let appSource = pivot.appSource {
+        champs.append("appSource=\(appSource)")
+    }
     if let marquage {
         champs.append("marquage=\(marquage.rawValue)")
     }

@@ -194,3 +194,116 @@ private func clesDansLaVue(_ moteur: Moteur) async throws -> [String] {
     #expect(try await moteur.clesActivites().count == 2)
     #expect(try await clesDansLaVue(moteur) == [exercice.cleSource])
 }
+
+// MARK: - Durée écoulée, FC inconnue, non-transitivité (migration-ios, décision 3)
+
+/// Pivot sans flux, construit directement (sans adaptateur), pour les bornes et le rang. Début en secondes après
+/// `debutSeance`.
+private func sansFlux(
+    _ cle: String, debut: Double = 0, duree: Double, source: Source = .healthkit, appSource: String? = nil,
+    nbMesuresFC: Int? = nil, dureeEcoulee: Double? = nil
+) -> PivotSansFlux {
+    PivotSansFlux(
+        cleSource: cle, source: source, versionAdaptateur: "test", empreinteBrute: "empreinte-" + cle,
+        debutUtc: (debutSeance.timeIntervalSince1970 + debut) * 1000, decalageLocal_min: 120, dateLocale: jourDeCalcul,
+        duree_s: duree, distance_m: 3000, nom: nil, competition: false, sousType: .route, pasFC_s: nil, tours: [],
+        appSource: appSource, nbMesuresFC: nbMesuresFC, dureeEcoulee_s: dureeEcoulee
+    )
+}
+
+/// Toutes les permutations de `elements`.
+private func permutations<T>(_ elements: [T]) -> [[T]] {
+    guard elements.count > 1 else { return [elements] }
+    return elements.indices.flatMap { indice -> [[T]] in
+        var reste = elements
+        let tete = reste.remove(at: indice)
+        return permutations(reste).map { [tete] + $0 }
+    }
+}
+
+@Test func lesBornesPortentSurLaDureeEcouleeEtNonSurLeTempsEnMouvement() async throws {
+    // Exercice avec une pause de 5 min : 1 200 s écoulées, 900 s en mouvement. Une autre app commence 720 s plus tard,
+    // sans pause : 480 s communes, soit 40 % de la durée écoulée (sous le seuil), mais 53 % du temps en mouvement.
+    var c = constructeur("exercice", bundle: exerciceApple)
+    c.pauses = [(600, 900)]
+    let exercice = try pivot(c)
+    #expect(exercice.duree_s == 900)
+    #expect(exercice.dureeEcoulee_s == 1200)
+    let wod = try pivot(constructeur("wod", bundle: workoutDoors, decalage: 720))
+
+    let (moteur, dossier) = try await moteurAvec([exercice, wod])
+    defer { try? FileManager.default.removeItem(at: dossier) }
+
+    #expect(Set(try await clesDansLaVue(moteur)) == [exercice.cleSource, wod.cleSource])
+    #expect(await moteur.doublons.isEmpty)
+}
+
+@Test func troisEnregistrementsEnChaineNeSontPasTransitifs() {
+    // A et B se recouvrent à 50 %, B et C aussi, mais A et C pas du tout. A (Exercice) est gardée : B, qui la recouvre,
+    // est écartée. C ne recouvre que B, déjà écartée : elle reste. Le résultat suit le rang des enregistrements, pas
+    // la chaîne des recouvrements : c'est voulu, une séance écartée ne sert pas de référence.
+    let a = sansFlux("hk:a", duree: 1200, appSource: exerciceApple)
+    let b = sansFlux("hk:b", debut: 600, duree: 1200, appSource: workoutDoors)
+    let c = sansFlux("hk:c", debut: 1200, duree: 1200, appSource: workoutDoors)
+
+    #expect(doublonsEcartes([a, b, c]) == [Ignoree(cleSource: b.cleSource, raison: .doublon, detail: a.cleSource)])
+    #expect(doublonsEcartes([c, b, a]) == [Ignoree(cleSource: b.cleSource, raison: .doublon, detail: a.cleSource)])
+}
+
+@Test func uneDureeNulleNeFaitJamaisUnDoublon() {
+    let nulle = sansFlux("hk:nulle", duree: 0, appSource: workoutDoors)
+    let normale = sansFlux("hk:normale", duree: 1200, appSource: exerciceApple)
+
+    #expect(doublonsEcartes([nulle, normale]).isEmpty)
+    #expect(doublonsEcartes([normale, nulle]).isEmpty)
+}
+
+@Test func leResultatNeDependPasDeLOrdreDEntree() {
+    // Mélange de FC connues et inconnues, de durées et de recouvrements : chaque permutation donne le même résultat.
+    let activites = [
+        sansFlux("hk:1", duree: 1200, appSource: exerciceApple),
+        sansFlux("hk:2", debut: 600, duree: 1200, appSource: workoutDoors, nbMesuresFC: 300),
+        sansFlux("hk:3", debut: 300, duree: 1500, source: .stravaArchive),
+        sansFlux("hk:4", debut: 900, duree: 900, source: .fit, nbMesuresFC: 200),
+        sansFlux("hk:5", debut: 3000, duree: 1200, appSource: workoutDoors, nbMesuresFC: 0),
+    ]
+    let attendu = doublonsEcartes(activites)
+    #expect(attendu.map(\.cleSource) == ["hk:2", "hk:3"])
+
+    for ordre in permutations(activites) {
+        #expect(doublonsEcartes(ordre) == attendu)
+    }
+}
+
+@Test func uneSeanceFITRecouvrantUnExerciceEstLeDoublonDeLExercice() {
+    let exercice = sansFlux("hk:exercice", duree: 1200, appSource: exerciceApple, nbMesuresFC: 100)
+    let fit = sansFlux("fit:1", duree: 1200, source: .fit)
+
+    #expect(doublonsEcartes([fit, exercice]) == [Ignoree(cleSource: fit.cleSource, raison: .doublon, detail: exercice.cleSource)])
+}
+
+@Test func uneFCInconnueNePenalisePasLaSeanceStrava() {
+    // Strava ne donne pas le nombre de mesures de FC : la FC n'arbitre pas, la plus longue gagne face à WorkOutDoors.
+    let wod = sansFlux("hk:wod", duree: 1200, appSource: workoutDoors, nbMesuresFC: 150)
+    let strava = sansFlux("strava:1", duree: 1500, source: .stravaArchive)
+
+    #expect(doublonsEcartes([wod, strava]) == [Ignoree(cleSource: wod.cleSource, raison: .doublon, detail: strava.cleSource)])
+}
+
+/// Mesure de performance : 500 séances, avec un tri et des recouvrements. Désactivé par défaut, comme `VuePerfTests`.
+/// Lancement : JOG_PERF=1 swift test -c release --disable-sandbox --scratch-path /tmp/jogcore-Z --filter cinqCent
+@Test(.enabled(if: ProcessInfo.processInfo.environment["JOG_PERF"] == "1"))
+func cinqCentSeancesSeCalculentEnMoinsDe100Millisecondes() {
+    let activites = (0..<500).map { indice in
+        sansFlux(
+            "hk:\(indice)", debut: Double(indice) * 700, duree: 1200 + Double(indice % 7) * 60,
+            appSource: indice % 3 == 0 ? exerciceApple : workoutDoors,
+            nbMesuresFC: indice % 5 == 0 ? nil : 100 + indice % 50
+        )
+    }
+    let debut = ContinuousClock.now
+    _ = doublonsEcartes(activites)
+    let duree = ContinuousClock.now - debut
+    print("doublonsEcartes (500 séances) : \(duree)")
+    #expect(duree < .milliseconds(100))
+}

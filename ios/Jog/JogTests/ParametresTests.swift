@@ -36,6 +36,34 @@ private func verifier(_ b: Brouillon, base: Parametres = parametresDefaut(), dat
     #expect(lireNombre("1,1") == 1.1)
     #expect(lireNombre("1.1") == 1.1)
     #expect(lireNombre("abc").isNaN)
+    #expect(lireNombre("-2,5") == -2.5)
+    #expect(lireNombre("1\u{202F}200") == 1200)
+}
+
+@Test func lireNombreRefuseToutCeQuiNEstPasUnDecimal() {
+    // Hexadécimal, exposant, infini, double signe, double séparateur, texte vide : NaN, jamais un nombre.
+    for saisie in ["0x1A", "0x10", "1e3", "inf", "nan", "+-1", "1,2,3", "1..2", "+", ".", "", "1 2a"] {
+        #expect(lireNombre(saisie).isNaN, "\(saisie)")
+    }
+}
+
+@Test func hexadecimalEstRefuseDansLaSaisie() {
+    let resultat = verifier(brouillon([.datee(.hrMax): "0x10"]))
+    #expect(resultat.champ == "hrMax")
+    #expect(resultat.message == "Valeur manquante ou invalide : FC max.")
+}
+
+@Test func presenceDeTousLesChampsAvantLeFormatDeLAllure() {
+    // Un champ vide passe avant une allure mal formée, même si l'allure vient avant dans le formulaire (06, règle 1).
+    let resultat = verifier(brouillon([.datee(.lt2Pace): "4:0x", .datee(.hrMax): ""]))
+    #expect(resultat.champ == "hrMax")
+    #expect(resultat.message == "Valeur manquante ou invalide : FC max.")
+}
+
+@Test func allureVideEstUneValeurManquante() {
+    let resultat = verifier(brouillon([.datee(.lt2Pace): "  "]))
+    #expect(resultat.champ == "lt2Pace")
+    #expect(resultat.message == "Valeur manquante ou invalide : Allure au seuil.")
 }
 
 @Test func brouillonParDefautAfficheLesValeursDeDepart() {
@@ -182,11 +210,21 @@ private func suggestion(ecart: Bool = false, nom: String? = "Sortie") -> Suggest
     #expect(encartFCMax(suggestion(), hrMaxVeille: 188, ignoree: "a:193") != nil)
 }
 
-@Test func utiliserPrerempliLaFCMaxEtLaDateDeLaSeance() {
-    var b = brouillon()
-    let date = preremplirFCMax(suggestion(), dans: &b)
-    #expect(date == "2026-10-10")
-    #expect(b.texte(.datee(.hrMax)) == "192")
+@Test func utiliserAjouteUneSeuleModificationDateeDeLaSeance() throws {
+    let base = Parametres(globaux: GlobauxTest.modifies, modifs: [
+        ModifDatee(id: "a", cle: "hrMax", valeur: 185, dateEffet: "2026-01-01", enregistreLe: MAINTENANT),
+    ])
+    let nouveaux = ajouterFCMaxObservee(suggestion(), base: base, enregistreLe: MAINTENANT, nouvelId: { "id-fc" })
+
+    #expect(nouveaux.modifs.count == 2)
+    #expect(nouveaux.modifs.first == base.modifs.first)
+    let ajoutee = try #require(nouveaux.modifs.last)
+    #expect(ajoutee.cle == "hrMax")
+    #expect(ajoutee.valeur == 192)
+    #expect(ajoutee.dateEffet == "2026-10-10")
+    #expect(ajoutee.id == "id-fc")
+    #expect(nouveaux.globaux == base.globaux)
+    #expect(try parametresAuJour(nouveaux, J).hrMax == 192)
 }
 
 @Test func etatDonneesCompteLesRaisons() {

@@ -10,6 +10,11 @@ import Foundation
 /// Version du format de chaque fichier JSON. Un fichier d'une autre version est illisible.
 public let VERSION_FORMAT_STOCKAGE = 1
 
+/// Version du format de `activites.json`, propre à ce fichier. Passée à 2 pour que les activités écrites avant la durée
+/// écoulée et le bundle source soient illisibles : la synchronisation repart alors d'une relecture complète, sans
+/// toucher aux autres fichiers (paramètres, marquages).
+public let VERSION_FORMAT_ACTIVITES = 2
+
 /// Marquage saisi par l'athlète (D-020) : seules ces deux valeurs sont stockées.
 public enum MarquageUtilisateur: String, Codable, Sendable, Equatable {
     case course, test
@@ -118,11 +123,11 @@ public struct Stockage: Sendable {
 
     /// `activites.json` : les activités connues, sans leurs flux.
     public func lireActivites() throws -> Lecture<[PivotSansFlux]> {
-        try lire([PivotSansFlux].self, "activites.json")
+        try lire([PivotSansFlux].self, "activites.json", version: VERSION_FORMAT_ACTIVITES)
     }
 
     public func ecrireActivites(_ activites: [PivotSansFlux]) throws {
-        try ecrire(activites, "activites.json")
+        try ecrire(activites, "activites.json", version: VERSION_FORMAT_ACTIVITES)
     }
 
     /// Supprime `activites.json` s'il existe.
@@ -154,21 +159,21 @@ public struct Stockage: Sendable {
 
     /// Décode `nom` : `.absent` si le fichier n'existe pas, `.illisible` s'il ne se décode pas ou n'est pas de cette
     /// version, et lève si le fichier existe mais ne peut pas être lu (erreur transitoire).
-    private func lire<T: Codable & Sendable>(_ type: T.Type, _ nom: String) throws -> Lecture<T> {
+    private func lire<T: Codable & Sendable>(_ type: T.Type, _ nom: String, version: Int = VERSION_FORMAT_STOCKAGE) throws -> Lecture<T> {
         let fichier = racine.appendingPathComponent(nom)
         guard FileManager.default.fileExists(atPath: fichier.path) else { return .absent }
         let octets = try Data(contentsOf: fichier)
         guard let enveloppe = try? JSONDecoder().decode(Enveloppe<T>.self, from: octets),
-              enveloppe.version == VERSION_FORMAT_STOCKAGE else {
+              enveloppe.version == version else {
             return .illisible
         }
         return .valeur(enveloppe.donnees)
     }
 
-    private func ecrire<T: Codable & Sendable>(_ donnees: T, _ nom: String) throws {
+    private func ecrire<T: Codable & Sendable>(_ donnees: T, _ nom: String, version: Int = VERSION_FORMAT_STOCKAGE) throws {
         let encodeur = JSONEncoder()
         encodeur.outputFormatting = [.sortedKeys]
-        let octets = try encodeur.encode(Enveloppe(version: VERSION_FORMAT_STOCKAGE, donnees: donnees))
+        let octets = try encodeur.encode(Enveloppe(version: version, donnees: donnees))
         try ecrireOctets(octets, dans: racine.appendingPathComponent(nom))
     }
 
