@@ -13,6 +13,8 @@ public actor Moteur {
     private var memoire: MemoireSeances
     /// Activités sans flux connues, persistées dans `activites.json` à chaque changement.
     private var activites: [PivotSansFlux] = []
+    /// Marquages saisis par l'athlète (D-020), par clé source. Persistés dans `marquages.json` à chaque changement.
+    private var marquages: [String: MarquageUtilisateur]
     private var abonnes: [UUID: AsyncStream<Vue>.Continuation] = [:]
     /// Incrémenté à chaque changement d'entrée. Un calcul plus ancien que le dernier ne persiste pas sa Vue.
     private var generation = 0
@@ -23,6 +25,7 @@ public actor Moteur {
         self.parametres = stockage.lireParametres()
         self.memoire = stockage.lireMemoire()
         self.activites = stockage.lireActivites()
+        self.marquages = stockage.lireMarquages()
     }
 
     /// La dernière Vue persistée, pour un affichage instantané au lancement. nil avant le premier calcul.
@@ -36,13 +39,16 @@ public actor Moteur {
         generation += 1
         let mienne = generation
         let parametresCourants = parametres
+        let marquagesCourants = marquages
         var memoireLocale = memoire
 
         let intrinseques = try await seancesIntrinseques(
-            activites: activites, lireFlux: lireFlux, parametres: parametresCourants, J: J, memoire: &memoireLocale
+            activites: activites, lireFlux: lireFlux, parametres: parametresCourants, J: J, memoire: &memoireLocale,
+            marquages: marquagesCourants
         )
-        // Une clé qui ne sert plus (activité retirée, paramètre changé) est oubliée, pour que la mémoire ne grossisse pas.
-        let utilisees = clesUtilisees(parametresCourants, J)
+        // Une clé qui ne sert plus (activité retirée, paramètre ou marquage changé) est oubliée, pour que la mémoire ne
+        // grossisse pas.
+        let utilisees = clesUtilisees(parametresCourants, marquagesCourants, J)
         memoireLocale.entrees = memoireLocale.entrees.filter { utilisees.contains($0.key) }
 
         let vue = try calculerVue(EntreeVue(
@@ -69,6 +75,19 @@ public actor Moteur {
     public func modifierParametres(_ nouveaux: Parametres) throws {
         try stockage.ecrireParametres(nouveaux)
         parametres = nouveaux
+        generation += 1
+    }
+
+    /// Marque la séance « Course » ou « Test » (D-020), ou retire le marquage saisi si `marquage` est nil : le marquage
+    /// déduit du nom reprend alors effet. Persiste `marquages.json`. Ne recalcule pas : l'appelant appelle `recalculer`,
+    /// et seule la séance dont la clé de mémorisation change relit son flux. Un marquage d'une clé absente des activités
+    /// reste stocké, sans effet sur la Vue.
+    public func marquer(cleSource: String, comme marquage: MarquageUtilisateur?) throws {
+        var resultat = marquages
+        resultat[cleSource] = marquage
+        guard resultat != marquages else { return }
+        try stockage.ecrireMarquages(resultat)
+        marquages = resultat
         generation += 1
     }
 
@@ -119,6 +138,7 @@ public actor Moteur {
         parametres = parametresDefaut()
         memoire = MemoireSeances()
         activites = []
+        marquages = [:]
         generation += 1
     }
 
@@ -142,11 +162,15 @@ public actor Moteur {
     }
 
     /// Clés de mémorisation des séances qui entrent dans le calcul de `J` : celles de `seancesIntrinseques`.
-    private func clesUtilisees(_ parametres: Parametres, _ J: DateCivile) -> Set<String> {
+    private func clesUtilisees(
+        _ parametres: Parametres, _ marquages: [String: MarquageUtilisateur], _ J: DateCivile
+    ) -> Set<String> {
         guard let index = try? indexerParametres(parametres) else { return [] }
         var cles: Set<String> = []
         for activite in activites where activite.dateLocale < J {
-            cles.insert(cleDeSeance(EmpreinteActivite(activite), index.auJour(activite.dateLocale)))
+            cles.insert(cleDeSeance(
+                EmpreinteActivite(activite), index.auJour(activite.dateLocale), marquage: marquages[activite.cleSource]
+            ))
         }
         return cles
     }

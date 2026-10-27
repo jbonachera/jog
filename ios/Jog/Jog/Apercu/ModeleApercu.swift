@@ -62,6 +62,15 @@ enum ModeleApercu {
         return String(dc.jour)
     }
 
+    /// « Dernière synchronisation : 27 oct. à 10:12 », à partir de l'ISO 8601 de la Vue, en heure locale. Nil si absente.
+    static func texteDerniereSynchro(_ iso: String?) -> String? {
+        guard let iso, let instant = try? Date.ISO8601FormatStyle().parse(iso) else { return nil }
+        let jour = formatDate(aujourdhuiCivil(maintenant: instant))
+        let composantes = Calendar.current.dateComponents([.hour, .minute], from: instant)
+        let heure = String(format: "%02ld:%02ld", composantes.hour ?? 0, composantes.minute ?? 0)
+        return "Dernière synchronisation : \(jour) à \(heure)"
+    }
+
     static func veille(_ J: DateCivile) -> DateCivile? {
         try? ajouterJours(J, -1)
     }

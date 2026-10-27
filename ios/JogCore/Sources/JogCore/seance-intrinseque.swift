@@ -10,12 +10,15 @@ private enum Categorie: Int {
     case auDessus = 3
 }
 
-/// Séance intrinsèque : étapes ① et ②a (ADR 0006).
-public func calculerSeanceIntrinseque(_ pivot: ActivitePivot, _ p: ParamsDates) throws -> SeanceIntrinseque {
+/// Séance intrinsèque : étapes ① et ②a (ADR 0006). `marquageUtilisateur` (D-020), s'il est donné, remplace le marquage
+/// déduit de la plateforme et du nom (D-014) ; nil garde le marquage déduit.
+public func calculerSeanceIntrinseque(
+    _ pivot: ActivitePivot, _ p: ParamsDates, marquageUtilisateur: MarquageUtilisateur? = nil
+) throws -> SeanceIntrinseque {
     let g = try miseEnForme(pivot)
     let reps = try detecterRepetitions(g, pivot.tours, p)
     let (categories, segmentsMp) = classer(g, reps, p)
-    let marquage = marquer(pivot.competition, pivot.nom)
+    let marquage = marquerSeance(marquageUtilisateur, competition: pivot.competition, nom: pivot.nom)
     let enCourse = marquage == .course || marquage == .test
 
     var cumul = [0.0, 0.0, 0.0, 0.0]

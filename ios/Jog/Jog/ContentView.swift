@@ -1,23 +1,12 @@
 import SwiftUI
 import JogCore
 
-/// Racine de l'app : quatre onglets. L'Aperçu est réel ; les trois autres sont « À venir » (lot 3 réduit).
-/// La maquette sert de source en DEBUG ; en Release, une Vue vide tant que le moteur n'est pas branché.
+/// Racine de l'app : quatre onglets. L'Aperçu suit `EtatApp` (accueil, import, Vue, erreur) ; les trois autres restent
+/// « À venir » (lot 2c). En DEBUG, la maquette peut remplacer les données réelles (Paramètres > Développement).
 struct ContentView: View {
-    #if DEBUG
-    private let source: any SourceDeVue = VueMaquette()
-    #else
-    private let source: any SourceDeVue = VueVide()
-    #endif
-
-    @State private var etat: EtatApercu = .chargement
+    let modele: ModeleApp
+    @Environment(\.scenePhase) private var phase
     @State private var parametresOuverts = false
-
-    enum EtatApercu {
-        case chargement
-        case pret(Vue)
-        case echec
-    }
 
     var body: some View {
         TabView {
@@ -33,7 +22,7 @@ struct ContentView: View {
                         }
                 }
                 .sheet(isPresented: $parametresOuverts) {
-                    ParametresView()
+                    ParametresView(modele: modele)
                 }
             }
             Tab("Charge", systemImage: "chart.bar.xaxis") {
@@ -48,37 +37,52 @@ struct ContentView: View {
         }
         .tabBarMinimizeBehavior(.onScrollDown)
         .task {
-            await charger()
+            await modele.demarrer()
+        }
+        .onChange(of: phase) { _, nouvelle in
+            if nouvelle == .active {
+                Task { await modele.auPremierPlan() }
+            }
         }
     }
 
     @ViewBuilder
     private var contenuApercu: some View {
-        switch etat {
+        #if DEBUG
+        if let maquette = modele.maquette {
+            ApercuView(vue: maquette)
+        } else {
+            contenuEtat
+        }
+        #else
+        contenuEtat
+        #endif
+    }
+
+    @ViewBuilder
+    private var contenuEtat: some View {
+        switch modele.etat {
         case .chargement:
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.fond.ignoresSafeArea())
-        case .pret(let vue):
+        case .premiereOuverture:
+            AccueilView(modele: modele)
+        case let .importEnCours(traitees, total):
+            ImportView(traitees: traitees, total: total)
+        case let .pret(vue):
             ApercuView(vue: vue)
-        case .echec:
-            ContentUnavailableView(
-                "Données indisponibles",
-                systemImage: "exclamationmark.triangle",
-                description: Text("La vue n’a pas pu être chargée.")
-            )
-        }
-    }
-
-    private func charger() async {
-        do {
-            etat = .pret(try await source.charger())
-        } catch {
-            etat = .echec
+        case let .erreur(message, nil):
+            ErreurView(message: message, modele: modele)
+        case let .erreur(message, vue?):
+            VStack(spacing: 0) {
+                BandeauErreur(message: message, modele: modele)
+                ApercuView(vue: vue)
+            }
         }
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(modele: ModeleApp())
 }

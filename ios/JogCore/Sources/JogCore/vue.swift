@@ -133,9 +133,11 @@ public struct EntreeVue: Codable, Sendable, Equatable {
 /// Clé de mémorisation de ②a (ADR 0006) : hash de l'empreinte du fichier, de la version de l'adaptateur, de
 /// `REGLES_VERSION`, des paramètres que ②a lit au jour de la séance et de `FORMAT_SEANCE`. `lt2Pace` figure dans la clé
 /// (la détection des répétitions s'en sert). `subtHrHi` n'est lu qu'à ④, et `refHr` et `paceHrK` ne servent qu'à ⑤ :
-/// aucun des trois n'entre dans la clé. `cleSource` et la date n'y entrent pas non plus : voir `identifiee`.
-public func cleDeSeance(_ pivot: EmpreinteActivite, _ p: ParamsDates) -> String {
-    hacher([
+/// aucun des trois n'entre dans la clé. `cleSource` et la date n'y entrent pas non plus : voir `identifiee`. Le marquage
+/// saisi (D-020) y entre s'il existe : changer de marquage recalcule la séance. Sans marquage saisi, la clé est celle
+/// d'avant D-020.
+public func cleDeSeance(_ pivot: EmpreinteActivite, _ p: ParamsDates, marquage: MarquageUtilisateur? = nil) -> String {
+    var champs = [
         pivot.empreinteBrute,
         pivot.versionAdaptateur,
         REGLES_VERSION,
@@ -145,7 +147,11 @@ public func cleDeSeance(_ pivot: EmpreinteActivite, _ p: ParamsDates) -> String 
         "lt2Pace=\(p.lt2Pace)",
         "subtHrLo=\(p.subtHrLo)",
         "FORMAT_SEANCE=\(FORMAT_SEANCE)",
-    ])
+    ]
+    if let marquage {
+        champs.append("marquage=\(marquage.rawValue)")
+    }
+    return hacher(champs)
 }
 
 /// Empreinte des entrées de la Vue (ADR 0009, démarrage rapide) : activités actives (clé source et empreinte),
@@ -192,20 +198,23 @@ private func hacher(_ champs: [String]) -> String {
 /// Étape ②a pour chaque activité datée strictement avant J (ADR 0006). Si une clé de mémorisation est présente dans
 /// `memoire`, la séance est reprise sans lire le flux. Sinon le flux est demandé à `lireFlux`, utilisé, puis oublié, et
 /// la séance est rangée dans `memoire`. Les paramètres sont ceux du jour de la séance (D-006). Une activité sans flux
-/// fait échouer le calcul (`FluxAbsent`).
+/// fait échouer le calcul (`FluxAbsent`). `marquages` (D-020) : marquage saisi par clé source ; une activité absente de
+/// ce dictionnaire garde son marquage déduit.
 public func seancesIntrinseques(
     activites: [PivotSansFlux],
     lireFlux: (String) async throws -> Flux?,
     parametres: Parametres,
     J: DateCivile,
-    memoire: inout MemoireSeances
+    memoire: inout MemoireSeances,
+    marquages: [String: MarquageUtilisateur] = [:]
 ) async throws -> [SeanceIntrinseque] {
     let parametresDates = try indexerParametres(parametres)
     var resultat: [SeanceIntrinseque] = []
     for pivot in activites {
         if pivot.dateLocale >= J { continue }
         let p = parametresDates.auJour(pivot.dateLocale)
-        let cle = cleDeSeance(EmpreinteActivite(pivot), p)
+        let marquage = marquages[pivot.cleSource]
+        let cle = cleDeSeance(EmpreinteActivite(pivot), p, marquage: marquage)
         if let memorisee = memoire.entrees[cle] {
             resultat.append(identifiee(memorisee, pivot))
             continue
@@ -213,7 +222,7 @@ public func seancesIntrinseques(
         guard let flux = try await lireFlux(pivot.cleSource) else {
             throw FluxAbsent(cleSource: pivot.cleSource)
         }
-        let calculee = try calculerSeanceIntrinseque(pivot.avecFlux(flux), p)
+        let calculee = try calculerSeanceIntrinseque(pivot.avecFlux(flux), p, marquageUtilisateur: marquage)
         memoire.entrees[cle] = calculee
         resultat.append(identifiee(calculee, pivot))
     }

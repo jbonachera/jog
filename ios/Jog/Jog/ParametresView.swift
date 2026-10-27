@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Feuille des Paramètres, ouverte par le bouton de la barre (maquette). Le formulaire arrive dans un lot ultérieur.
 struct ParametresView: View {
+    @Bindable var modele: ModeleApp
     @Environment(\.dismiss) private var fermer
 
     var body: some View {
@@ -13,6 +14,7 @@ struct ParametresView: View {
                 }
                 #if DEBUG
                 Section("Développement") {
+                    Toggle("Afficher la maquette", isOn: $modele.maquetteActive)
                     NavigationLink("Spike HealthKit") {
                         SpikeView()
                     }
@@ -31,5 +33,5 @@ struct ParametresView: View {
 }
 
 #Preview {
-    ParametresView()
+    ParametresView(modele: ModeleApp())
 }

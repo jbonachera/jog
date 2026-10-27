@@ -93,11 +93,10 @@ public actor Synchronisation {
         }
     }
 
-    /// Branche la livraison en arrière-plan : chaque nouvelle séance relance une synchronisation complète.
-    public func activerLivraisonEnArrierePlan() async throws {
-        try await lecteur.activerLivraisonEnArrierePlan { [self] in
-            _ = try? await self.synchroniserEtRecalculer { _, _ in }
-        }
+    /// Branche la livraison en arrière-plan. `surNouvelleSeance` est appelée à chaque séance nouvelle : l'appelant y
+    /// relance la synchronisation, pour que sa garde contre les synchronisations simultanées s'applique aussi.
+    public func activerLivraisonEnArrierePlan(surNouvelleSeance: @escaping @Sendable () async -> Void) async throws {
+        try await lecteur.activerLivraisonEnArrierePlan(surNouvelleSeance: surNouvelleSeance)
     }
 
     private func progresser(_ traitees: Int, _ total: Int, _ externe: @escaping @Sendable (Int, Int) -> Void) {

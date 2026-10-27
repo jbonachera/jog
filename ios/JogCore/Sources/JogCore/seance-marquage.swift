@@ -12,6 +12,16 @@ public func marquer(_ competition: Bool, _ nom: String?) -> Marquage {
     return .aucun
 }
 
+/// Marquage retenu d'une séance (D-020) : le marquage saisi par l'athlète, s'il existe, prime sur la plateforme et sur
+/// le nom (D-014). Sans marquage saisi, c'est le marquage déduit.
+public func marquerSeance(_ utilisateur: MarquageUtilisateur?, competition: Bool, nom: String?) -> Marquage {
+    switch utilisateur {
+    case .course?: return .course
+    case .test?: return .test
+    case nil: return marquer(competition, nom)
+    }
+}
+
 /// La distance standard la plus proche de km, parmi DISTANCES_STANDARD_KM. À égalité, la plus courte.
 public func distanceStandardProche(_ km: Double) -> Double {
     var meilleure = DISTANCES_STANDARD_KM[0]
