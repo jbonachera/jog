@@ -22,7 +22,7 @@ struct ContentView: View {
                         }
                 }
                 .sheet(isPresented: $parametresOuverts) {
-                    ParametresView(modele: modele)
+                    ParametresView(modele: modele, vue: vueCourante)
                 }
             }
             Tab("Charge", systemImage: "chart.bar.xaxis") {

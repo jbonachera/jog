@@ -49,7 +49,7 @@ private struct LigneJourView: View {
                     .monospacedDigit()
                     .foregroundStyle(ligne.estRepos ? .encre3 : .encre)
             }
-            .frame(width: 44, alignment: .leading)
+            .frame(minWidth: 44, alignment: .leading)
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(ligne.titre)

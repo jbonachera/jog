@@ -190,6 +190,26 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     #expect(!FileManager.default.fileExists(atPath: dossier.path))
 }
 
+@Test func parametresParDefautSansFichier() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (moteur, _) = moteurNeuf(dossier)
+
+    #expect(try await moteur.lireParametres() == parametresDefaut())
+}
+
+@Test func parametresModifiesSontRelusAuRedemarrage() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (moteur, _) = moteurNeuf(dossier)
+    var nouveaux = parametresDefaut()
+    nouveaux.modifs = [ModifDatee(id: "m1", cle: "hrMax", valeur: 190, dateEffet: "2026-09-01", enregistreLe: "2026-09-02T10:00:00Z")]
+    try await moteur.modifierParametres(nouveaux)
+
+    let (relu, _) = moteurNeuf(dossier)
+    #expect(try await relu.lireParametres() == nouveaux)
+}
+
 // MARK: - Journée courante et changement de jour
 
 @Test func jourCourantSuitLeFuseauDuLieu() {

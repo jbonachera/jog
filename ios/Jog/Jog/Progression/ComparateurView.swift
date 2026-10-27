@@ -81,7 +81,7 @@ struct ComparateurView: View {
             Text(titre)
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.encre2)
-                .frame(width: 100, alignment: .leading)
+                .frame(minWidth: 100, alignment: .leading)
             DatePicker(
                 "Début de la période \(periode.rawValue)",
                 selection: liaison(dates, periode, debut: true),

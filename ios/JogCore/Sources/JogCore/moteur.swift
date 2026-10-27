@@ -105,6 +105,13 @@ public actor Moteur {
         }
     }
 
+    /// Les paramètres stockés (datés et globaux, avec leur historique). Lit le stockage au premier usage. Sert à
+    /// l'écran Paramètres, qui part de ce jeu avant d'y ajouter une modification (lot 5).
+    public func lireParametres() throws -> Parametres {
+        try chargerSiBesoin()
+        return parametres
+    }
+
     /// Remplace l'ensemble des paramètres (datés et globaux), persiste et invalide les calculs en cours.
     /// L'appelant recalcule ensuite : le moteur ne le fait pas à sa place.
     public func modifierParametres(_ nouveaux: Parametres) throws {

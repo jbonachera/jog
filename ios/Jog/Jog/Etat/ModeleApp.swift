@@ -140,6 +140,76 @@ final class ModeleApp {
         await recalculerJour()
     }
 
+    // MARK: - Paramètres et données (06, D-016, D-017)
+
+    /// Les paramètres stockés, avec leur historique, pour la feuille Paramètres.
+    func lireParametres() async throws -> Parametres {
+        guard let services else { throw ErreurParametres.indisponible }
+        return try await services.moteur.lireParametres()
+    }
+
+    /// Enregistre l'ensemble des paramètres, puis recalcule. Le calcul se fait hors du fil principal, dans la file.
+    /// Si le recalcul échoue, les paramètres précédents sont rétablis et l'erreur est levée.
+    func enregistrerParametres(_ nouveaux: Parametres) async throws {
+        guard let services else { throw ErreurParametres.indisponible }
+        let anciens = try await services.moteur.lireParametres()
+        var erreur: ErreurParametres?
+        await enfiler { [self] in
+            do {
+                try await services.moteur.modifierParametres(nouveaux)
+            } catch {
+                erreur = .ecriture(error.localizedDescription)
+                return
+            }
+            do {
+                let J = services.moteur.jourCourant(maintenant: Date(), fuseau: .current)
+                let vue = try await services.moteur.recalculer(J: J, derniereSynchro: derniereSynchro)
+                if case .erreur(let message, _) = etat {
+                    etat = .erreur(message: message, vue: vue)
+                } else {
+                    recevoir(vue)
+                }
+            } catch {
+                erreur = .recalcul
+                try? await services.moteur.modifierParametres(anciens)
+            }
+        }.value
+        if let erreur { throw erreur }
+    }
+
+    /// Compteurs de l'état des données (D-017, adapté) : versions, séances importées, écartées, ignorées, synchro.
+    func etatDonnees() async -> EtatDonnees? {
+        guard let services else { return nil }
+        let importees = (try? await services.moteur.nombreActivites()) ?? 0
+        let ecartees = await services.moteur.ecartees.count
+        let ignorees = await services.synchro.ignorees.values.map(\.raison)
+        let echecs = await services.synchro.echecs.count
+        return EtatDonnees(
+            reglesVersion: REGLES_VERSION, seancesImportees: importees, ecartees: ecartees, raisonsIgnorees: ignorees,
+            echecs: echecs, derniereSynchro: derniereSynchro
+        )
+    }
+
+    /// « Supprimer toutes mes données » (D-016) : efface le stockage (paramètres, séances, marquages, ancre, Vue), les
+    /// préférences de l'app, puis ramène à l'écran d'accueil. Les données Santé d'Apple ne sont pas touchées.
+    func supprimerToutesLesDonnees() async throws {
+        guard let services else { throw ErreurParametres.indisponible }
+        var erreur: Error?
+        await enfiler { [self] in
+            do {
+                try await services.moteur.supprimerTout()
+            } catch {
+                erreur = error
+                return
+            }
+            UserDefaults.standard.removeObject(forKey: CLE_AUTORISATION_DEMANDEE)
+            UserDefaults.standard.removeObject(forKey: CLE_HRMAX_IGNOREE)
+            derniereSynchro = nil
+            etat = .premiereOuverture
+        }.value
+        if let erreur { throw ErreurParametres.ecriture(erreur.localizedDescription) }
+    }
+
     // MARK: - Synchronisation et recalcul
 
     /// Une seule synchronisation à la fois, dans la file. Une demande reçue pendant qu'une synchronisation est en file ou
