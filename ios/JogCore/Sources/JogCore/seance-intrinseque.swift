@@ -27,8 +27,9 @@ func calculerSeanceIntrinsequeAvec(
 ) throws -> SeanceIntrinseque {
     let g = try miseEnForme(pivot)
     let intervalles = analyseDesIntervallesAutorisee(source: pivot.source, appSource: pivot.appSource)
-    // Les répétitions détectées (tours ou flux) sont les seules qui entrent dans la classification (charge, minutes,
-    // signaux) : elles ne dépendent jamais de l'estimation (D-021, décision du pilote).
+    // Répétitions détectées par les tours ou le flux ; à défaut, estimées (D-021). Les unes comme les autres classent
+    // les minutes (règle mixte D-001) : sans elles, une séance sans tours n'aurait jamais de minutes de sous-seuil
+    // (07, règle 2 : « à défaut de tours, on détecte les répétitions dans le flux »).
     let detectees = try detecterRepetitions(g, pivot.tours, p, intervalles: intervalles)
     // D-021 : une séance HealthKit sans tour de travail (ni manuel ni étape), et sans répétition détectée dans le flux,
     // est estimée sur la vitesse et la FC. Une séance avec tours garde son chemin par les tours, même sans série. Une
@@ -41,7 +42,7 @@ func calculerSeanceIntrinsequeAvec(
         reps = estimation
         estimees = true
     }
-    let (categories, segmentsMp) = classer(g, detectees, p)
+    let (categories, segmentsMp) = classer(g, reps, p)
     let marquage = marquerSeance(marquageUtilisateur, competition: pivot.competition, nom: pivot.nom)
     let enCourse = marquage == .course || marquage == .test
 

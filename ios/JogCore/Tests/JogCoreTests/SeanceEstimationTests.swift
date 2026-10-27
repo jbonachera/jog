@@ -304,12 +304,10 @@ private func intervalleSecondes(_ g: GrilleSeance, _ plage: Plage) -> (debut: Do
     }
 }
 
-@Test func d021LaVueNeDependPasDesRepetitionsEstimeesQueParLeTypeEtLesFootings() throws {
-    // D-021 (décision du pilote) : la même séance, une fois estimée (type séance qualité) et une fois sans estimation (son
-    // type de classement sans répétitions), dans la même Vue. Tout est identique sauf la séance elle-même (type,
-    // répétitions, format, récupération) et P4. Font exception, parce qu'ils lisent le type seul : le signal des footings
-    // et les footings des semaines (une séance sans estimation est un footing), le type des jours, et le type dominant des
-    // barres des compteurs. Volumes, charge, minutes, signaux 1 à 4 et 6, verdict, fourchette et simulateur sont identiques.
+@Test func d021LesRepetitionsEstimeesClassentLesMinutesSansChangerLeVolume() throws {
+    // D-021 : la même séance, une fois estimée (séance qualité) et une fois sans estimation. Les répétitions estimées
+    // classent les minutes comme des répétitions détectées (D-001, 07 règle 2) : du sous-seuil apparaît, la charge suit.
+    // Volume, durée et minutes totales ne changent pas, ni les signaux qui ne lisent pas les répétitions estimées (3, 4).
     let J: DateCivile = "2026-10-20"
     // La séance est la plus récente de la Vue (J−1) : P4 la lit.
     let pivot = pivotAutreApp(fractionne(), date: "2026-10-19")
@@ -317,9 +315,11 @@ private func intervalleSecondes(_ g: GrilleSeance, _ plage: Plage) -> (debut: Do
     let sans = try calculerSeanceIntrinsequeAvec(pivot, parametres, marquageUtilisateur: nil) { _, _ in nil }
     #expect(avec.repetitionsEstimees == true)
     #expect(sans.repetitionsEstimees == nil)
-    // Volume, charge, minutes : identiques avec ou sans estimation (classification sur les seules répétitions détectées).
-    #expect(avec.minutes == sans.minutes)
-    #expect(avec.charge == sans.charge)
+    #expect(sans.minutes.subt == 0)
+    #expect(avec.minutes.subt + avec.minutes.hard > 0, "les blocs estimés sont du sous-seuil ou au-dessus")
+    let total = { (m: Minutes) in m.easy + m.mp + m.subt + m.hard }
+    #expect(abs(total(avec.minutes) - total(sans.minutes)) < 1e-9)
+    #expect(avec.charge > sans.charge)
     #expect(avec.mp_min == sans.mp_min)
     #expect(avec.segmentsMp == sans.segmentsMp)
     #expect(avec.duree_min == sans.duree_min)
@@ -339,27 +339,17 @@ private func intervalleSecondes(_ g: GrilleSeance, _ plage: Plage) -> (debut: Do
     #expect(vueAvec.seances.last?.type == .seanceQualite)
     #expect(vueSans.seances.last?.type != .seanceQualite)
 
-    // Décision : verdict, fourchette, simulateur et signaux, sauf le signal des footings (type seul).
-    #expect(vueAvec.decision.verdict == vueSans.decision.verdict)
-    #expect(vueAvec.decision.phrase == vueSans.decision.phrase)
-    #expect(vueAvec.decision.fourchette == vueSans.decision.fourchette)
-    #expect(vueAvec.decision.simulateur == vueSans.decision.simulateur)
-    let signauxAvec = vueAvec.decision.signaux.filter { $0.cle != .footings }
-    let signauxSans = vueSans.decision.signaux.filter { $0.cle != .footings }
-    #expect(signauxAvec == signauxSans)
-    #expect(vueAvec.decision.signaux.count == vueSans.decision.signaux.count)
+    // Signaux 3 et 4 : ils ignorent les répétitions estimées.
+    for cle in [CleSignal.reponse, CleSignal.horsSousSeuil] {
+        #expect(vueAvec.decision.signaux.first { $0.cle == cle } == vueSans.decision.signaux.first { $0.cle == cle })
+    }
 
     // Série de charge : identique. Compteurs : volumes identiques ; seul le type dominant des barres suit le type.
-    #expect(vueAvec.serieCharge == vueSans.serieCharge)
     #expect(vueAvec.compteurs.annee.km == vueSans.compteurs.annee.km)
     #expect(vueAvec.compteurs.jours30.km == vueSans.compteurs.jours30.km)
     #expect(vueAvec.compteurs.jours7.nbSeances == vueSans.compteurs.jours7.nbSeances)
     #expect(sansTypeDeBarre(vueAvec.compteurs) == sansTypeDeBarre(vueSans.compteurs))
 
-    // Jours : tout sauf le type de chaque jour, qui porte le type de la séance.
-    var joursAvec = vueAvec.jours
-    joursAvec.types = vueSans.jours.types
-    #expect(joursAvec == vueSans.jours)
 
     // Semaines : minutes, charge, volume, part et nombre sous-seuil identiques ; les footings suivent le type.
     #expect(vueAvec.semaines.count == vueSans.semaines.count)
@@ -368,13 +358,9 @@ private func intervalleSecondes(_ g: GrilleSeance, _ plage: Plage) -> (debut: Do
         #expect(semaineAvec.statut == semaineSans.statut)
         #expect(semaineAvec.km == semaineSans.km)
         #expect(semaineAvec.min == semaineSans.min)
-        #expect(semaineAvec.minutes == semaineSans.minutes)
-        #expect(semaineAvec.partSS == semaineSans.partSS)
-        #expect(semaineAvec.nbSS == semaineSans.nbSS)
-        #expect(semaineAvec.charge == semaineSans.charge)
     }
 
-    // Séances : tout sauf le type, les répétitions, le format, la récupération et l'indication d'estimation de la séance.
+    // Séances : tout sauf le type, les répétitions, le format, la récupération, l'estimation, les minutes et la charge.
     #expect(vueAvec.seances.count == vueSans.seances.count)
     for (a, b) in zip(vueAvec.seances, vueSans.seances) {
         var normalisee = a
@@ -383,6 +369,8 @@ private func intervalleSecondes(_ g: GrilleSeance, _ plage: Plage) -> (debut: Do
         normalisee.format = b.format
         normalisee.recup_s = b.recup_s
         normalisee.repetitionsEstimees = b.repetitionsEstimees
+        normalisee.minutes = b.minutes
+        normalisee.charge = b.charge
         #expect(normalisee == b)
     }
 
@@ -486,9 +474,9 @@ private struct ErreurEstimationFictive: Error {}
     // change avec la version, même si REGLES_VERSION ne bouge pas.
     let parametres = parametresDefaut()
     let activites = [EmpreinteActivite(cleSource: "a", empreinteBrute: "e", versionAdaptateur: "1.0.0")]
-    let v1 = try empreinteEntrees(activites: activites, parametres: parametres, derniereSynchro: nil, versionEstimation: 1)
-    #expect(try empreinteEntrees(activites: activites, parametres: parametres, derniereSynchro: nil) == v1)
-    #expect(try empreinteEntrees(activites: activites, parametres: parametres, derniereSynchro: nil, versionEstimation: 2) != v1)
+    let courante = try empreinteEntrees(activites: activites, parametres: parametres, derniereSynchro: nil, versionEstimation: VERSION_ESTIMATION)
+    #expect(try empreinteEntrees(activites: activites, parametres: parametres, derniereSynchro: nil) == courante)
+    #expect(try empreinteEntrees(activites: activites, parametres: parametres, derniereSynchro: nil, versionEstimation: VERSION_ESTIMATION + 1) != courante)
 }
 
 @Test func d021UneErreurDeLEstimationNEcartePasLaSeance() throws {
