@@ -38,13 +38,19 @@ public struct ErreurSeanceHealthKit: Error, Sendable, Equatable {
 /// Filtre de source et de type (migration-ios, décision 5) : seule l'app Exercice d'Apple est retenue (séances de la
 /// Watch, bundle « com.apple.health. », ou « com.apple.workout »), et seulement les courses. Nil si la séance passe.
 public func raisonIgnoreeHealthKit(_ brute: SeanceBrute) -> Ignoree? {
-    let cle = "hk:" + brute.id
     let bundle = brute.sourceRevision?.bundleId ?? ""
-    guard bundle.hasPrefix("com.apple.health.") || bundle == "com.apple.workout" else {
-        return Ignoree(cleSource: cle, raison: .autreSource, detail: bundle.isEmpty ? nil : bundle)
-    }
+    if let ignoree = raisonIgnoreeSourceHealthKit(id: brute.id, bundleId: bundle) { return ignoree }
     guard brute.activityType == TYPE_ACTIVITE_COURSE else {
-        return Ignoree(cleSource: cle, raison: .pasUneCourse, detail: "type \(brute.activityType)")
+        return Ignoree(cleSource: "hk:" + brute.id, raison: .pasUneCourse, detail: "type \(brute.activityType)")
+    }
+    return nil
+}
+
+/// Filtre de source seul, pour écarter une séance avant de lire ses séries (migration-ios, décision 5). Le bundle
+/// « com.apple.health. » ou « com.apple.workout » est celui de l'app Exercice d'Apple. Nil si la source est retenue.
+public func raisonIgnoreeSourceHealthKit(id: String, bundleId: String) -> Ignoree? {
+    guard bundleId.hasPrefix("com.apple.health.") || bundleId == "com.apple.workout" else {
+        return Ignoree(cleSource: "hk:" + id, raison: .autreSource, detail: bundleId.isEmpty ? nil : bundleId)
     }
     return nil
 }
