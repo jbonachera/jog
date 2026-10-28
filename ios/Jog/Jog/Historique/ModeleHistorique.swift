@@ -107,6 +107,11 @@ enum ModeleHistorique {
 
     // MARK: - Construction
 
+    /// Domaine de l'axe des kilomètres : de zéro à un multiple de 20 km au moins égal à la semaine la plus chargée (20 km minimum).
+    static func domaineKm(maxKm: Double) -> ClosedRange<Double> {
+        0...max(20, (maxKm / 20).rounded(.up) * 20)
+    }
+
     /// Les données de l'onglet, ou nil si le moteur ne peut pas les calculer.
     static func donnees(_ vue: Vue, _ periode: PeriodeHistorique) -> Donnees? {
         guard let selection = try? selectionHistorique(vue, periode),
@@ -129,7 +134,6 @@ enum ModeleHistorique {
         }
 
         let maxKm = lignes.map(\.km).filter(\.isFinite).max() ?? 0
-        let haut = max(20, (maxKm / 20).rounded(.up) * 20)
 
         return Donnees(
             periode: periode,
@@ -137,7 +141,7 @@ enum ModeleHistorique {
             sections: sections(lignes),
             barres: barres,
             courses: lignes.flatMap(\.courses),
-            domaineKm: 0...haut,
+            domaineKm: domaineKm(maxKm: maxKm),
             aujourdhui: lignes.contains { $0.enCours } ? ModeleApercu.date(vue.J) : nil
         )
     }

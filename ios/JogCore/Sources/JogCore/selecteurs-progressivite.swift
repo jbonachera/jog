@@ -2,7 +2,7 @@
 // Sélection pure à partir de la Vue.
 
 /// Nombre de jours de la fenêtre, qui se termine à J−1 : 16 semaines, ou 12 mois.
-private func joursDeLaFenetre(_ fenetre: FenetreProgressivite) -> Int {
+public func joursDeLaFenetre(_ fenetre: FenetreProgressivite) -> Int {
     switch fenetre {
     case .semaines16: 112
     case .mois12: 365

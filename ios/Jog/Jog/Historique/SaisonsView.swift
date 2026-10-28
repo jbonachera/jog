@@ -1,15 +1,36 @@
 import SwiftUI
+import UIKit
 import Charts
 import JogCore
 
 /// H1 · Saisons et volume hebdomadaire (03, H1) : barres empilées par intensité, résultats de course, aujourd'hui.
 /// Bascule Graphique · Tableau (D-011) ; le choix n'est pas mémorisé.
 struct SaisonsView: View {
+    @Environment(\.dynamicTypeSize) private var tailleTexte
+    private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
+
+    /// Largeur du libellé Y le plus long (kilomètres) : l'axe X des semaines prend le reste du tracé.
+    private var largeurY: CGFloat {
+        largeurMaxLibelles(Axes.graduations(donnees.domaineKm, pas: 20).map { ModeleApercu.nombre($0) }, categorie: categorie)
+    }
+
     let donnees: ModeleHistorique.Donnees
     @State private var selection: Date?
 
     private var ligneLue: ModeleHistorique.LigneSemaine? {
         selection.flatMap { ModeleHistorique.semaine(proche: $0, dans: donnees.chronologique) }
+    }
+
+    /// Repères de l'axe des kilomètres (pas de 20 km), retenus selon la longueur de l'axe. Fonction pure, testée (ProgressionGraduationsTests).
+    @MainActor
+    static func reperesAxeY(domaine: ClosedRange<Double>, longueur: CGFloat, categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> [Double] {
+        Axes.graduations(domaine: domaine, pas: 20, longueur: longueur, tailleLibelle: hauteurLibelleAxe(categorie: categorie))
+    }
+
+    /// Repères mensuels de l'axe des semaines, retenus selon la longueur de l'axe. Fonction pure, testée.
+    @MainActor
+    static func reperesAxeX(dates: [Date], calendrier: Calendar, longueur: CGFloat, categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> [Date] {
+        reperesMoisDonnees(dates, calendrier: calendrier, longueur: longueur, categorie: categorie)
     }
 
     var body: some View {
@@ -21,7 +42,7 @@ struct SaisonsView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         lectureTexte
                         graphique
-                            .frame(height: 220)
+                            .frame(height: DimensionsGraphique.saisons)
                         legende
                     }
                 }
@@ -75,7 +96,17 @@ struct SaisonsView: View {
     // MARK: - Graphique
 
     private var graphique: some View {
-        Chart {
+        GeometryReader { geometrie in
+            graphiqueDessin(longueurX: DimensionsGraphique.longueurAxeX(largeurGraphique: geometrie.size.width, largeurAxeY: largeurY))
+        }
+    }
+
+    private func graphiqueDessin(longueurX: CGFloat) -> some View {
+        let reperesY = SaisonsView.reperesAxeY(
+            domaine: donnees.domaineKm, longueur: DimensionsGraphique.hauteurAxeY(DimensionsGraphique.saisons, categorie: categorie), categorie: categorie
+        )
+        let reperesX = SaisonsView.reperesAxeX(dates: donnees.chronologique.compactMap(\.date), calendrier: .current, longueur: longueurX, categorie: categorie)
+        return Chart {
             ForEach(donnees.barres) { barre in
                 BarMark(
                     x: .value("Semaine", barre.date, unit: .weekOfYear),
@@ -111,7 +142,7 @@ struct SaisonsView: View {
         )
         .chartYScale(domain: donnees.domaineKm)
         .chartYAxis {
-            AxisMarks(position: .leading, values: .stride(by: 20)) { _ in
+            AxisMarks(position: .leading, values: reperesY) { _ in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel()
                     .font(.caption2.monospacedDigit())
@@ -119,7 +150,7 @@ struct SaisonsView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(values: .stride(by: .month)) { valeur in
+            AxisMarks(values: reperesX) { valeur in
                 AxisValueLabel { Text(etiquetteMois(valeur)) }
                     .font(.caption2)
                     .foregroundStyle(Color.encre3)

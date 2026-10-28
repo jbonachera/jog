@@ -65,6 +65,12 @@ enum Axes {
         return echantillon(toutes, domaine: domaine, longueur: longueur, tailleLibelle: tailleLibelle).map { toutes[$0] }
     }
 
+    /// Repères choisis parmi des valeurs croissantes (positions libres : étiquettes de semaines, dates), retenus sur un axe
+    /// de `longueur` pt couvrant `domaine`. Même règle que `graduations(domaine:…)`.
+    static func reperesChoisis(_ valeurs: [Double], domaine: ClosedRange<Double>, longueur: CGFloat, tailleLibelle: CGFloat) -> [Double] {
+        echantillon(valeurs, domaine: domaine, longueur: longueur, tailleLibelle: tailleLibelle).map { valeurs[$0] }
+    }
+
     /// Repères mensuels (premier jour de chaque mois, à minuit du calendrier fourni) entre deux dates, retenus sur un axe
     /// de `longueur` pt. Même règle que `graduations(domaine:…)`, sur les dates. Le premier repère est toujours retenu : il
     /// porte l'année du libellé.

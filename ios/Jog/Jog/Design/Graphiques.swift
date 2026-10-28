@@ -288,6 +288,11 @@ enum DimensionsGraphique {
     static let derniereSeance: CGFloat = 190
     static let formeFatigue: CGFloat = 200
     static let fraicheurForme: CGFloat = 130
+    static let saisons: CGFloat = 220
+    static let discipline: CGFloat = 180
+    static let minutesSousSeuil: CGFloat = 180
+    static let progressiviteVolume: CGFloat = 220
+    static let progressiviteRatio: CGFloat = 140
 
     /// Hauteur de l'axe Y : la hauteur du graphique moins les lignes des libellés X, sous le tracé (une ligne par défaut).
     @MainActor
@@ -343,10 +348,10 @@ func largeurMaxLibelles(_ textes: [String], categorie: UIContentSizeCategory = U
 @MainActor
 func reperesMoisDonnees(_ dates: [Date], calendrier: Calendar, longueur: CGFloat, categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> [Date] {
     guard let premier = dates.min(), let dernier = dates.max() else { return [] }
-    let total = Axes.reperesMois(entre: premier, et: dernier, calendrier: calendrier, longueur: .infinity, tailleLibelle: 0)
-    let taille = largeurMaxLibelles(total.enumerated().map { index, date in
-        libelleMois(date, premierRepere: index == 0, calendrier: calendrier)
-    }, categorie: categorie)
+    // Libellé majorant : le mois le plus large, avec son année (un repère sans année est plus étroit). Calculé sur les douze
+    // mois, sans formater chaque repère : le corps de la vue est réévalué à chaque geste.
+    let mois = (1...12).compactMap { calendrier.date(from: DateComponents(year: 2026, month: $0, day: 1)) }
+    let taille = largeurMaxLibelles(mois.map { libelleMois($0, premierRepere: true, calendrier: calendrier) }, categorie: categorie)
     return Axes.reperesMois(entre: premier, et: dernier, calendrier: calendrier, longueur: longueur, tailleLibelle: taille)
 }
 

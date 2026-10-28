@@ -37,6 +37,31 @@ enum ModeleCharge {
     }
 
     /// Position entière (semaine) sous le doigt, bornée à la série ; sans doigt, la dernière semaine.
+    /// Domaine de l'axe des parts (Discipline) : la cible reste visible.
+    static func domaineDiscipline(parts: [Double], cibleLo: Double, cibleHi: Double) -> ClosedRange<Double> {
+        domaineAxe(parts + [cibleLo, cibleHi], preset: .partSousSeuil)
+    }
+
+    /// Domaine de l'axe des minutes (Minutes sous le seuil) : part de zéro, la moyenne sur 4 semaines reste visible.
+    static func domaineMinutes(minutes: [Double], moyenne4: Double?) -> ClosedRange<Double> {
+        domaineDepuisZero(minutes + (moyenne4.map { [$0] } ?? []), pas: 20, etendueMin: 40)
+    }
+
+    /// Domaines des deux axes de la progressivité : volume (depuis zéro) et ratio (bande 0,8–1,3 et vigilance 1,5 visibles).
+    static func domainesProgressivite(points: [PointRatio]) -> (volume: ClosedRange<Double>, ratio: ClosedRange<Double>) {
+        (
+            domaineDepuisZero(points.flatMap { [$0.s7, $0.chronic] }, pas: 10, etendueMin: 20),
+            domaineAxe(points.map(\.r), preset: .ratio, reperes: [0.8, 1.3, 1.5])
+        )
+    }
+
+    /// Libellé d'une semaine étiquetée : la date civile de son lundi, à la position donnée.
+    static func libelleSemaine(_ lundis: [DateCivile], _ position: Double) -> String? {
+        let rang = Int(position.rounded())
+        guard lundis.indices.contains(rang) else { return nil }
+        return formatDate(lundis[rang])
+    }
+
     static func rang(_ position: Double?, dans nombreDeSemaines: Int) -> Int? {
         guard nombreDeSemaines > 0 else { return nil }
         guard let position else { return nombreDeSemaines - 1 }
@@ -78,11 +103,12 @@ enum ModeleCharge {
             }
         }
         let derniere = points.first { $0.id == selection.derniere?.date }
+        let domaines = domainesProgressivite(points: points)
         return Progressivite(
             points: points,
             derniere: derniere,
-            domaineVolume: domaineDepuisZero(points.flatMap { [$0.s7, $0.chronic] }, pas: 10, etendueMin: 20),
-            domaineRatio: domaineAxe(points.map(\.r), preset: .ratio, reperes: [0.8, 1.3, 1.5])
+            domaineVolume: domaines.volume,
+            domaineRatio: domaines.ratio
         )
     }
 
@@ -171,12 +197,11 @@ enum ModeleCharge {
                 seances: Int(rang.element.nbSS.rounded())
             )
         }
-        let repereMoyenne = selection.moyenne4.map { [$0] } ?? []
         return MinutesSousSeuil(
             semaines: semaines,
             moyenne4: selection.moyenne4,
             etiquettes: selection.indicesEtiquetes.map { Double($0) },
-            domaine: domaineDepuisZero(semaines.map(\.minutes) + repereMoyenne, pas: 20, etendueMin: 40)
+            domaine: domaineMinutes(minutes: semaines.map(\.minutes), moyenne4: selection.moyenne4)
         )
     }
 
@@ -214,9 +239,7 @@ enum ModeleCharge {
 
     /// Date courte de la semaine repérée par sa position, pour l'axe.
     static func etiquette(_ modele: MinutesSousSeuil, _ position: Double) -> String? {
-        let rang = Int(position.rounded())
-        guard modele.semaines.indices.contains(rang) else { return nil }
-        return formatDate(modele.semaines[rang].lundi)
+        libelleSemaine(modele.semaines.map(\.lundi), position)
     }
 
     // MARK: - C3 · Discipline NSA
@@ -261,8 +284,8 @@ enum ModeleCharge {
             semaines: semaines,
             cibleLo: lo,
             cibleHi: hi,
-            domaine: domaineAxe(semaines.compactMap(\.partPct) + [lo, hi], preset: .partSousSeuil),
-            etiquettes: semaines.indices.filter { (semaines.count - 1 - $0) % 5 == 0 }.map { Double($0) },
+            domaine: domaineDiscipline(parts: semaines.compactMap(\.partPct), cibleLo: lo, cibleHi: hi),
+            etiquettes: indicesEtiquettesSemaines(semaines.count).map { Double($0) },
             footings: "Footings sous \(ModeleApercu.nombre(note.plafondBpm)) bpm : \(ModeleApercu.pourcentageOuTiret(note.footingsSousPlafondPct)) sur \(ModeleApercu.pluriel(Int(note.semaines.rounded()), "semaine", "semaines")).",
             monotonie: monotonie
         )
@@ -305,8 +328,6 @@ enum ModeleCharge {
 
     /// Date courte de la semaine repérée par sa position, pour l'axe.
     static func etiquette(_ modele: Discipline, _ position: Double) -> String? {
-        let rang = Int(position.rounded())
-        guard modele.semaines.indices.contains(rang) else { return nil }
-        return formatDate(modele.semaines[rang].lundi)
+        libelleSemaine(modele.semaines.map(\.lundi), position)
     }
 }

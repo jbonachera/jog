@@ -1,15 +1,34 @@
 import SwiftUI
+import UIKit
 import Charts
 import JogCore
 
 /// C2 · Minutes de sous-seuil par semaine (03, C2) : les 26 dernières semaines terminées, la moyenne des 4 dernières
 /// en pointillé, une date sur l'axe toutes les 5 semaines. Lecture au doigt et vue tableau (D-011).
 struct MinutesSousSeuilView: View {
+    @Environment(\.dynamicTypeSize) private var tailleTexte
+    private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
+
     let vue: Vue
     /// Position de la semaine sous le doigt (rang dans la série).
     @State private var doigt: Double?
     /// Le modèle des semaines, gardé tant que la Vue ne change pas : un geste sur le graphique ne le recalcule pas.
     @State private var memo = Memo<Vue, ModeleCharge.MinutesSousSeuil>()
+
+    /// Repères de l'axe des minutes (pas de 20 min), retenus selon la longueur de l'axe. Fonction pure, testée (ProgressionGraduationsTests).
+    @MainActor
+    static func reperesAxeY(domaine: ClosedRange<Double>, longueur: CGFloat, categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> [Double] {
+        Axes.graduations(domaine: domaine, pas: 20, longueur: longueur, tailleLibelle: hauteurLibelleAxe(categorie: categorie))
+    }
+
+    /// Repères de l'axe des semaines étiquetées, retenus selon la longueur de l'axe (l'étiquette suit la position). Fonction pure, testée.
+    @MainActor
+    static func reperesAxeX(etiquettes: [Double], nombreSemaines: Int, libelle: (Double) -> String?, longueur: CGFloat, categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> [Double] {
+        Axes.reperesChoisis(
+            etiquettes, domaine: 0...Double(max(nombreSemaines - 1, 0)), longueur: longueur,
+            tailleLibelle: largeurMaxLibelles(etiquettes.compactMap(libelle), categorie: categorie)
+        )
+    }
 
     var body: some View {
         let modele = memo.valeur(pour: vue) { ModeleCharge.minutesSousSeuil(vue) }
@@ -29,7 +48,7 @@ struct MinutesSousSeuilView: View {
 
                     GraphiqueOuTableau(tableau: ModeleCharge.tableauMinutes(modele)) {
                         graphique(modele, lecture: lecture)
-                            .frame(height: 180)
+                            .frame(height: DimensionsGraphique.minutesSousSeuil)
                     }
 
                     LegendeForme(texte: "Minutes de sous-seuil", forme: .carre, couleur: Zone.sousSeuil.couleur)
@@ -40,7 +59,25 @@ struct MinutesSousSeuilView: View {
     }
 
     private func graphique(_ modele: ModeleCharge.MinutesSousSeuil, lecture: String) -> some View {
-        Chart {
+        GeometryReader { geometrie in
+            graphiqueDessin(modele, lecture: lecture, longueurX: DimensionsGraphique.longueurAxeX(largeurGraphique: geometrie.size.width, largeurAxeY: largeurY(modele)))
+        }
+    }
+
+    /// Largeur du libellé Y le plus long (minutes) : l'axe X des semaines prend le reste du tracé.
+    private func largeurY(_ modele: ModeleCharge.MinutesSousSeuil) -> CGFloat {
+        largeurMaxLibelles(Axes.graduations(modele.domaine, pas: 20).map { ModeleApercu.nombre($0) }, categorie: categorie)
+    }
+
+    private func graphiqueDessin(_ modele: ModeleCharge.MinutesSousSeuil, lecture: String, longueurX: CGFloat) -> some View {
+        let reperesY = MinutesSousSeuilView.reperesAxeY(
+            domaine: modele.domaine, longueur: DimensionsGraphique.hauteurAxeY(DimensionsGraphique.minutesSousSeuil, categorie: categorie), categorie: categorie
+        )
+        let reperesX = MinutesSousSeuilView.reperesAxeX(
+            etiquettes: modele.etiquettes, nombreSemaines: modele.semaines.count, libelle: { ModeleCharge.etiquette(modele, $0) },
+            longueur: longueurX, categorie: categorie
+        )
+        return Chart {
             ForEach(modele.semaines) { semaine in
                 BarMark(
                     x: .value("Semaine", Double(semaine.id)),
@@ -69,7 +106,7 @@ struct MinutesSousSeuilView: View {
         }
         .chartYScale(domain: modele.domaine)
         .chartYAxis {
-            AxisMarks(position: .leading, values: Axes.graduations(modele.domaine, pas: 20)) { _ in
+            AxisMarks(position: .leading, values: reperesY) { _ in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel()
                     .font(.caption2.monospacedDigit())
@@ -77,7 +114,7 @@ struct MinutesSousSeuilView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(values: modele.etiquettes) { valeur in
+            AxisMarks(values: reperesX) { valeur in
                 AxisValueLabel {
                     if let position = valeur.as(Double.self), let texte = ModeleCharge.etiquette(modele, position) {
                         Text(texte)

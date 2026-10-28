@@ -23,13 +23,18 @@ public func selectionMinutesSS(_ vue: Vue) -> SelectionMinutesSS {
         : quatre.reduce(0.0) { $0 + $1.minutes.subt } / Double(SEMAINES_MOYENNE)
 
     // La série part de la plus récente, qui est toujours étiquetée, et remonte de 5 en 5.
-    let n = semaines.count
-    var indicesEtiquetes: [Int] = []
-    var i = max(n - 1, 0) % PAS_ETIQUETTE
-    while i < n {
-        indicesEtiquetes.append(i)
-        i += PAS_ETIQUETTE
-    }
+    let indicesEtiquetes = indicesEtiquettesSemaines(semaines.count)
 
     return SelectionMinutesSS(semaines: semaines, moyenne4: moyenne4, indicesEtiquetes: indicesEtiquetes)
+}
+
+/// Positions des semaines étiquetées, une toutes les 5 semaines, en partant de la plus récente (toujours étiquetée).
+public func indicesEtiquettesSemaines(_ nombreDeSemaines: Int) -> [Int] {
+    var indices: [Int] = []
+    var i = max(nombreDeSemaines - 1, 0) % PAS_ETIQUETTE
+    while i < nombreDeSemaines {
+        indices.append(i)
+        i += PAS_ETIQUETTE
+    }
+    return indices
 }

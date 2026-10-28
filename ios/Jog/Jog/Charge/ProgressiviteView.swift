@@ -1,10 +1,21 @@
 import SwiftUI
+import UIKit
 import Charts
 import JogCore
 
 /// C1 · Progressivité 7 j / 30 j (03, C1) : volume et ratio empilés sur un axe de temps commun, une seule lecture au
 /// doigt partagée, 16 semaines ou 12 mois. Chaque graphique a sa vue tableau (D-011).
+/// Largeurs majorantes des repères de l'axe des dates, mémorisées par fenêtre, locale, calendrier et catégorie : évite de
+/// reformater 372 libellés à chaque image.
+@MainActor
+private var largeursMajorantesX: [String: CGFloat] = [:]
+
 struct ProgressiviteView: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.calendar) private var calendrierVue
+    @Environment(\.dynamicTypeSize) private var tailleTexte
+    private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
+
     let vue: Vue
     @State private var fenetre: FenetreProgressivite = .semaines16
     /// Le jour sous le doigt, partagé par les deux graphiques.
@@ -15,6 +26,67 @@ struct ProgressiviteView: View {
     private struct CleProgressivite: Equatable {
         let vue: Vue
         let fenetre: FenetreProgressivite
+    }
+
+    /// Repères de l'axe Y (volume ou ratio), retenus selon la longueur de l'axe. Fonction pure, testée (ProgressionGraduationsTests).
+    @MainActor
+    static func reperesAxeY(domaine: ClosedRange<Double>, pas: Double, longueur: CGFloat, categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> [Double] {
+        Axes.graduations(domaine: domaine, pas: pas, longueur: longueur, tailleLibelle: hauteurLibelleAxe(categorie: categorie))
+    }
+
+    /// Format des repères de l'axe des dates, dans la locale et le calendrier de la vue : le mois seul sur 12 mois, le jour et
+    /// le mois sur 16 semaines.
+    static func formatReperesX(_ fenetre: FenetreProgressivite, locale: Locale, calendrier: Calendar) -> Date.FormatStyle {
+        var format: Date.FormatStyle = fenetre == .mois12 ? .dateTime.month(.abbreviated) : .dateTime.day().month(.abbreviated)
+        format.locale = locale
+        format.calendar = calendrier
+        return format
+    }
+
+    /// Dates candidates aux repères de l'axe des dates : sur 12 mois, un seul jour par mois (le premier de la fenêtre dans ce
+    /// mois), pour ne pas répéter un même libellé ; sur 16 semaines, tous les jours (libellés uniques).
+    static func candidatsReperesX(_ dates: [Date], fenetre: FenetreProgressivite, calendrier: Calendar) -> [Date] {
+        guard fenetre == .mois12 else { return dates }
+        var mois = Set<Int>()
+        return dates.filter { mois.insert(calendrier.component(.month, from: $0)).inserted }
+    }
+
+    /// Libellés de tous les jours de chaque mois de 2026, dans la locale et le calendrier donnés : le majorant de la largeur
+    /// des repères (les chiffres n'ont pas tous la même largeur).
+    static func libellesMajorantsX(_ fenetre: FenetreProgressivite, locale: Locale, calendrier: Calendar) -> [String] {
+        let format = formatReperesX(fenetre, locale: locale, calendrier: calendrier)
+        return (1...12).flatMap { mois in
+            (1...31).compactMap { jour in calendrier.date(from: DateComponents(year: 2026, month: mois, day: jour)) }
+        }.map { $0.formatted(format) }
+    }
+
+    /// Largeur maximale des repères de l'axe des dates, mémorisée par fenêtre, locale, calendrier et catégorie.
+    @MainActor
+    static func largeurMajorantX(_ fenetre: FenetreProgressivite, locale: Locale, calendrier: Calendar, categorie: UIContentSizeCategory) -> CGFloat {
+        let cle = "\(fenetre.rawValue)|\(locale.identifier)|\(calendrier.identifier)|\(calendrier.timeZone.identifier)|\(categorie.rawValue)"
+        if let largeur = largeursMajorantesX[cle] {
+            return largeur
+        }
+        let largeur = largeurMaxLibelles(libellesMajorantsX(fenetre, locale: locale, calendrier: calendrier), categorie: categorie)
+        largeursMajorantesX[cle] = largeur
+        return largeur
+    }
+
+    /// Repères de l'axe des dates, pris parmi les candidats et retenus selon la longueur de l'axe (remplace le choix automatique
+    /// de Swift Charts, qui ne tient pas compte des chevauchements). Fonction pure, testée (ProgressionGraduationsTests).
+    @MainActor
+    static func reperesAxeX(
+        dates: [Date], fenetre: FenetreProgressivite, longueur: CGFloat, locale: Locale, calendrier: Calendar,
+        categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory
+    ) -> [Date] {
+        guard let premier = dates.min(), let dernier = dates.max() else { return [] }
+        let retenus = Axes.reperesChoisis(
+            candidatsReperesX(dates, fenetre: fenetre, calendrier: calendrier).map(\.timeIntervalSince1970),
+            domaine: premier.timeIntervalSince1970...dernier.timeIntervalSince1970,
+            longueur: longueur,
+            tailleLibelle: largeurMajorantX(fenetre, locale: locale, calendrier: calendrier, categorie: categorie)
+        )
+        return retenus.map { Date(timeIntervalSince1970: $0) }
     }
 
     var body: some View {
@@ -56,12 +128,12 @@ struct ProgressiviteView: View {
 
             GraphiqueOuTableau(tableau: ModeleCharge.tableauVolume(modele.points)) {
                 volume(modele, lecture: lecture)
-                    .frame(height: 220)
+                    .frame(height: DimensionsGraphique.progressiviteVolume)
             }
 
             GraphiqueOuTableau(tableau: ModeleCharge.tableauRatio(modele.points)) {
                 ratio(modele, lecture: lecture)
-                    .frame(height: 140)
+                    .frame(height: DimensionsGraphique.progressiviteRatio)
             }
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), alignment: .leading)], alignment: .leading, spacing: 6) {
@@ -76,7 +148,11 @@ struct ProgressiviteView: View {
     }
 
     private func volume(_ modele: ModeleCharge.Progressivite, lecture: String) -> some View {
-        Chart {
+        let reperesY = ProgressiviteView.reperesAxeY(
+            domaine: modele.domaineVolume, pas: 10,
+            longueur: DimensionsGraphique.hauteurAxeY(DimensionsGraphique.progressiviteVolume, categorie: categorie), categorie: categorie
+        )
+        return Chart {
             ForEach(modele.points) { point in
                 BarMark(
                     x: .value("Jour", point.date),
@@ -108,7 +184,7 @@ struct ProgressiviteView: View {
         }
         .chartYScale(domain: modele.domaineVolume)
         .chartYAxis {
-            AxisMarks(position: .leading, values: Axes.graduations(modele.domaineVolume, pas: 10)) { _ in
+            AxisMarks(position: .leading, values: reperesY) { _ in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel()
                     .font(.caption2.monospacedDigit())
@@ -123,7 +199,25 @@ struct ProgressiviteView: View {
     }
 
     private func ratio(_ modele: ModeleCharge.Progressivite, lecture: String) -> some View {
-        Chart {
+        GeometryReader { geometrie in
+            ratioDessin(modele, lecture: lecture, longueurX: DimensionsGraphique.longueurAxeX(largeurGraphique: geometrie.size.width, largeurAxeY: largeurY(modele)))
+        }
+    }
+
+    /// Largeur du libellé Y le plus long (ratio) : l'axe X des dates prend le reste du tracé.
+    private func largeurY(_ modele: ModeleCharge.Progressivite) -> CGFloat {
+        largeurMaxLibelles(Axes.graduations(modele.domaineRatio, pas: 0.2).map { ModeleApercu.nombre($0, 1) }, categorie: categorie)
+    }
+
+    private func ratioDessin(_ modele: ModeleCharge.Progressivite, lecture: String, longueurX: CGFloat) -> some View {
+        let reperesY = ProgressiviteView.reperesAxeY(
+            domaine: modele.domaineRatio, pas: 0.2,
+            longueur: DimensionsGraphique.hauteurAxeY(DimensionsGraphique.progressiviteRatio, categorie: categorie), categorie: categorie
+        )
+        let reperesX = ProgressiviteView.reperesAxeX(
+            dates: modele.points.map(\.date), fenetre: fenetre, longueur: longueurX, locale: locale, calendrier: calendrierVue, categorie: categorie
+        )
+        return Chart {
             if let premier = modele.points.first, let dernier = modele.points.last {
                 RectangleMark(
                     xStart: .value("Début", premier.date),
@@ -176,7 +270,7 @@ struct ProgressiviteView: View {
         }
         .chartYScale(domain: modele.domaineRatio)
         .chartYAxis {
-            AxisMarks(position: .leading, values: Axes.graduations(modele.domaineRatio, pas: 0.2)) { valeur in
+            AxisMarks(position: .leading, values: reperesY) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {
@@ -188,11 +282,9 @@ struct ProgressiviteView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(values: .automatic(desiredCount: fenetre == .mois12 ? 6 : 4)) { _ in
+            AxisMarks(values: reperesX) { _ in
                 AxisGridLine().foregroundStyle(Color.grille)
-                AxisValueLabel(format: fenetre == .mois12
-                    ? .dateTime.month(.abbreviated)
-                    : .dateTime.day().month(.abbreviated))
+                AxisValueLabel(format: ProgressiviteView.formatReperesX(fenetre, locale: locale, calendrier: calendrierVue))
                     .font(.caption2)
                     .foregroundStyle(Color.encre3)
             }

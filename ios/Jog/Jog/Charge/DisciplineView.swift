@@ -1,14 +1,33 @@
 import SwiftUI
+import UIKit
 import Charts
 import JogCore
 
 /// C3 · Discipline NSA (03, C3) : part du temps en sous-seuil sur les 30 dernières semaines terminées, avec la bande
 /// cible ; une note sur les footings sous le plafond et la monotonie de Foster. Lecture au doigt et vue tableau (D-011).
 struct DisciplineView: View {
+    @Environment(\.dynamicTypeSize) private var tailleTexte
+    private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
+
     let vue: Vue
     @State private var doigt: Double?
     /// Le modèle des semaines, gardé tant que la Vue ne change pas (un geste ne le recalcule pas).
     @State private var memo = Memo<Vue, ModeleCharge.Discipline?>()
+
+    /// Repères de l'axe des parts (pas de 5 %), retenus selon la longueur de l'axe. Fonction pure, testée (ProgressionGraduationsTests).
+    @MainActor
+    static func reperesAxeY(domaine: ClosedRange<Double>, longueur: CGFloat, categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> [Double] {
+        Axes.graduations(domaine: domaine, pas: 5, longueur: longueur, tailleLibelle: hauteurLibelleAxe(categorie: categorie))
+    }
+
+    /// Repères de l'axe des semaines étiquetées, retenus selon la longueur de l'axe (l'étiquette suit la position). Fonction pure, testée.
+    @MainActor
+    static func reperesAxeX(etiquettes: [Double], nombreSemaines: Int, libelle: (Double) -> String?, longueur: CGFloat, categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> [Double] {
+        Axes.reperesChoisis(
+            etiquettes, domaine: 0...Double(max(nombreSemaines - 1, 0)), longueur: longueur,
+            tailleLibelle: largeurMaxLibelles(etiquettes.compactMap(libelle), categorie: categorie)
+        )
+    }
 
     var body: some View {
         let modele = memo.valeur(pour: vue) { ModeleCharge.discipline(vue) }
@@ -45,7 +64,7 @@ struct DisciplineView: View {
 
             GraphiqueOuTableau(tableau: ModeleCharge.tableauDiscipline(modele)) {
                 graphique(modele, lecture: lecture)
-                    .frame(height: 180)
+                    .frame(height: DimensionsGraphique.discipline)
             }
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), alignment: .leading)], alignment: .leading, spacing: 6) {
@@ -69,6 +88,24 @@ struct DisciplineView: View {
     }
 
     private func graphique(_ modele: ModeleCharge.Discipline, lecture: String) -> some View {
+        GeometryReader { geometrie in
+            graphiqueDessin(modele, lecture: lecture, longueurX: DimensionsGraphique.longueurAxeX(largeurGraphique: geometrie.size.width, largeurAxeY: largeurY(modele)))
+        }
+    }
+
+    /// Largeur du libellé Y le plus long (parts) : l'axe X des semaines prend le reste du tracé.
+    private func largeurY(_ modele: ModeleCharge.Discipline) -> CGFloat {
+        largeurMaxLibelles(Axes.graduations(modele.domaine, pas: 5).map { ModeleApercu.pourcentage($0) }, categorie: categorie)
+    }
+
+    private func graphiqueDessin(_ modele: ModeleCharge.Discipline, lecture: String, longueurX: CGFloat) -> some View {
+        let reperesY = DisciplineView.reperesAxeY(
+            domaine: modele.domaine, longueur: DimensionsGraphique.hauteurAxeY(DimensionsGraphique.discipline, categorie: categorie), categorie: categorie
+        )
+        let reperesX = DisciplineView.reperesAxeX(
+            etiquettes: modele.etiquettes, nombreSemaines: modele.semaines.count, libelle: { ModeleCharge.etiquette(modele, $0) },
+            longueur: longueurX, categorie: categorie
+        )
         let dernier = Double(modele.semaines.count) - 0.5
         let mesurees = modele.semaines.filter { $0.partPct != nil }
 
@@ -105,7 +142,7 @@ struct DisciplineView: View {
         }
         .chartYScale(domain: modele.domaine)
         .chartYAxis {
-            AxisMarks(position: .leading, values: Axes.graduations(modele.domaine, pas: 5)) { valeur in
+            AxisMarks(position: .leading, values: reperesY) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {
@@ -117,7 +154,7 @@ struct DisciplineView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(values: modele.etiquettes) { valeur in
+            AxisMarks(values: reperesX) { valeur in
                 AxisValueLabel {
                     if let position = valeur.as(Double.self), let texte = ModeleCharge.etiquette(modele, position) {
                         Text(texte)
