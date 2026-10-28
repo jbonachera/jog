@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Charts
 import JogCore
 
@@ -120,12 +121,18 @@ struct LegendeForme: View {
 /// Les repères de `.stride(by: .month)` tombent à minuit local : on lit le mois dans le calendrier local.
 func etiquetteMois(_ valeur: AxisValue) -> String {
     guard let date = valeur.as(Date.self) else { return "" }
-    let mois = Calendar.current.component(.month, from: date)
-    let avecAnnee = valeur.index == 0 || mois == 1
+    return libelleMois(date, premierRepere: valeur.index == 0)
+}
+
+/// Libellé d'un repère mensuel tel qu'affiché : le mois seul, avec l'année au premier repère et à chaque janvier (08).
+/// Partagé avec les tests : la largeur mesurée est celle du libellé réellement dessiné.
+func libelleMois(_ date: Date, premierRepere: Bool, calendrier: Calendar = .current) -> String {
+    let mois = calendrier.component(.month, from: date)
+    let avecAnnee = premierRepere || mois == 1
     let format: Date.FormatStyle = avecAnnee
         ? .dateTime.month(.abbreviated).year()
         : .dateTime.month(.abbreviated)
-    return date.formatted(format)
+    return date.formatted(format.locale(calendrier.locale ?? .current))
 }
 
 /// Description VoiceOver d'un graphique (08 : `accessibilityChartDescriptor` pour chaque graphique). Les positions sont
@@ -271,5 +278,95 @@ final class Memo<Cle: Equatable, Valeur> {
         cle = nouvelle
         valeur = calcule
         return calcule
+    }
+}
+
+/// Dimensions fixes des graphiques : les vues et les tests les lisent ici.
+enum DimensionsGraphique {
+    static let tendance: CGFloat = 150
+    static let nuage: CGFloat = 250
+    static let derniereSeance: CGFloat = 190
+    static let formeFatigue: CGFloat = 200
+    static let fraicheurForme: CGFloat = 130
+
+    /// Hauteur de l'axe Y : la hauteur du graphique moins les lignes des libellés X, sous le tracé (une ligne par défaut).
+    @MainActor
+    static func hauteurAxeY(
+        _ hauteurGraphique: CGFloat, categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory,
+        lignesX: Int = 1
+    ) -> CGFloat {
+        hauteurGraphique - CGFloat(lignesX) * hauteurLibelleAxe(categorie: categorie)
+    }
+
+    /// Longueur de l'axe X : la largeur du graphique moins la largeur du libellé Y le plus long.
+    static func longueurAxeX(largeurGraphique: CGFloat, largeurAxeY: CGFloat) -> CGFloat {
+        largeurGraphique - largeurAxeY
+    }
+}
+
+/// Police des libellés d'axe (caption2) pour une catégorie de Dynamic Type (par défaut, la catégorie courante).
+@MainActor
+func policeLibelleAxe(categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> UIFont {
+    UIFont.preferredFont(forTextStyle: .caption2, compatibleWith: UITraitCollection(preferredContentSizeCategory: categorie))
+}
+
+/// Hauteur d'une ligne de libellé d'axe.
+@MainActor
+func hauteurLibelleAxe(categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> CGFloat {
+    policeLibelleAxe(categorie: categorie).lineHeight
+}
+
+/// Largeurs déjà mesurées, par catégorie et texte : les axes les redemandent à chaque geste sur le graphique.
+@MainActor
+private var largeursMesurees: [String: CGFloat] = [:]
+
+/// Largeur d'un libellé d'axe (mesure mise en cache par catégorie et texte).
+@MainActor
+func largeurLibelleAxe(_ texte: String, categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> CGFloat {
+    let cle = "\(categorie.rawValue)|\(texte)"
+    if let largeur = largeursMesurees[cle] {
+        return largeur
+    }
+    let largeur = (texte as NSString).size(withAttributes: [.font: policeLibelleAxe(categorie: categorie)]).width
+    largeursMesurees[cle] = largeur
+    return largeur
+}
+
+/// Largeur du libellé le plus long d'un axe, au Dynamic Type donné.
+@MainActor
+func largeurMaxLibelles(_ textes: [String], categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> CGFloat {
+    textes.map { largeurLibelleAxe($0, categorie: categorie) }.max() ?? 0
+}
+
+/// Repères mensuels des dates (du premier au dernier), retenus sur un axe de `longueur` pt (contrat de `Axes.reperesMois`).
+/// Partagé par les axes de dates de la Progression et de l'aperçu. Le libellé le plus long sert de taille.
+@MainActor
+func reperesMoisDonnees(_ dates: [Date], calendrier: Calendar, longueur: CGFloat, categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory) -> [Date] {
+    guard let premier = dates.min(), let dernier = dates.max() else { return [] }
+    let total = Axes.reperesMois(entre: premier, et: dernier, calendrier: calendrier, longueur: .infinity, tailleLibelle: 0)
+    let taille = largeurMaxLibelles(total.enumerated().map { index, date in
+        libelleMois(date, premierRepere: index == 0, calendrier: calendrier)
+    }, categorie: categorie)
+    return Axes.reperesMois(entre: premier, et: dernier, calendrier: calendrier, longueur: longueur, tailleLibelle: taille)
+}
+
+extension DynamicTypeSize {
+    /// Catégorie UIKit équivalente, pour mesurer les libellés d'axe hors de SwiftUI.
+    var categorieUIKit: UIContentSizeCategory {
+        switch self {
+        case .xSmall: .extraSmall
+        case .small: .small
+        case .medium: .medium
+        case .large: .large
+        case .xLarge: .extraLarge
+        case .xxLarge: .extraExtraLarge
+        case .xxxLarge: .extraExtraExtraLarge
+        case .accessibility1: .accessibilityMedium
+        case .accessibility2: .accessibilityLarge
+        case .accessibility3: .accessibilityExtraLarge
+        case .accessibility4: .accessibilityExtraExtraLarge
+        case .accessibility5: .accessibilityExtraExtraExtraLarge
+        @unknown default: .large
+        }
     }
 }

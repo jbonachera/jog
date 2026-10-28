@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Charts
 import JogCore
 
@@ -7,6 +8,29 @@ import JogCore
 struct DerniereSeanceView: View {
     let seance: DerniereSeance?
     @State private var selection: Double?
+
+    /// Étendue de l'axe X : une demi-répétition de marge de chaque côté.
+    static func etendueX(nombre: Int) -> ClosedRange<Double> {
+        0.5...(Double(nombre) + 0.5)
+    }
+
+    /// Repères de l'axe X (numéros de répétition) pour une longueur d'axe donnée. Fonction pure, testée.
+    @MainActor
+    static func reperesAxeX(
+        numeros: [Int], longueur: CGFloat,
+        categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory
+    ) -> [Double] {
+        Axes.reperesEntiers(numeros, longueur: longueur, tailleLibelle: largeurMaxLibelles(numeros.map { "#\($0)" }, categorie: categorie))
+    }
+
+    /// Repères de l'axe Y (allures) pour une longueur d'axe donnée. Fonction pure, testée (ProgressionGraduationsTests).
+    @MainActor
+    static func reperesAxeY(
+        domaine: ClosedRange<Double>, longueur: CGFloat,
+        categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory
+    ) -> [Double] {
+        Axes.graduations(domaine: domaine, pas: 5, longueur: longueur, tailleLibelle: hauteurLibelleAxe(categorie: categorie))
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -42,7 +66,7 @@ struct DerniereSeanceView: View {
                             .foregroundStyle(.encre2)
 
                         GraphiqueSucettes(seance: seance, repetitions: repetitions, selection: $selection)
-                            .frame(height: 190)
+                            .frame(height: DimensionsGraphique.derniereSeance)
 
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), alignment: .leading)], alignment: .leading, spacing: 6) {
                             LegendeForme(texte: "Moyenne ±3 s/km", forme: .ligne, couleur: .bande)
@@ -72,6 +96,7 @@ struct DerniereSeanceView: View {
 /// Les sucettes : tige de la moyenne à chaque répétition, point coloré (losange si hors sous-seuil), bande de régularité
 /// et allure seuil (03, P4). Le domaine est calculé une fois pour toutes les lectures du graphique.
 private struct GraphiqueSucettes: View {
+    @Environment(\.dynamicTypeSize) private var tailleTexte
     let seance: DerniereSeance
     let repetitions: [RepetitionAffichee]
     @Binding var selection: Double?
@@ -85,15 +110,30 @@ private struct GraphiqueSucettes: View {
     }
 
     private var etendueX: ClosedRange<Double> {
-        0.5...(Double(repetitions.count) + 0.5)
+        DerniereSeanceView.etendueX(nombre: repetitions.count)
+    }
+
+    private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
+
+    /// Largeur du libellé Y le plus long (allure) : l'axe X des répétitions prend le reste du tracé.
+    private var largeurY: CGFloat {
+        largeurMaxLibelles(Axes.graduations(domaine, pas: 5).map { formatAllure($0) }, categorie: categorie)
     }
 
     var body: some View {
+        GeometryReader { geometrie in
+            graphique(longueurX: DimensionsGraphique.longueurAxeX(largeurGraphique: geometrie.size.width, largeurAxeY: largeurY))
+        }
+    }
+
+    private func graphique(longueurX: CGFloat) -> some View {
         let domaine = self.domaine
         let etendueX = self.etendueX
         let horsSousSeuil = repetitions.filter(\.horsSousSeuil).count
 
-        Chart {
+        let repèresY = DerniereSeanceView.reperesAxeY(domaine: domaine, longueur: DimensionsGraphique.hauteurAxeY(DimensionsGraphique.derniereSeance, categorie: categorie, lignesX: 2), categorie: categorie)
+        let repèresX = DerniereSeanceView.reperesAxeX(numeros: repetitions.map(\.n), longueur: longueurX, categorie: categorie)
+        return Chart {
             if let bande = seance.bande {
                 RectangleMark(
                     xStart: .value("Début", etendueX.lowerBound),
@@ -142,7 +182,7 @@ private struct GraphiqueSucettes: View {
         .chartXScale(domain: etendueX)
         .chartXSelection(value: $selection)
         .chartXAxis {
-            AxisMarks(values: repetitions.map { Double($0.n) }) { valeur in
+            AxisMarks(values: repèresX) { valeur in
                 AxisValueLabel {
                     if let n = valeur.as(Double.self), let rep = repetitions.first(where: { Double($0.n) == n }) {
                         VStack(spacing: 1) {
@@ -157,7 +197,7 @@ private struct GraphiqueSucettes: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .leading, values: Axes.graduations(domaine, pas: 5)) { valeur in
+            AxisMarks(position: .leading, values: repèresY) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {

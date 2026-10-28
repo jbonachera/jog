@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Charts
 import JogCore
 
@@ -6,6 +7,7 @@ import JogCore
 /// graphique. Chacun a son propre axe Y (08, règle 1). Un jour sur deux, en partant du dernier jour (03, A4).
 /// Le modèle (points, bornes, tableaux) est calculé une fois par Vue, pas à chaque geste sur le graphique.
 struct FormeFatigueView: View {
+    @Environment(\.dynamicTypeSize) private var tailleTexte
     let vue: Vue
     @State private var selection: Date?
     @State private var memo = Memo<Vue, ModeleApercu.FormeFatigue>()
@@ -20,6 +22,24 @@ struct FormeFatigueView: View {
         guard let point = pointLu(points) else { return "Pas encore d’historique." }
         let quand = selection == nil ? "Aujourd’hui" : formatDate(point.id)
         return "\(quand) : forme \(ModeleApercu.nombre(point.forme)) · fatigue \(ModeleApercu.nombre(point.fatigue)) · fraîcheur \(ModeleApercu.ecart(point.fraicheur))"
+    }
+
+    /// Repères de l'axe Y de la forme et de la fatigue. Fonction pure, testée (ProgressionGraduationsTests).
+    @MainActor
+    static func reperesAxeY(
+        domaine: ClosedRange<Double>, pas: Double, longueur: CGFloat,
+        categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory
+    ) -> [Double] {
+        Axes.graduations(domaine: domaine, pas: pas, longueur: longueur, tailleLibelle: hauteurLibelleAxe(categorie: categorie))
+    }
+
+    /// Repères mensuels de l'axe X de la forme et de la fatigue. Fonction pure, testée (ProgressionGraduationsTests).
+    @MainActor
+    static func reperesAxeX(
+        dates: [Date], calendrier: Calendar, longueur: CGFloat,
+        categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory
+    ) -> [Date] {
+        reperesMoisDonnees(dates, calendrier: calendrier, longueur: longueur, categorie: categorie)
     }
 
     var body: some View {
@@ -39,7 +59,7 @@ struct FormeFatigueView: View {
                             .monospacedDigit()
 
                         formeChart(modele, lecture: texte, lu: lu)
-                            .frame(height: 200)
+                            .frame(height: DimensionsGraphique.formeFatigue)
 
                         HStack(spacing: 14) {
                             LegendeForme(texte: "Forme de fond (CTL)", forme: .ligne, couleur: .accentFjord)
@@ -55,7 +75,7 @@ struct FormeFatigueView: View {
                             .foregroundStyle(.encre2)
 
                         fraicheurChart(modele, lecture: texte, lu: lu)
-                            .frame(height: 130)
+                            .frame(height: DimensionsGraphique.fraicheurForme)
 
                         LegendeForme(texte: "Zone productive, de −25 à −10", forme: .carre, couleur: .bande)
                     }
@@ -79,7 +99,20 @@ struct FormeFatigueView: View {
     }
 
     private func formeChart(_ modele: ModeleApercu.FormeFatigue, lecture: String, lu: ModeleApercu.PointForme?) -> some View {
-        Chart {
+        GeometryReader { geometrie in
+            formeChartDessin(modele, lecture: lecture, lu: lu, longueurX: DimensionsGraphique.longueurAxeX(largeurGraphique: geometrie.size.width, largeurAxeY: largeurY(modele)))
+        }
+    }
+
+    /// Largeur du libellé Y le plus long de la forme : l'axe X des dates prend le reste du tracé.
+    private func largeurY(_ modele: ModeleApercu.FormeFatigue) -> CGFloat {
+        largeurMaxLibelles(Axes.graduations(modele.domaineForme, pas: 10).map { ModeleApercu.nombre($0) }, categorie: tailleTexte.categorieUIKit)
+    }
+
+    private func formeChartDessin(_ modele: ModeleApercu.FormeFatigue, lecture: String, lu: ModeleApercu.PointForme?, longueurX: CGFloat) -> some View {
+        let repèresX = FormeFatigueView.reperesAxeX(dates: modele.points.map(\.date), calendrier: .current, longueur: longueurX, categorie: tailleTexte.categorieUIKit)
+        let repèresY = FormeFatigueView.reperesAxeY(domaine: modele.domaineForme, pas: 10, longueur: DimensionsGraphique.hauteurAxeY(DimensionsGraphique.formeFatigue, categorie: tailleTexte.categorieUIKit), categorie: tailleTexte.categorieUIKit)
+        return Chart {
             ForEach(modele.points) { point in
                 AreaMark(
                     x: .value("Jour", point.date),
@@ -120,7 +153,7 @@ struct FormeFatigueView: View {
         }
         .chartYScale(domain: modele.domaineForme)
         .chartYAxis {
-            AxisMarks(position: .leading, values: Axes.graduations(modele.domaineForme, pas: 10)) { _ in
+            AxisMarks(position: .leading, values: repèresY) { _ in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel()
                     .font(.caption2.monospacedDigit())
@@ -128,7 +161,7 @@ struct FormeFatigueView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(values: .stride(by: .month)) { valeur in
+            AxisMarks(values: repèresX) { valeur in
                 AxisValueLabel { Text(etiquetteMois(valeur)) }
                     .font(.caption2)
                     .foregroundStyle(Color.encre3)
@@ -141,7 +174,8 @@ struct FormeFatigueView: View {
     }
 
     private func fraicheurChart(_ modele: ModeleApercu.FormeFatigue, lecture: String, lu: ModeleApercu.PointForme?) -> some View {
-        Chart {
+        let repèresY = Axes.graduations(domaine: modele.domaineFraicheur, pas: 10, longueur: DimensionsGraphique.hauteurAxeY(DimensionsGraphique.fraicheurForme, categorie: tailleTexte.categorieUIKit), tailleLibelle: hauteurLibelleAxe(categorie: tailleTexte.categorieUIKit))
+        return Chart {
             if let premier = modele.points.first, let dernier = modele.points.last {
                 RectangleMark(
                     xStart: .value("Début", premier.date),
@@ -171,7 +205,7 @@ struct FormeFatigueView: View {
         }
         .chartYScale(domain: modele.domaineFraicheur)
         .chartYAxis {
-            AxisMarks(position: .leading, values: Axes.graduations(modele.domaineFraicheur, pas: 10)) { valeur in
+            AxisMarks(position: .leading, values: repèresY) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Charts
 import JogCore
 
@@ -22,6 +23,26 @@ struct NuageView: View {
 
     private func libelle(_ periode: PeriodeNuage) -> String {
         periode == .annee ? "vs il y a un an" : "vs 12 sem. préc."
+    }
+
+    /// Repères de l'axe X (allures) pour une longueur d'axe donnée. Fonction pure, testée (ProgressionGraduationsTests).
+    @MainActor
+    static func reperesAxeX(
+        domaine: ClosedRange<Double>, longueur: CGFloat,
+        categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory
+    ) -> [Double] {
+        let pas = presetAxe(.allure).pas
+        let taille = largeurMaxLibelles(Axes.graduations(domaine, pas: pas).map { formatAllure($0) }, categorie: categorie)
+        return Axes.graduations(domaine: domaine, pas: pas, longueur: longueur, tailleLibelle: taille)
+    }
+
+    /// Repères de l'axe Y (FC de fin) pour une longueur d'axe donnée. Fonction pure, testée (ProgressionGraduationsTests).
+    @MainActor
+    static func reperesAxeY(
+        domaine: ClosedRange<Double>, longueur: CGFloat,
+        categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory
+    ) -> [Double] {
+        Axes.graduations(domaine: domaine, pas: presetAxe(.fcFin).pas, longueur: longueur, tailleLibelle: hauteurLibelleAxe(categorie: categorie))
     }
 
     var body: some View {
@@ -60,7 +81,7 @@ struct NuageView: View {
             VStack(alignment: .leading, spacing: 12) {
                 GraphiqueOuTableau(tableau: modele.tableau) {
                     GraphiqueNuage(modele: modele, bande: calculs.bandeFC, selection: $selection)
-                        .frame(height: 250)
+                        .frame(height: DimensionsGraphique.nuage)
                 }
 
                 legende(modele.nuage)
@@ -156,6 +177,7 @@ private struct SegmentFleche: Identifiable {
 
 /// Le nuage lui-même : axe des allures inversé (plus rapide à droite), bande de FC, centres et flèche (03, P3).
 private struct GraphiqueNuage: View {
+    @Environment(\.dynamicTypeSize) private var tailleTexte
     let modele: ModeleNuage
     let bande: (lo: Double, hi: Double)
     @Binding var selection: String?
@@ -167,11 +189,26 @@ private struct GraphiqueNuage: View {
         return point.libelle
     }
 
+    private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
+
+    /// Largeur du libellé Y le plus long (FC) : l'axe X prend le reste du tracé.
+    private var largeurY: CGFloat {
+        largeurMaxLibelles(Axes.graduations(modele.domaineY, pas: presetAxe(.fcFin).pas).map { ModeleApercu.nombre($0) }, categorie: categorie)
+    }
+
     var body: some View {
+        GeometryReader { geometrie in
+            graphique(longueurX: DimensionsGraphique.longueurAxeX(largeurGraphique: geometrie.size.width, largeurAxeY: largeurY))
+        }
+    }
+
+    private func graphique(longueurX: CGFloat) -> some View {
         let domaineX = modele.domaineX
         let domaineY = modele.domaineY
 
-        Chart {
+        let repèresY = NuageView.reperesAxeY(domaine: domaineY, longueur: DimensionsGraphique.hauteurAxeY(DimensionsGraphique.nuage, categorie: categorie), categorie: categorie)
+        let repèresX = NuageView.reperesAxeX(domaine: domaineX, longueur: longueurX, categorie: categorie)
+        return Chart {
             RectangleMark(
                 xStart: .value("Bas", domaineX.upperBound),
                 xEnd: .value("Haut", domaineX.lowerBound),
@@ -226,7 +263,7 @@ private struct GraphiqueNuage: View {
         .chartXScale(domain: [domaineX.upperBound, domaineX.lowerBound])
         .chartYScale(domain: domaineY)
         .chartXAxis {
-            AxisMarks(values: Axes.graduations(domaineX, pas: 5)) { valeur in
+            AxisMarks(values: repèresX) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {
@@ -238,7 +275,7 @@ private struct GraphiqueNuage: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .leading, values: Axes.graduations(domaineY, pas: 2)) { valeur in
+            AxisMarks(position: .leading, values: repèresY) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {

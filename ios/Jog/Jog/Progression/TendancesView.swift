@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Charts
 import JogCore
 
@@ -7,6 +8,24 @@ import JogCore
 struct TendancesView: View {
     let tendances: Tendances
     let refHr: Double
+
+    /// Repères de l'axe Y d'une tendance pour une longueur d'axe donnée. Fonction pure, testée (ProgressionGraduationsTests).
+    @MainActor
+    static func reperesAxeY(
+        domaine: ClosedRange<Double>, pas: Double, longueur: CGFloat,
+        categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory
+    ) -> [Double] {
+        Axes.graduations(domaine: domaine, pas: pas, longueur: longueur, tailleLibelle: hauteurLibelleAxe(categorie: categorie))
+    }
+
+    /// Repères mensuels de l'axe X sur les dates de la tendance. Fonction pure, testée (ProgressionGraduationsTests).
+    @MainActor
+    static func reperesAxeX(
+        dates: [Date], calendrier: Calendar, longueur: CGFloat,
+        categorie: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory
+    ) -> [Date] {
+        reperesMoisDonnees(dates, calendrier: calendrier, longueur: longueur, categorie: categorie)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -78,7 +97,7 @@ private struct PanneauTendance: View {
                 GraphiqueOuTableau(tableau: ModeleProgression.tableauTendance(points, valeur)) {
                     VStack(alignment: .leading, spacing: 10) {
                         GraphiqueTendance(serie: serie, titre: titre, points: points)
-                            .frame(height: 150)
+                            .frame(height: DimensionsGraphique.tendance)
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), alignment: .leading)], alignment: .leading, spacing: 6) {
                             LegendeForme(texte: "Valeur lissée", forme: .ligne, couleur: .accentFjord)
                             LegendeForme(texte: "Valeur mesurée", forme: .rond, couleur: .encre3)
@@ -100,6 +119,7 @@ private struct PanneauTendance: View {
 
 /// Le graphique d'une tendance : la ligne lissée, les valeurs mesurées, la bande 0–5 % pour le découplage (03, P2).
 private struct GraphiqueTendance: View {
+    @Environment(\.dynamicTypeSize) private var tailleTexte
     let serie: SerieTendance
     let titre: String
     let points: [PointAffiche]
@@ -129,8 +149,23 @@ private struct GraphiqueTendance: View {
         }
     }
 
+    private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
+
+    /// Largeur du libellé Y le plus long : l'axe X prend le reste du tracé.
+    private var largeurY: CGFloat {
+        largeurMaxLibelles(Axes.graduations(domaine, pas: presetAxe(serie.preset).pas).map { libelleAxe($0) }, categorie: categorie)
+    }
+
     var body: some View {
-        Chart {
+        GeometryReader { geometrie in
+            graphique(longueurX: DimensionsGraphique.longueurAxeX(largeurGraphique: geometrie.size.width, largeurAxeY: largeurY))
+        }
+    }
+
+    private func graphique(longueurX: CGFloat) -> some View {
+        let repèresX = TendancesView.reperesAxeX(dates: points.map(\.date), calendrier: .current, longueur: longueurX, categorie: categorie)
+        let repèresY = TendancesView.reperesAxeY(domaine: domaine, pas: presetAxe(serie.preset).pas, longueur: DimensionsGraphique.hauteurAxeY(DimensionsGraphique.tendance, categorie: categorie), categorie: categorie)
+        return Chart {
             if serie == .decouplage, let premier = points.first, let dernier = points.last {
                 RectangleMark(
                     xStart: .value("Début", premier.date),
@@ -166,7 +201,7 @@ private struct GraphiqueTendance: View {
         // L'allure monte quand elle baisse : plus rapide en haut (03, P2 : « meilleur si plus bas »).
         .chartYScale(domain: serie == .allure ? [domaine.upperBound, domaine.lowerBound] : [domaine.lowerBound, domaine.upperBound])
         .chartYAxis {
-            AxisMarks(position: .leading, values: Axes.graduations(domaine, pas: presetAxe(serie.preset).pas)) { valeur in
+            AxisMarks(position: .leading, values: repèresY) { valeur in
                 AxisGridLine().foregroundStyle(Color.grille)
                 AxisValueLabel {
                     if let nombre = valeur.as(Double.self) {
@@ -178,7 +213,7 @@ private struct GraphiqueTendance: View {
             }
         }
         .chartXAxis {
-            AxisMarks(values: .stride(by: .month)) { valeur in
+            AxisMarks(values: repèresX) { valeur in
                 AxisValueLabel { Text(etiquetteMois(valeur)) }
                     .font(.caption2)
                     .foregroundStyle(Color.encre3)
