@@ -307,6 +307,12 @@ enum DimensionsGraphique {
     static func longueurAxeX(largeurGraphique: CGFloat, largeurAxeY: CGFloat) -> CGFloat {
         largeurGraphique - largeurAxeY
     }
+
+    /// Largeur fixe d'une barre sur un axe continu (nombre ou date), où `.ratio` ne dessine rien : `fraction` de l'espace
+    /// d'un pas, `nombrePas` pas tenant sur `longueurX` pt. Garde contre la division par zéro.
+    static func largeurBarre(longueurX: CGFloat, nombrePas: Double, fraction: CGFloat) -> CGFloat {
+        fraction * max(longueurX, 0) / CGFloat(max(nombrePas, 1))
+    }
 }
 
 /// Police des libellés d'axe (caption2) pour une catégorie de Dynamic Type (par défaut, la catégorie courante).

@@ -43,6 +43,12 @@ struct ProgressiviteView: View {
         return format
     }
 
+    /// Nombre de jours couverts par l'axe des dates, bornes comprises (une date par jour) : sert à la largeur des barres.
+    static func joursAxeX(_ dates: [Date]) -> Double {
+        guard let premier = dates.min(), let dernier = dates.max() else { return 0 }
+        return (dernier.timeIntervalSince(premier) / 86_400).rounded() + 1
+    }
+
     /// Dates candidates aux repères de l'axe des dates : sur 12 mois, un seul jour par mois (le premier de la fenêtre dans ce
     /// mois), pour ne pas répéter un même libellé ; sur 16 semaines, tous les jours (libellés uniques).
     static func candidatsReperesX(_ dates: [Date], fenetre: FenetreProgressivite, calendrier: Calendar) -> [Date] {
@@ -148,16 +154,31 @@ struct ProgressiviteView: View {
     }
 
     private func volume(_ modele: ModeleCharge.Progressivite, lecture: String) -> some View {
+        GeometryReader { geometrie in
+            volumeDessin(modele, lecture: lecture, longueurX: DimensionsGraphique.longueurAxeX(largeurGraphique: geometrie.size.width, largeurAxeY: largeurYVolume(modele)))
+        }
+    }
+
+    /// Largeur du libellé Y le plus long (volume) : l'axe X des dates prend le reste du tracé.
+    private func largeurYVolume(_ modele: ModeleCharge.Progressivite) -> CGFloat {
+        largeurMaxLibelles(Axes.graduations(modele.domaineVolume, pas: 10).map { ModeleApercu.nombre($0) }, categorie: categorie)
+    }
+
+    private func volumeDessin(_ modele: ModeleCharge.Progressivite, lecture: String, longueurX: CGFloat) -> some View {
         let reperesY = ProgressiviteView.reperesAxeY(
             domaine: modele.domaineVolume, pas: 10,
             longueur: DimensionsGraphique.hauteurAxeY(DimensionsGraphique.progressiviteVolume, categorie: categorie), categorie: categorie
+        )
+        // .ratio ne marche qu'avec un axe de catégories ; l'axe des dates est continu, donc largeur fixe : 80 % d'un jour.
+        let largeurBarre = DimensionsGraphique.largeurBarre(
+            longueurX: longueurX, nombrePas: ProgressiviteView.joursAxeX(modele.points.map(\.date)), fraction: 0.8
         )
         return Chart {
             ForEach(modele.points) { point in
                 BarMark(
                     x: .value("Jour", point.date),
                     y: .value("7 derniers jours", point.s7),
-                    width: .ratio(0.8)
+                    width: .fixed(largeurBarre)
                 )
                 .foregroundStyle(Zone.facile.couleur)
                 .cornerRadius(1.5)

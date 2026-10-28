@@ -109,7 +109,7 @@ struct DisciplineView: View {
         let dernier = Double(modele.semaines.count) - 0.5
         let mesurees = modele.semaines.filter { $0.partPct != nil }
         // .ratio ne marche qu'avec un axe de catégories ; l'axe des semaines est continu, donc largeur fixe : 70 % d'une semaine.
-        let largeurBarre = 0.7 * max(longueurX, 0) / CGFloat(max(modele.semaines.count, 1))
+        let largeurBarre = DimensionsGraphique.largeurBarre(longueurX: longueurX, nombrePas: Double(modele.semaines.count), fraction: 0.7)
 
         return Chart {
             RectangleMark(

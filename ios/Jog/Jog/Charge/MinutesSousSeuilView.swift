@@ -77,12 +77,14 @@ struct MinutesSousSeuilView: View {
             etiquettes: modele.etiquettes, nombreSemaines: modele.semaines.count, libelle: { ModeleCharge.etiquette(modele, $0) },
             longueur: longueurX, categorie: categorie
         )
+        // .ratio ne marche qu'avec un axe de catégories ; l'axe des semaines est continu, donc largeur fixe : 70 % d'une semaine.
+        let largeurBarre = DimensionsGraphique.largeurBarre(longueurX: longueurX, nombrePas: Double(modele.semaines.count), fraction: 0.7)
         return Chart {
             ForEach(modele.semaines) { semaine in
                 BarMark(
                     x: .value("Semaine", Double(semaine.id)),
                     y: .value("Minutes", semaine.minutes),
-                    width: .ratio(0.7)
+                    width: .fixed(largeurBarre)
                 )
                 .foregroundStyle(Zone.sousSeuil.couleur)
                 .cornerRadius(1.5)
