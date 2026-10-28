@@ -1,6 +1,5 @@
 // Tests purs de ModeleApercu (app, dossier Apercu) : marquage (D-020), tableaux (D-011) et bornes des barres.
-// Fichier HORS de la cible JogTests, comme TransitionsAppTests : pour l'exécuter, l'ajouter à la cible JogTests et
-// configurer la cible hôte (TEST_HOST = Jog). Aucun test ne dépend de SwiftUI ni de HealthKit.
+// Exécuté dans la cible JogTests (hébergée par Jog). Aucun test ne dépend de SwiftUI ni de HealthKit.
 import Foundation
 import Testing
 import JogCore

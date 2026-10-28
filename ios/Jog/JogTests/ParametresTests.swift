@@ -1,6 +1,5 @@
-// Tests de la logique de la feuille Paramètres (06, D-006, D-019), dossier Parametres. Fichier HORS de la cible
-// JogTests, comme TransitionsAppTests : `@testable import Jog` compile une fois le fichier ajouté à une cible hôte.
-// Les cas ne testent que ModeleParametres.swift et JogCore.
+// Tests de la logique de la feuille Paramètres (06, D-006, D-019), dossier Parametres. Exécuté dans la cible
+// JogTests (hébergée par Jog), via `@testable import Jog`. Les cas ne testent que ModeleParametres.swift et JogCore.
 import Testing
 import Foundation
 import JogCore

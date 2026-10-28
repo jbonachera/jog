@@ -1,7 +1,5 @@
-// Tests de TransitionsApp (app, dossier Etat). Fichier HORS de la cible JogTests : celle-ci n'est pas hébergée par
-// l'app (pas de TEST_HOST ni de dépendance sur Jog), donc les symboles de l'app ne s'y lient pas. Pour l'exécuter :
-// ajouter ce fichier à la cible JogTests dans Xcode, et configurer la cible hôte (TEST_HOST = Jog). Le fichier
-// compile avec `@testable import Jog`. Les cas ne dépendent que de TransitionsApp et de Vue.
+// Tests de TransitionsApp (app, dossier Etat). Exécuté dans la cible JogTests (hébergée par Jog), via
+// `@testable import Jog`. Les cas ne dépendent que de TransitionsApp et de Vue.
 import Testing
 import JogCore
 @testable import Jog

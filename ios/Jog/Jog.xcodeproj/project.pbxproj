@@ -16,6 +16,10 @@
 		00000000000000000000A06A /* ProgressiviteGrapheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A06B /* ProgressiviteGrapheTests.swift */; };
 		00000000000000000000A060 /* ProgressionLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A061 /* ProgressionLayoutTests.swift */; };
 		00000000000000000000A062 /* ProgressionGraduationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A063 /* ProgressionGraduationsTests.swift */; };
+		00000000000000000000A080 /* ApercuTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A081 /* ApercuTests.swift */; };
+		00000000000000000000A082 /* ParametresTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A083 /* ParametresTests.swift */; };
+		00000000000000000000A084 /* EcranTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A085 /* EcranTests.swift */; };
+		00000000000000000000A086 /* TransitionsAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A087 /* TransitionsAppTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +42,10 @@
 		00000000000000000000A06B /* ProgressiviteGrapheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressiviteGrapheTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A061 /* ProgressionLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionLayoutTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A063 /* ProgressionGraduationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionGraduationsTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A081 /* ApercuTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApercuTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A083 /* ParametresTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParametresTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A085 /* EcranTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcranTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A087 /* TransitionsAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransitionsAppTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -109,6 +117,10 @@
 				00000000000000000000A06B /* ProgressiviteGrapheTests.swift */,
 				00000000000000000000A061 /* ProgressionLayoutTests.swift */,
 				00000000000000000000A063 /* ProgressionGraduationsTests.swift */,
+				00000000000000000000A081 /* ApercuTests.swift */,
+				00000000000000000000A083 /* ParametresTests.swift */,
+				00000000000000000000A085 /* EcranTests.swift */,
+				00000000000000000000A087 /* TransitionsAppTests.swift */,
 			);
 			path = JogTests;
 			sourceTree = "<group>";
@@ -228,6 +240,10 @@
 				00000000000000000000A06A /* ProgressiviteGrapheTests.swift in Sources */,
 				00000000000000000000A060 /* ProgressionLayoutTests.swift in Sources */,
 				00000000000000000000A062 /* ProgressionGraduationsTests.swift in Sources */,
+				00000000000000000000A080 /* ApercuTests.swift in Sources */,
+				00000000000000000000A082 /* ParametresTests.swift in Sources */,
+				00000000000000000000A084 /* EcranTests.swift in Sources */,
+				00000000000000000000A086 /* TransitionsAppTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

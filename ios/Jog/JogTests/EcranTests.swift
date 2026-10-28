@@ -1,6 +1,5 @@
 // Tests purs des modèles d'écran : lecture de la fraîcheur (D-015), repos du 7 derniers jours (A3), lecture au doigt
-// d'une répétition, semaines futures de l'historique, états vides. Fichier HORS de la cible JogTests, comme les autres :
-// l'exécuter demande de l'ajouter à la cible et de configurer la cible hôte (TEST_HOST = Jog).
+// d'une répétition, semaines futures de l'historique, états vides. Exécuté dans la cible JogTests (hébergée par Jog).
 import Foundation
 import Testing
 import JogCore
