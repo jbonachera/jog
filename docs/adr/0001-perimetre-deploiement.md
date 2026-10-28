@@ -1,6 +1,6 @@
 # 0001 · Périmètre de déploiement : un athlète, application statique dans le navigateur
 
-- **Statut** : Acceptée, amendée le 2026-10-20 par [0002](0002-source-intervals-icu.md), puis par [0003](0003-sources-par-adaptateurs.md)
+- **Statut** : Remplacée par [0014](0014-app-ios-native.md) (2026-10-28, migration iOS). Historique : Acceptée, amendée le 2026-10-20 par [0002](0002-source-intervals-icu.md), puis par [0003](0003-sources-par-adaptateurs.md)
 - **Date** : 2026-10-20
 - **Dépend de** : aucune
 

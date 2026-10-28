@@ -1,0 +1,1230 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b141c" media="(prefers-color-scheme: dark)">
+<title>Jog Fjord iPhone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Maquette iPhone · thème Fjord habillé en Liquid Glass (iOS 26).
+   Règle de composition : le verre est réservé à la couche de navigation et de contrôle
+   (barre d'onglets, boutons de barre, feuilles, menus, curseurs).
+   Le contenu (cartes, graphiques, listes) reste en surfaces Fjord pleines, sans ombre. */
+:root {
+  --bg: #f4f7f9; --surface: #ffffff; --ink: #0f1e2b; --ink-2: #4b5d6c; --ink-3: #7c8b97;
+  --line: #dde5eb; --grid: #e9eef2; --accent: #2a6390; --band: rgba(42, 99, 144, .10);
+  --z-easy: #93b3c9; --z-mp: #5f8db0; --z-subt: #2a6390; --z-hard: #0f3150;
+  --good: #2f7d4f; --warn: #a66a00; --bad: #b3372f;
+  /* verre */
+  --glass: rgba(250, 252, 253, .56); --glass-strong: rgba(250, 252, 253, .80);
+  --glass-hi: rgba(255, 255, 255, .95); --glass-edge: rgba(255, 255, 255, .60); --glass-rim: rgba(15, 30, 43, .06);
+  --glass-shadow: 0 12px 32px rgba(15, 30, 43, .14), 0 2px 6px rgba(15, 30, 43, .06);
+  --sheen: rgba(255, 255, 255, .55); --scrim: rgba(15, 30, 43, .18); --fill: rgba(15, 30, 43, .06);
+  --amb-1: #c9dcea; --amb-2: #dfeaf1; --amb-3: #e9f0f4;
+  --bezel: #1b1f24;
+  --f-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --st: 54px; --sb: 21px; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b141c; --surface: #0f1a24; --ink: #e6eef4; --ink-2: #a4b4c1; --ink-3: #6f8293;
+  --line: #1f2f3d; --grid: #172532; --accent: #8bb8d9; --band: rgba(139, 184, 217, .12);
+  --z-easy: #3b5f7a; --z-mp: #5c8bb0; --z-subt: #8bb8d9; --z-hard: #cfe5f4;
+  --good: #5cbf85; --warn: #e0a440; --bad: #ec7a70;
+  --glass: rgba(24, 38, 51, .50); --glass-strong: rgba(20, 33, 45, .82);
+  --glass-hi: rgba(255, 255, 255, .26); --glass-edge: rgba(255, 255, 255, .10); --glass-rim: rgba(0, 0, 0, .35);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .3);
+  --sheen: rgba(255, 255, 255, .16); --scrim: rgba(0, 0, 0, .42); --fill: rgba(230, 238, 244, .08);
+  --amb-1: #16334b; --amb-2: #10263a; --amb-3: #0d1c29; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0b141c; --surface: #0f1a24; --ink: #e6eef4; --ink-2: #a4b4c1; --ink-3: #6f8293;
+  --line: #1f2f3d; --grid: #172532; --accent: #8bb8d9; --band: rgba(139, 184, 217, .12);
+  --z-easy: #3b5f7a; --z-mp: #5c8bb0; --z-subt: #8bb8d9; --z-hard: #cfe5f4;
+  --good: #5cbf85; --warn: #e0a440; --bad: #ec7a70;
+  --glass: rgba(24, 38, 51, .50); --glass-strong: rgba(20, 33, 45, .82);
+  --glass-hi: rgba(255, 255, 255, .26); --glass-edge: rgba(255, 255, 255, .10); --glass-rim: rgba(0, 0, 0, .35);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .3);
+  --sheen: rgba(255, 255, 255, .16); --scrim: rgba(0, 0, 0, .42); --fill: rgba(230, 238, 244, .08);
+  --amb-1: #16334b; --amb-2: #10263a; --amb-3: #0d1c29; color-scheme: dark; }
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--f-display); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-3); }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+
+/* ---------- Scène (bureau) */
+body { background: radial-gradient(70% 60% at 70% 30%, color-mix(in srgb, var(--accent) 10%, var(--bg)), var(--bg)); min-height: 100vh; }
+.stage { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 360px) auto; gap: 72px; align-items: center; justify-content: center; padding: 32px; }
+.stage-info { display: grid; gap: 18px; align-content: center; }
+.stage-info .brand { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.stage-info h1 { font-size: 38px; line-height: 1.02; font-weight: 800; letter-spacing: -.035em; }
+.stage-info p { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+.stage-info ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 13.5px; display: grid; gap: 6px; }
+.stage-info a { color: var(--accent); }
+.stage-info .note { font-size: 12.5px; color: var(--ink-3); border-left: 2px solid var(--accent); padding-left: 12px; }
+.device-wrap { width: 426px; height: 898px; }
+.device { position: relative; width: 426px; height: 898px; padding: 12px; border-radius: 70px; background: var(--bezel);
+  box-shadow: 0 0 0 1.5px #3a4048, 0 0 0 3px #0d0f12, 0 40px 80px rgba(15, 30, 43, .28), 0 12px 24px rgba(15, 30, 43, .18); transform-origin: top left; }
+.screen { position: relative; width: 402px; height: 874px; border-radius: 58px; overflow: hidden; background: var(--bg); isolation: isolate; }
+.island { position: absolute; z-index: 50; top: 11px; left: 50%; width: 124px; height: 36px; margin-left: -62px; border-radius: 20px; background: #000; }
+.statusbar { position: absolute; z-index: 40; inset: 0 0 auto; height: var(--st); display: flex; justify-content: space-between; align-items: center; padding: 6px 34px 0 46px; font: 600 16.5px var(--f-display); letter-spacing: -.01em; pointer-events: none; }
+.statusbar .icons { display: flex; gap: 6px; align-items: center; }
+.statusbar svg { fill: var(--ink); }
+.home-ind { position: absolute; z-index: 60; bottom: 8px; left: 50%; width: 140px; height: 5px; margin-left: -70px; border-radius: 3px; background: var(--ink); opacity: .9; pointer-events: none; }
+
+/* ---------- Verre */
+.glass { position: relative; background: var(--glass); -webkit-backdrop-filter: blur(14px) saturate(180%); backdrop-filter: blur(14px) saturate(180%);
+  box-shadow: inset 0 1px 1px var(--glass-hi), inset 0 -1px 1px var(--glass-edge), inset 0 0 0 .5px var(--glass-edge), 0 0 0 .5px var(--glass-rim), var(--glass-shadow); }
+.glass::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(165deg, var(--sheen) 0%, transparent 32%, transparent 68%, color-mix(in srgb, var(--sheen) 50%, transparent) 100%); mix-blend-mode: soft-light; }
+.glass.strong { background: var(--glass-strong); }
+.gbtn { width: 44px; height: 44px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; padding: 0; color: var(--ink); transition: transform .25s cubic-bezier(.3, 1.5, .5, 1); }
+.gbtn:active, .gpill:active { transform: scale(1.08); }
+.gbtn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; position: relative; }
+.gbtn.prominent { background: color-mix(in srgb, var(--accent) 88%, transparent); color: var(--bg); }
+.gpill { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 999px; padding: 0 18px; height: 44px; font-weight: 600; font-size: 15px; cursor: pointer; transition: transform .25s cubic-bezier(.3, 1.5, .5, 1); }
+.gpill.prominent { background: color-mix(in srgb, var(--accent) 90%, transparent); color: var(--bg); }
+.gpill svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; position: relative; }
+.gpill span { position: relative; }
+
+/* ---------- Défilement, grand titre, effet de bord */
+.scroller { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: calc(var(--st) + 52px) 16px calc(var(--sb) + 96px); }
+.scroller::-webkit-scrollbar { display: none; }
+.ambient { position: absolute; z-index: -1; inset: 0 0 auto; height: 520px; pointer-events: none;
+  background: radial-gradient(90% 70% at 15% 0%, var(--amb-1), transparent 70%), radial-gradient(70% 60% at 95% 8%, var(--amb-2), transparent 70%), linear-gradient(var(--amb-3), var(--bg)); }
+.edge-top, .edge-bot { position: absolute; z-index: 20; left: 0; right: 0; pointer-events: none; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.edge-top { top: 0; height: calc(var(--st) + 64px); background: linear-gradient(color-mix(in srgb, var(--bg) 94%, transparent) 40%, color-mix(in srgb, var(--bg) 50%, transparent)); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); -webkit-mask-image: linear-gradient(#000 62%, transparent); mask-image: linear-gradient(#000 62%, transparent); opacity: 0; transition: opacity .2s; }
+.edge-top.on { opacity: 1; }
+.edge-bot { bottom: 0; height: calc(var(--sb) + 110px); background: linear-gradient(transparent, color-mix(in srgb, var(--bg) 70%, transparent)); -webkit-mask-image: linear-gradient(transparent, #000 50%); mask-image: linear-gradient(transparent, #000 50%); }
+.navbar { position: absolute; z-index: 30; top: var(--st); left: 0; right: 0; height: 52px; display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px; padding: 0 16px; }
+.navbar .ctitle { text-align: center; font-weight: 700; font-size: 17px; opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.navbar .ctitle.on { opacity: 1; transform: none; }
+.ltitle { display: grid; gap: 2px; padding: 4px 4px 14px; }
+.ltitle h1 { font-size: 34px; line-height: 1.1; font-weight: 800; letter-spacing: -.03em; }
+.ltitle p { margin: 0; font-size: 13.5px; color: var(--ink-2); }
+.view { display: grid; gap: 26px; }
+.view > section { display: grid; gap: 8px; min-width: 0; }
+.sh { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 0 4px; }
+.sh h2 { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.sh p { margin: 0; font-size: 12.5px; color: var(--ink-3); text-align: right; }
+.foot { font-size: 12px; color: var(--ink-3); padding: 0 4px; margin: 0; }
+
+/* ---------- Contenu Fjord (surfaces pleines) */
+.card { background: var(--surface); border: .5px solid var(--line); border-radius: 26px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.card.tight { padding: 0; gap: 0; overflow: hidden; }
+.card h3 { font-size: 15px; font-weight: 600; }
+.card .ch { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font: 600 12px var(--f-display); padding: 2px 8px; border-radius: 999px; width: fit-content; white-space: nowrap; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+.pill.good { color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); }
+.pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.pill.bad { color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
+.pill.neutral { color: var(--ink-2); background: var(--grid); }
+.pill.num { font-family: var(--f-mono); font-weight: 500; }
+.note { border-left: 2px solid var(--accent); padding: 2px 0 2px 12px; color: var(--ink-2); font-size: 13.5px; }
+.note p { margin: 0 0 8px; } .note p:last-child { margin: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.legend i.line { height: 2px; border-radius: 0; vertical-align: 3px; width: 14px; }
+details.more summary { list-style: none; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+details.more summary::-webkit-details-marker { display: none; }
+details.more summary::after { content: ""; width: 7px; height: 7px; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg) translateY(-2px); transition: transform .2s; }
+details.more[open] summary::after { transform: rotate(-135deg) translate(-2px, 0); }
+details.more[open] summary { margin-bottom: 10px; }
+
+/* Décision */
+.hero { background: var(--surface); border: .5px solid var(--line); border-radius: 30px; padding: 20px 18px 18px; display: grid; gap: 10px; }
+.hero .eyebrow { font-size: 12.5px; color: var(--ink-3); }
+.hero .verdict { font-size: 40px; line-height: .98; font-weight: 800; letter-spacing: -.04em; }
+.verdict[data-st="good"] { color: var(--good); } .verdict[data-st="warn"] { color: var(--warn); } .verdict[data-st="bad"] { color: var(--bad); } .verdict[data-st="neutral"] { color: var(--ink-2); }
+.hero .why { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+.range { display: grid; gap: 2px; border-top: 2px solid var(--ink); padding-top: 10px; margin-top: 4px; }
+.range .l { font-size: 12.5px; color: var(--ink-2); }
+.range .v { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+.range .s { font-size: 12px; color: var(--ink-3); }
+.hero .gpill { justify-self: start; margin-top: 4px; }
+
+/* Listes groupées */
+.list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: .5px solid var(--line); border-radius: 26px; overflow: hidden; }
+.row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: 11px 16px; min-height: 52px; width: 100%; text-align: left; background: none; border: 0; cursor: default; }
+button.row, .row[role="button"] { cursor: pointer; }
+button.row:active { background: var(--fill); }
+.row + .row::before, li + li > .row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: .5px solid var(--line); }
+.row .t { font-weight: 600; font-size: 15px; min-width: 0; }
+.row .d { font-size: 12.5px; color: var(--ink-2); grid-column: 1; min-width: 0; }
+.row .r { grid-row: 1 / span 2; grid-column: 2; display: flex; align-items: center; gap: 8px; justify-self: end; }
+.chev { width: 8px; height: 13px; stroke: var(--ink-3); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.row[data-st="warn"] .t::after, .row[data-st="bad"] .t::after { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-left: 6px; vertical-align: 2px; }
+.row[data-st="warn"] .t::after { background: var(--warn); } .row[data-st="bad"] .t::after { background: var(--bad); }
+
+/* Compteurs */
+.counters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.counter { background: var(--surface); border: .5px solid var(--line); border-radius: 24px; padding: 14px 14px 10px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.counter.wide { grid-column: 1 / -1; }
+.counter .l { font-size: 12.5px; color: var(--ink-2); display: flex; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+.counter .v { font-size: 32px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+.counter.wide .v { font-size: 44px; }
+.counter .v small { font-size: 15px; font-weight: 500; color: var(--ink-3); letter-spacing: 0; margin-left: 3px; }
+.counter .s { font-size: 12.5px; color: var(--ink-2); min-height: 18px; }
+.counter .dl { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; font-size: 11.5px; color: var(--ink-3); }
+
+/* Jours, journal */
+.day { grid-template-columns: 48px minmax(0, 1fr) auto; align-items: start; }
+.day .dn { grid-row: 1 / span 3; font-size: 12px; color: var(--ink-3); line-height: 1.25; padding-top: 2px; }
+.day .dn b { display: block; font: 600 17px var(--f-mono); color: var(--ink); }
+.day .t, .day .d, .day .zb { grid-column: 2 / 4; }
+.day.rest .t { color: var(--ink-3); font-weight: 500; }
+.zb { display: flex; gap: 1px; height: 5px; border-radius: 3px; overflow: hidden; background: var(--grid); margin-top: 6px; }
+.zb span { display: block; height: 100%; }
+.wk { grid-template-columns: minmax(0, 1fr) auto auto; }
+.wk .r { grid-column: 2 / 4; }
+.wk .km { font: 600 16px var(--f-mono); }
+.wk.cur { background: var(--band); }
+.wk .zb { grid-column: 1; }
+
+/* Segmenté iOS 26 : pastille glissante */
+.seg { position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); padding: 3px; border-radius: 999px; background: var(--fill); }
+.seg .thumb { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / var(--n)); border-radius: 999px; background: var(--surface);
+  box-shadow: 0 2px 8px rgba(15, 30, 43, .12), 0 0 0 .5px var(--line); transform: translateX(calc(var(--i) * 100%)); transition: transform .38s cubic-bezier(.3, 1.3, .5, 1); }
+.seg button { position: relative; z-index: 1; border: 0; background: none; padding: 7px 6px; border-radius: 999px; font-size: 13.5px; font-weight: 500; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.seg button[aria-pressed="true"] { color: var(--ink); font-weight: 600; }
+.seg:active .thumb { transform: translateX(calc(var(--i) * 100%)) scale(1.04, 1.12); }
+
+/* Graphiques */
+.chart { width: 100%; height: auto; display: block; overflow: visible; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.chart text { fill: var(--ink-3); font: 10px var(--f-mono); }
+.chart .grid line { stroke: var(--grid); }
+.chart .cross { stroke: var(--ink-2); stroke-width: 1; }
+.readout { min-height: 38px; display: grid; align-content: center; gap: 1px; font: 12px/1.4 var(--f-mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.readout b { font: 600 12px var(--f-display); color: var(--ink); letter-spacing: .01em; }
+.readout.live { color: var(--ink); }
+.readout.live b { color: var(--accent); }
+.big { font-size: 28px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+
+/* Comparateur */
+.menu-btn { justify-self: start; height: 36px; padding: 0 14px; border-radius: 999px; border: 0; background: var(--fill); display: inline-flex; gap: 8px; align-items: center; font-size: 13.5px; font-weight: 600; cursor: pointer; max-width: 100%; }
+.menu-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-btn svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.periods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.period { display: grid; gap: 4px; font-size: 12px; color: var(--ink-2); }
+.period b { font-size: 12px; color: var(--ink); }
+.period input { font: 13px var(--f-mono); padding: 6px 10px; border: 0; border-radius: 10px; background: var(--fill); color: var(--ink); width: 100%; min-width: 0; }
+.cmp { display: grid; }
+.cmp .cr { display: grid; grid-template-columns: minmax(0, 1fr) 58px 58px 74px; gap: 6px; align-items: center; padding: 8px 0; border-top: .5px solid var(--grid); font-size: 13px; }
+.cmp .cr.grp { border-top: .5px solid var(--line); }
+.cmp .cr.hd { border: 0; font-size: 11.5px; color: var(--ink-3); padding-top: 0; }
+.cmp .g { grid-column: 1 / -1; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); padding: 12px 0 0; }
+.cmp .v { text-align: right; font: 12.5px var(--f-mono); font-variant-numeric: tabular-nums; }
+.cmp .e { justify-self: end; font-size: 12px; }
+.cmp .e .pill { font: 500 11.5px var(--f-mono); padding: 2px 6px; gap: 4px; }
+.cmp .e .pill::before { width: 5px; height: 5px; }
+
+/* Barre d'onglets flottante */
+.tabbar { position: absolute; z-index: 35; left: 20px; bottom: calc(var(--sb) + 4px); height: 62px; border-radius: 999px; display: flex; padding: 4px; transition: width .45s cubic-bezier(.3, 1.2, .4, 1); width: calc(100% - 40px); }
+.tab { position: relative; z-index: 1; flex: 1 1 0; min-width: 0; border: 0; background: none; border-radius: 999px; display: grid; justify-items: center; align-content: center; gap: 1px; padding: 0; color: var(--ink); cursor: pointer; transition: flex .45s cubic-bezier(.3, 1.2, .4, 1), opacity .25s; overflow: hidden; }
+.tab svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tab span { font-size: 10.5px; font-weight: 600; letter-spacing: .01em; white-space: nowrap; transition: opacity .2s; }
+.tab[aria-selected="true"] { color: var(--accent); }
+.tabbar .lens { position: absolute; z-index: 0; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 4); border-radius: 999px; background: var(--fill);
+  transform: translateX(calc(var(--i) * 100%)); transition: transform .45s cubic-bezier(.3, 1.3, .5, 1), width .45s cubic-bezier(.3, 1.2, .4, 1); }
+.tabbar.min { width: 62px; }
+.tabbar.min .tab:not([aria-selected="true"]) { flex: 0 0 0; opacity: 0; pointer-events: none; }
+.tabbar.min .tab span { opacity: 0; height: 0; }
+.tabbar.min .lens { opacity: 0; }
+
+/* Feuilles */
+.scrim { position: absolute; z-index: 70; inset: 0; background: var(--scrim); opacity: 0; transition: opacity .3s; }
+.scrim.on { opacity: 1; }
+.sheet { position: absolute; z-index: 80; left: 8px; right: 8px; bottom: 8px; max-height: 72%; border-radius: 42px; display: grid; grid-template-rows: auto auto minmax(0, 1fr);
+  transform: translateY(110%); transition: transform .45s cubic-bezier(.25, 1, .35, 1); }
+.sheet.open { transform: none; }
+.sheet.large { left: 0; right: 0; bottom: 0; top: calc(var(--st) + 10px); max-height: none; border-radius: 38px 38px 0 0; background: var(--glass-strong); }
+.grabber { width: 36px; height: 5px; border-radius: 3px; background: var(--ink-3); opacity: .45; margin: 7px auto 0; position: relative; }
+.sheet-h { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px; padding: 6px 14px 4px; position: relative; touch-action: none; }
+.sheet-h h2 { text-align: center; font-size: 17px; font-weight: 700; }
+.sheet-b { overflow-y: auto; padding: 8px 16px calc(var(--sb) + 18px); display: flex; flex-direction: column; gap: 14px; position: relative; scrollbar-width: none; }
+.sheet-b > * { flex: none; }
+.sheet:not(.large) .sheet-b { padding-bottom: 22px; }
+.sheet .card, .sheet .list { background: color-mix(in srgb, var(--surface) 82%, transparent); }
+.screen.receded .scroller, .screen.receded .navbar, .screen.receded .tabbar { transform: scale(.94) translateY(6px); }
+.scroller, .navbar { transition: transform .45s cubic-bezier(.25, 1, .35, 1); transform-origin: 50% 0; }
+.kv { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.sig-v { font: 600 26px var(--f-mono); letter-spacing: -.02em; }
+.thr { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; font-size: 13.5px; align-items: center; }
+.thr .num { font-size: 13px; }
+
+/* Curseur iOS 26 : pouce en lentille */
+.slider { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: none; margin: 0; cursor: pointer; }
+.slider::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--accent) var(--p), var(--fill) var(--p)); }
+.slider::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--accent) var(--p), var(--fill) var(--p)); }
+.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 38px; height: 24px; margin-top: -9px; border-radius: 999px; background: #fff; border: 0;
+  box-shadow: 0 3px 10px rgba(15, 30, 43, .22), 0 0 0 .5px rgba(15, 30, 43, .08); transition: transform .25s cubic-bezier(.3, 1.5, .5, 1), background .2s; }
+.slider::-moz-range-thumb { width: 38px; height: 24px; border-radius: 999px; background: #fff; border: 0; box-shadow: 0 3px 10px rgba(15, 30, 43, .22); }
+.slider:active::-webkit-slider-thumb { transform: scale(1.35, 1.5); background: rgba(255, 255, 255, .35); box-shadow: inset 0 1px 1px rgba(255, 255, 255, .9), inset 0 0 0 .5px rgba(255, 255, 255, .6), 0 6px 16px rgba(15, 30, 43, .2); }
+.sim-v { font: 700 44px var(--f-mono); letter-spacing: -.04em; line-height: 1; }
+.sim-v small { font: 500 16px var(--f-display); color: var(--ink-3); margin-left: 4px; }
+.sim-ticks { display: flex; justify-content: space-between; font: 11px var(--f-mono); color: var(--ink-3); }
+.sim-out { display: grid; gap: 8px; }
+
+/* Menu déroulant en verre */
+.menu { position: absolute; z-index: 90; min-width: 250px; max-width: calc(100% - 32px); border-radius: 26px; padding: 6px; display: grid; transform-origin: top left; transform: scale(.6); opacity: 0; transition: transform .35s cubic-bezier(.3, 1.3, .5, 1), opacity .2s; }
+.menu.open { transform: none; opacity: 1; }
+.menu button { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; gap: 6px; border: 0; background: none; padding: 11px 12px 11px 8px; border-radius: 18px; font-size: 15px; text-align: left; cursor: pointer; }
+.menu button:active, .menu button:hover { background: var(--fill); }
+.menu svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Paramètres */
+.fgrp { display: grid; gap: 6px; }
+.fgrp h3 { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); padding: 0 16px; }
+.fgrp .help { font-size: 12.5px; color: var(--ink-3); padding: 0 16px; margin: 0; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 10px 16px; min-height: 48px; position: relative; }
+.field + .field::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: .5px solid var(--line); }
+.field .in { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--ink-3); }
+.field input { font: 500 15px var(--f-mono); width: 64px; padding: 4px 0; border: 0; background: none; color: var(--accent); text-align: right; }
+.field input:focus { outline: none; color: var(--ink); }
+.field small { grid-column: 1 / -1; font-size: 12px; color: var(--ink-3); }
+.zt { width: 100%; border-collapse: collapse; font-size: 13px; }
+.zt td, .zt th { padding: 6px 16px; text-align: left; } .zt th { font-weight: 500; color: var(--ink-3); font-size: 12px; } .zt .r { text-align: right; }
+.txtbtn { border: 0; background: none; color: var(--bad); font-size: 15px; font-weight: 600; padding: 14px 16px; width: 100%; text-align: center; cursor: pointer; }
+.msg { font-size: 13px; color: var(--bad); padding: 0 16px; min-height: 18px; }
+
+/* ---------- Plein écran sur un vrai téléphone */
+@media (max-width: 520px) {
+  body { background: var(--bg); }
+  .stage { display: block; padding: 0; min-height: 0; }
+  .stage-info, .island, .statusbar, .home-ind { display: none; }
+  .device-wrap, .device { width: 100%; height: 100dvh; }
+  .device { padding: 0; border-radius: 0; background: none; box-shadow: none; transform: none !important; }
+  .screen { width: 100%; height: 100%; border-radius: 0; }
+  :root { --st: env(safe-area-inset-top, 20px); --sb: max(env(safe-area-inset-bottom, 0px), 8px); }
+}
+@media (max-width: 900px) and (min-width: 521px) { .stage { grid-template-columns: auto; } .stage-info { display: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="stage-info">
+    <span class="brand">Jog · maquette iPhone</span>
+    <h1>Le tableau de bord dans la poche</h1>
+    <p>Même produit, mêmes calculs et mêmes données d'exemple que la <a href="index.html">maquette bureau</a>, recomposés pour une lecture rapide le matin, au pouce.</p>
+    <ul>
+      <li>Le verre Liquid Glass est réservé à la navigation : barre d'onglets, boutons, feuilles, menus. Le contenu reste en surfaces Fjord pleines.</li>
+      <li>La barre d'onglets se réduit quand on défile vers le bas, pour laisser la place au contenu.</li>
+      <li>Les signaux, les semaines du journal et le simulateur s'ouvrent dans des feuilles.</li>
+      <li>Sur les graphiques, on glisse le doigt pour lire les valeurs : la lecture s'affiche au-dessus du graphique, sous le doigt rien n'est masqué.</li>
+      <li>Les Paramètres passent dans le bouton en haut à droite, comme dans les apps Apple.</li>
+    </ul>
+    <div class="seg" role="group" aria-label="Thème" id="theme-seg" style="--n:3;--i:0">
+      <span class="thumb"></span>
+      <button data-theme="auto" aria-pressed="true">Système</button><button data-theme="light" aria-pressed="false">Clair</button><button data-theme="dark" aria-pressed="false">Sombre</button>
+    </div>
+    <p class="note">Ouvrez ce fichier sur un iPhone pour le voir en plein écran. Toutes les valeurs sont des données d'exemple.</p>
+  </aside>
+
+  <div class="device-wrap" id="device-wrap"><div class="device" id="device">
+  <div class="screen" id="screen">
+    <div class="island" aria-hidden="true"></div>
+    <div class="statusbar" aria-hidden="true"><span>9:41</span>
+      <span class="icons">
+        <svg width="19" height="12" viewBox="0 0 19 12"><rect x="0" y="8" width="3.2" height="4" rx="1"/><rect x="5" y="5.5" width="3.2" height="6.5" rx="1"/><rect x="10" y="3" width="3.2" height="9" rx="1"/><rect x="15" y="0" width="3.2" height="12" rx="1"/></svg>
+        <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.4c2.4 0 4.6.9 6.2 2.5l1.2-1.2A10.4 10.4 0 0 0 8.5.7 10.4 10.4 0 0 0 1.1 3.7l1.2 1.2a8.7 8.7 0 0 1 6.2-2.5Zm0 3.4c1.5 0 2.8.6 3.8 1.5l1.2-1.2a7 7 0 0 0-10 0l1.2 1.2c1-1 2.3-1.5 3.8-1.5Zm0 3.3c.6 0 1.1.2 1.5.6L8.5 11.2 7 9.7c.4-.4.9-.6 1.5-.6Z"/></svg>
+        <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" style="stroke:var(--ink);opacity:.4"/><rect x="2" y="2" width="18" height="9" rx="2.4"/><path d="M25 4.5v4c.8-.3 1.4-1.1 1.4-2s-.6-1.7-1.4-2Z" style="opacity:.45"/></svg>
+      </span></div>
+
+    <div class="scroller" id="scroller">
+      <div class="ambient" aria-hidden="true"></div>
+
+      <!-- ======================= APERÇU -->
+      <main class="view" id="v-apercu" role="tabpanel" aria-labelledby="t-apercu" data-title="Aperçu">
+        <div class="ltitle"><h1>Aperçu</h1><p id="sub-apercu"></p></div>
+        <section class="hero" id="hero" aria-labelledby="dec-verdict">
+          <div class="eyebrow" id="dec-eyebrow"></div>
+          <h2 class="verdict" id="dec-verdict"></h2>
+          <p class="why" id="dec-why"></p>
+          <div class="range"><span class="l">Fourchette raisonnable pour les 7 prochains jours</span><span class="v num" id="dec-range"></span><span class="s" id="dec-base"></span></div>
+          <button class="gpill prominent glass" id="open-sim"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span>Et si je cours…</span></button>
+        </section>
+        <section>
+          <div class="sh"><h2>Signaux</h2><p id="sig-sum"></p></div>
+          <ul class="list" id="signals" aria-label="Signaux de la décision"></ul>
+        </section>
+        <section>
+          <div class="sh"><h2>Volume réalisé</h2><p>arrêté à hier soir</p></div>
+          <div class="counters" id="counters"></div>
+        </section>
+        <section>
+          <div class="sh"><h2>7 derniers jours</h2><p id="wk-sub"></p></div>
+          <ul class="list" id="week"></ul>
+        </section>
+        <section>
+          <div class="sh"><h2>Forme et fatigue</h2></div>
+          <div class="card">
+            <div class="readout" id="ro-pmc"></div>
+            <svg class="chart" id="pmc" role="img" aria-label="Forme de fond et fatigue sur tout l'historique"></svg>
+            <svg class="chart" id="tsb" role="img" aria-label="Fraîcheur, différence entre forme de fond et fatigue, zone productive de −25 à −10"></svg>
+            <div class="legend"><span><i class="line" style="background:var(--accent)"></i>Forme de fond (CTL)</span><span><i class="line" style="background:var(--ink-3)"></i>Fatigue (ATL)</span><span><i style="background:var(--band)"></i>Fraîcheur productive</span></div>
+            <details class="more"><summary>Comment lire ces courbes</summary><div class="note" id="pmc-note"></div></details>
+          </div>
+        </section>
+        <p class="foot">Maquette iPhone « Fjord ». Données d'exemple générées, mêmes calculs que la maquette bureau.</p>
+      </main>
+
+      <!-- ======================= CHARGE -->
+      <main class="view" id="v-charge" role="tabpanel" aria-labelledby="t-charge" data-title="Charge" hidden>
+        <div class="ltitle"><h1>Charge</h1><p>Progressivité du volume et travail sous-seuil</p></div>
+        <section>
+          <div class="sh"><h2>Progressivité 7 j / 30 j</h2></div>
+          <div class="card">
+            <div class="seg" role="group" aria-label="Fenêtre affichée" id="win-seg" style="--n:2;--i:0"><span class="thumb"></span>
+              <button data-v="112" aria-pressed="true">16 semaines</button><button data-v="365" aria-pressed="false">12 mois</button></div>
+            <div class="readout" id="ro-roll"></div>
+            <svg class="chart" id="roll" role="img" aria-label="Volume des 7 derniers jours et moyenne hebdomadaire des 30 derniers jours"></svg>
+            <svg class="chart" id="ratio" role="img" aria-label="Ratio 7 jours sur 30 jours, bande 0,8 à 1,3, vigilance à 1,5"></svg>
+            <div class="legend"><span><i style="background:var(--z-easy)"></i>7 derniers jours</span><span><i class="line" style="background:var(--ink)"></i>Moyenne hebdo 30 j</span><span><i style="background:var(--band)"></i>Ratio 0,8–1,3</span></div>
+          </div>
+        </section>
+        <section>
+          <div class="sh"><h2>Minutes de sous-seuil</h2><p>par semaine</p></div>
+          <div class="card">
+            <div class="readout" id="ro-subtmin"></div>
+            <svg class="chart" id="subtmin" role="img" aria-label="Minutes de sous-seuil par semaine sur 26 semaines"></svg>
+          </div>
+        </section>
+        <section>
+          <div class="sh"><h2>Discipline NSA</h2><p id="disc-sub"></p></div>
+          <div class="card">
+            <div class="readout" id="ro-subtpct"></div>
+            <svg class="chart" id="subtpct" role="img" aria-label="Part du temps en sous-seuil par semaine, avec la bande cible"></svg>
+            <div class="note" id="nsa-note"></div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ======================= PROGRESSION -->
+      <main class="view" id="v-progression" role="tabpanel" aria-labelledby="t-progression" data-title="Progression" hidden>
+        <div class="ltitle"><h1>Progression</h1><p>Période contre période, sans cycle</p></div>
+        <section>
+          <div class="sh"><h2>Comparer deux périodes</h2></div>
+          <div class="card">
+            <button class="menu-btn" id="cmp-menu" aria-haspopup="menu" aria-expanded="false"><span id="cmp-label"></span><svg viewBox="0 0 12 12"><path d="M3 4.5l3 3 3-3"/></svg></button>
+            <div class="periods">
+              <div class="period"><b>A · référence</b><input type="date" id="cmp-a1" aria-label="Début de la période A"><input type="date" id="cmp-a2" aria-label="Fin de la période A"></div>
+              <div class="period"><b>B · comparée</b><input type="date" id="cmp-b1" aria-label="Début de la période B"><input type="date" id="cmp-b2" aria-label="Fin de la période B"></div>
+            </div>
+            <span class="muted" id="cmp-msg" role="status" style="font-size:12.5px"></span>
+            <div class="cmp" id="cmp"></div>
+            <p class="muted" style="font-size:12px;margin:0">Valeurs ramenées à la semaine. Vert : meilleur sur B ; orange : moins bon.</p>
+          </div>
+        </section>
+        <section>
+          <div class="sh"><h2>Tendances</h2><p>sur tout l'historique</p></div>
+          <div id="prog" style="display:grid;gap:10px"></div>
+        </section>
+        <section>
+          <div class="sh"><h2>Allure × FC par répétition</h2></div>
+          <div class="card">
+            <div class="seg" role="group" aria-label="Période de comparaison" id="phr-seg" style="--n:2;--i:0"><span class="thumb"></span>
+              <button data-v="year" aria-pressed="true">vs il y a un an</button><button data-v="prev" aria-pressed="false">vs 12 sem. préc.</button></div>
+            <div class="readout" id="ro-phr"></div>
+            <svg class="chart" id="phr" role="img" aria-label="FC de fin de répétition selon l'allure, deux périodes"></svg>
+            <div class="legend" id="phr-legend"></div>
+            <div class="note" id="phr-note"></div>
+          </div>
+        </section>
+        <section>
+          <div class="sh"><h2>Dernière séance sous-seuil</h2></div>
+          <div class="card">
+            <div class="readout" id="ro-reps"></div>
+            <svg class="chart" id="reps" role="img" aria-label="Allure de chaque répétition comparée à la moyenne de la séance"></svg>
+            <div class="legend"><span><i style="background:var(--band);border:1px solid var(--accent)"></i>Moyenne ±3 s/km</span><span><i style="background:var(--z-subt);border-radius:50%"></i>Répétition</span><span><i style="background:var(--bad);border-radius:50%"></i>Hors sous-seuil</span></div>
+          </div>
+        </section>
+        <section>
+          <div class="sh"><h2>Niveau estimé</h2></div>
+          <ul class="list" id="pred"></ul>
+          <p class="foot" id="lvl-sub"></p>
+        </section>
+      </main>
+
+      <!-- ======================= HISTORIQUE -->
+      <main class="view" id="v-historique" role="tabpanel" aria-labelledby="t-historique" data-title="Historique" hidden>
+        <div class="ltitle"><h1>Historique</h1><p>Saison après saison</p></div>
+        <section>
+          <div class="card">
+            <div class="seg" role="group" aria-label="Période" id="range-seg" style="--n:3;--i:2"><span class="thumb"></span>
+              <button data-v="12" aria-pressed="false">12 sem.</button><button data-v="26" aria-pressed="false">26 sem.</button><button data-v="all" aria-pressed="true">Toutes</button></div>
+            <div class="readout" id="ro-season"></div>
+            <svg class="chart" id="season" role="img" aria-label="Kilomètres par semaine, répartis par intensité, avec les résultats de course"></svg>
+            <div class="legend" id="zone-legend"></div>
+          </div>
+        </section>
+        <section>
+          <div class="sh"><h2>Journal hebdomadaire</h2><p id="log-sub"></p></div>
+          <ul class="list" id="log"></ul>
+        </section>
+      </main>
+    </div>
+
+    <div class="edge-top" id="edge-top" aria-hidden="true"></div>
+    <div class="edge-bot" aria-hidden="true"></div>
+
+    <header class="navbar">
+      <span></span>
+      <div class="ctitle" id="ctitle" aria-hidden="true">Aperçu</div>
+      <button class="gbtn glass" id="open-cfg" aria-label="Paramètres"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+    </header>
+
+
+    <nav class="tabbar glass" id="tabbar" role="tablist" aria-label="Vues" style="--i:0">
+      <span class="lens" aria-hidden="true"></span>
+      <button class="tab" role="tab" id="t-apercu" data-view="apercu" aria-controls="v-apercu"><svg viewBox="0 0 24 24"><path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4.5-5"/><circle cx="12" cy="16" r="1.4"/></svg><span>Aperçu</span></button>
+      <button class="tab" role="tab" id="t-charge" data-view="charge" aria-controls="v-charge"><svg viewBox="0 0 24 24"><path d="M5 20v-7M10 20V8M15 20v-5M20 20V4"/></svg><span>Charge</span></button>
+      <button class="tab" role="tab" id="t-progression" data-view="progression" aria-controls="v-progression"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg><span>Progression</span></button>
+      <button class="tab" role="tab" id="t-historique" data-view="historique" aria-controls="v-historique"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>Historique</span></button>
+    </nav>
+
+    <div class="scrim" id="scrim" hidden></div>
+    <section class="sheet glass strong" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+      <div class="grabber" aria-hidden="true"></div>
+      <header class="sheet-h" id="sheet-h">
+        <button class="gbtn glass" id="sheet-close" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <h2 id="sheet-title"></h2>
+        <button class="gbtn glass prominent" id="sheet-ok" aria-label="Enregistrer et recalculer" hidden><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+      </header>
+      <div class="sheet-b" id="sheet-body"></div>
+    </section>
+    <div class="menu glass strong" id="menu" role="menu" hidden></div>
+    <div class="home-ind" aria-hidden="true"></div>
+  </div>
+  </div></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(() => {
+const J = window.JOG, u = J.u, NS = 'http://www.w3.org/2000/svg';
+const $ = (id) => document.getElementById(id);
+const ZC = { easy: 'var(--z-easy)', mp: 'var(--z-mp)', subt: 'var(--z-subt)', hard: 'var(--z-hard)' };
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const vt = (p, x, y, s, a = {}) => { const t = el('text', { x, y, ...a }, p); t.textContent = s; return t; };
+const lin = (d0, d1, r0, r1) => (v) => r0 + (v - d0) / (d1 - d0) * (r1 - r0);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const mean = (a) => a.length ? a.reduce((x, y) => x + y, 0) / a.length : NaN;
+const nf = (v, d = 0) => v.toFixed(d).replace('.', ',').replace('-', '−');
+const sg = (v, d = 0) => (v > 0 ? '+' : '') + nf(v, d);
+const store = { get: (k, d) => { try { return localStorage.getItem(k) ?? d; } catch (e) { return d; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+const CHEV = '<svg class="chev" viewBox="0 0 8 13" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5"/></svg>';
+const CHECK = '<svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+
+// ---------- Paramètres et recalculs dérivés (identiques à la maquette bureau)
+const CFG_DEF = { hrMax: 188, hrRest: 46, lt2Hr: 172, lt2Pace: '3:58', easyCap: 140, subtHrLo: 160, subtHrHi: 168, subtPctLo: 20, subtPctHi: 25,
+  refHr: 164, ctlDays: 42, atlDays: 7, z1: 68, z2: 78, z3: 85, z4: 92 };
+const CFG = { ...CFG_DEF };
+try { Object.assign(CFG, JSON.parse(store.get('jog-cfg', '{}'))); } catch (e) {}
+const SS_LO = CFG.subtPctLo / 100, SS_HI = CFG.subtPctHi / 100;
+Object.assign(J.athlete, { hrMax: CFG.hrMax, hrRest: CFG.hrRest, hrEasyCap: CFG.easyCap, lt2Hr: CFG.lt2Hr, subtHrBand: [CFG.subtHrLo, CFG.subtHrHi] });
+const wEnd = (w) => u.iso(u.addDays(u.d(w.start), 7));
+J.weeks.forEach(w => { const e = J.days.filter(d => d.done && d.type === 'easy' && d.date >= w.start && d.date < wEnd(w));
+  w.easyCompliance = e.length ? e.filter(d => d.hr <= CFG.easyCap).length / e.length : 1; });
+const normPace = (s) => s.reps.reduce((a, r) => a + r.pace + (r.hr - CFG.refHr) * 1.1, 0) / s.reps.length;
+J.paceAtHr = J.weeks.filter(w => w.status !== 'planned').map(w => {
+  const xs = J.subtSessions.filter(s => s.date >= w.start && s.date < wEnd(w));
+  return xs.length ? { date: w.start, v: Math.round(mean(xs.map(normPace))) } : null;
+}).filter(Boolean);
+(() => { let ctl = 38, atl = 40; J.fitness = J.fitness.map(p => { const tsb = ctl - atl; ctl += (p.load - ctl) / CFG.ctlDays; atl += (p.load - atl) / CFG.atlDays;
+  return { ...p, ctl: +ctl.toFixed(1), atl: +atl.toFixed(1), tsb: +tsb.toFixed(1) }; }); J.current.fitness = J.fitness[J.fitness.length - 1]; })();
+
+const cur = J.current, cw = cur.week, f = cur.fitness;
+const doneDays = J.days.filter(d => d.done);
+const byDate = new Map(doneDays.map(d => [d.date, d]));
+const yesterday = u.iso(u.addDays(u.d(J.today), -1));
+const shift = (iso, n) => u.iso(u.addDays(u.d(iso), n));
+const LT2 = (([m, s]) => +m * 60 + +s)(String(CFG.lt2Pace).split(':'));
+const dLong = (s) => u.date(s, { weekday: 'short', day: 'numeric', month: 'short' });
+function agg(from, to) { let km = 0, min = 0, n = 0; for (const d of doneDays) if (d.date >= from && d.date <= to) { km += d.km; min += d.min; if (d.min) n++; } return { km, min, n }; }
+const rollCache = new Map();
+function rollAt(dt) {
+  if (rollCache.has(dt)) return rollCache.get(dt);
+  let s7 = 0, s30 = 0;
+  for (let k = 0; k < 30; k++) { const d = byDate.get(shift(dt, -k)); const v = d ? d.km : 0; s30 += v; if (k < 7) s7 += v; }
+  const chronic = s30 / 30 * 7, res = { dt, s7, chronic, r: chronic ? s7 / chronic : 1 };
+  rollCache.set(dt, res); return res;
+}
+const weekRatio = (w) => rollAt(w.status === 'current' ? yesterday : shift(w.start, 6)).r;
+const inBand = (w) => w.subtPct >= SS_LO - .01 && w.subtPct <= SS_HI + .01;
+const tsbState = f.tsb < -25 ? 'surcharge' : f.tsb < -10 ? 'charge productive' : f.tsb <= 5 ? 'équilibre' : 'fraîcheur, sous-charge';
+
+// ---------- Outils de graphique
+// Bornes calculées (D-009) : [min ; max] + repères + plage minimale, élargi de 5 %, arrondi au pas vers l'extérieur.
+function dom(vals, { step, span = 0, incl = [], floor = -Infinity }) {
+  let lo = Math.min(...vals, ...incl), hi = Math.max(...vals, ...incl);
+  if (hi - lo < span) { const c = (lo + hi) / 2; lo = c - span / 2; hi = c + span / 2; }
+  const pad = (hi - lo) * .05; lo -= pad; hi += pad;
+  lo = Math.max(floor, Math.floor(lo / step + 1e-9) * step); hi = Math.ceil(hi / step - 1e-9) * step;
+  return [+lo.toFixed(6), +hi.toFixed(6)];
+}
+function ticks(lo, hi, step, maxN = 4) { let s = step; while ((hi - lo) / s > maxN) s *= 2; const out = []; for (let v = Math.ceil(lo / s - 1e-9) * s; v <= hi + 1e-9; v += s) out.push(+v.toFixed(6)); return out; }
+function yAxis(svg, y, tk, L, R, W, fmt = (v) => v) { const g = el('g', { class: 'grid' }, svg); tk.forEach(v => { el('line', { x1: L, x2: W - R, y1: y(v), y2: y(v) }, g); vt(svg, L - 5, y(v) + 3.5, fmt(v), { 'text-anchor': 'end' }); }); }
+function frame(id, W, H) { const s = $(id); s.innerHTML = ''; s.setAttribute('viewBox', `0 0 ${W} ${H}`); return s; }
+function monthTicks(svg, dates, x, yPos, every = 3) {
+  let lm = ''; dates.forEach((d, i) => { const m = d.slice(0, 7); if (m === lm) return; lm = m; const mo = +m.slice(5);
+    if (i > 2 && (mo - 1) % every === 0) vt(svg, x(i), yPos, u.date(d, { month: 'short' }) + (mo === 1 || every >= 3 ? ' ' + m.slice(2, 4) : ''), { 'text-anchor': 'middle' }); });
+}
+// Lecture au doigt : glisser sur le graphique met à jour la lecture au-dessus (pas d'infobulle sous le doigt).
+function readout(id, html) { const r = $(id); r.dataset.def = html; r.innerHTML = html; r.classList.remove('live');
+  return { set: (h) => { r.innerHTML = h; r.classList.add('live'); }, reset: () => { r.innerHTML = r.dataset.def; r.classList.remove('live'); } }; }
+function scrub(svg, o) {
+  const cross = o.cross ? el('line', { class: 'cross', y1: o.cross[0], y2: o.cross[1], visibility: 'hidden' }, svg) : null;
+  const hit = el('rect', { x: 0, y: 0, width: o.W, height: o.H, fill: 'transparent' }, svg);
+  let on = false;
+  const pick = (e) => { const r = svg.getBoundingClientRect(); return o.pick((e.clientX - r.left) / r.width * o.W, (e.clientY - r.top) / r.height * o.H); };
+  const move = (e) => { const i = pick(e); if (i == null) return; if (cross) { const cx = o.x(i); cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.setAttribute('visibility', 'visible'); } o.show(i); };
+  const end = () => { on = false; if (cross) cross.setAttribute('visibility', 'hidden'); o.hide(); };
+  hit.addEventListener('pointerdown', (e) => { on = true; try { hit.setPointerCapture(e.pointerId); } catch (_) {} move(e); });
+  hit.addEventListener('pointermove', (e) => { if (on || e.pointerType === 'mouse') move(e); });
+  hit.addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse') end(); else on = false; });
+  hit.addEventListener('pointercancel', end);
+  hit.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') end(); });
+}
+const idxLine = (L, R, W, n) => (px) => clamp(Math.round((px - L) / (W - L - R) * (n - 1)), 0, n - 1);
+const idxBand = (L, R, W, n) => (px) => clamp(Math.floor((px - L) / ((W - L - R) / n)), 0, n - 1);
+const pathOf = (data, x, y, k = 'v') => data.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p[k]).toFixed(1)}`).join('');
+const dot = (svg, cx, cy, fill) => el('circle', { cx, cy, r: 4, fill, stroke: 'var(--surface)', 'stroke-width': 2 }, svg);
+
+// =========================================================== APERÇU
+$('sub-apercu').textContent = `${J.athlete.name} · NSA · données d'exemple au ${dLong(yesterday)}`;
+
+// ---------- Décision volume
+const DEC = (() => {
+  const R = rollAt(yesterday);
+  const sess = J.subtSessions, last3 = sess.slice(-3), prev6 = sess.slice(-9, -3);
+  const resp = Math.round(mean(last3.map(normPace)) - mean(prev6.map(normPace)));
+  const offReps = last3.flatMap(s => s.reps).filter(r => r.pace < LT2 || r.hr > CFG.subtHrHi).length;
+  const nReps = last3.reduce((a, s) => a + s.reps.length, 0);
+  const easy14 = doneDays.filter(d => d.type === 'easy' && d.date >= shift(yesterday, -13));
+  const comp = easy14.length ? easy14.filter(d => d.hr <= CFG.easyCap).length / easy14.length : 1;
+  const lr = J.longRuns[J.longRuns.length - 1];
+  const full = J.weeks.filter(w => w.status === 'done'), ref = full[full.length - 1];
+  let palier = 0; for (let i = full.length - 1; i >= 0 && Math.abs(full[i].km / ref.km - 1) <= .1; i--) palier++;
+  const S = [
+    { k: 'prog', l: 'Progressivité', v: nf(R.r, 2), vl: `ratio 7 j / 30 j`, st: R.r > 1.5 ? 'bad' : (R.r > 1.3 || R.r < .8) ? 'warn' : 'good', core: true,
+      h: R.r > 1.3 ? 'Les 7 derniers jours dépassent nettement la moyenne du mois.' : R.r < .8 ? 'Semaine nettement plus légère que la moyenne du mois.' : 'Volume récent cohérent avec le mois écoulé.',
+      thr: ['0,8 à 1,3', '> 1,3 ou < 0,8', '> 1,5'] },
+    { k: 'tsb', l: 'Fraîcheur', v: sg(f.tsb), vl: 'forme − fatigue', st: f.tsb < -25 ? 'bad' : f.tsb > 5 ? 'warn' : 'good', core: true,
+      h: f.tsb < -25 ? 'Fatigue nettement au-dessus de ce que la forme absorbe.' : f.tsb > 5 ? 'Très frais : il y a de la marge pour charger.' : 'Fatigue d\'entraînement normale.',
+      thr: ['−25 à +5', '> +5', '< −25'] },
+    { k: 'resp', l: 'Réponse à l\'effort', v: `${Math.abs(resp)} s/km`, vl: resp > 0 ? 'plus lent à FC égale' : 'plus rapide à FC égale', st: resp > 3 ? 'bad' : resp > 1 ? 'warn' : 'good', core: true,
+      h: `Allure normalisée à ${CFG.refHr} bpm, 3 dernières séances sous-seuil comparées aux 6 précédentes.`, thr: ['≤ +1 s/km', '+1 à +3 s/km', '> +3 s/km'] },
+    { k: 'off', l: 'Répétitions hors sous-seuil', v: `${offReps} sur ${nReps}`, vl: '3 dernières séances', st: offReps >= 3 ? 'bad' : offReps ? 'warn' : 'good',
+      h: `Plus rapides que l'allure seuil (${CFG.lt2Pace}/km) ou FC de fin au-dessus de ${CFG.subtHrHi} bpm, 3 dernières séances.`, thr: ['0', '1 ou 2', '≥ 3'] },
+    { k: 'easy', l: 'Footings sous le plafond', v: `${Math.round(comp * 100)} %`, vl: 'sur 14 jours', st: comp < .75 ? 'bad' : comp < .9 ? 'warn' : 'good',
+      h: `FC moyenne ≤ ${CFG.easyCap} bpm. Des footings trop rapides empiètent sur la récupération.`, thr: ['≥ 90 %', '75 à 90 %', '< 75 %'] },
+    { k: 'dec', l: 'Découplage sortie longue', v: `${nf(lr.decoupling, 1)} %`, vl: `${dLong(lr.date)} · ${nf(lr.km, 1)} km`, st: lr.decoupling > 8 ? 'bad' : lr.decoupling > 5 ? 'warn' : 'good', core: true,
+      h: `${dLong(lr.date)}, ${nf(lr.km, 1)} km. Sous 5 %, la base aérobie tient la durée.`, thr: ['≤ 5 %', '5 à 8 %', '> 8 %'] },
+    { k: 'palier', l: 'Palier de volume', v: `${palier} sem.`, vl: `autour de ${Math.round(ref.km)} km`, st: palier >= 2 ? 'good' : 'warn',
+      h: palier >= 2 ? 'Volume tenu assez longtemps pour envisager une hausse.' : 'Volume atteint récemment : le consolider avant de monter.', thr: ['≥ 2 sem.', '< 2 sem.', '—'] },
+  ];
+  const coreBad = S.filter(s => s.core && s.st === 'bad'), warns = S.filter(s => s.st !== 'good');
+  const verdict = coreBad.length ? 'down' : warns.length ? 'hold' : 'up';
+  const V = { up: ['Augmenter', 'good', [1.05, 1.10]], hold: ['Maintenir', 'warn', [.95, 1.05]], down: ['Alléger', 'bad', [.75, .9]] }[verdict];
+  const usePalier = verdict !== 'down' && palier >= 2;
+  const base = usePalier ? ref.km : R.chronic;
+  const lo = Math.round(base * V[2][0]), hi = Math.round(base * V[2][1]);
+  const why = verdict === 'up' ? 'Tous les signaux sont au vert : la charge actuelle est absorbée.'
+    : verdict === 'down' ? `À surveiller en priorité : ${coreBad.map(s => s.l.toLowerCase()).join(', ')}.`
+    : `Rien d'alarmant, mais mieux vaut consolider avant de monter. ${warns.length > 1 ? 'Points' : 'Point'} à surveiller : ${warns.map(s => s.l.toLowerCase()).join(', ')}.`;
+  return { S, verdict, V, lo, hi, base, usePalier, palier, R, why };
+})();
+const ST_TXT = { good: 'OK', warn: 'À surveiller', bad: 'Alerte' };
+$('dec-eyebrow').textContent = `Décision volume · données arrêtées au ${u.date(yesterday, { weekday: 'long', day: 'numeric', month: 'long' })} au soir`;
+$('dec-verdict').textContent = DEC.V[0] + ' le volume'; $('dec-verdict').dataset.st = DEC.V[1];
+$('dec-why').textContent = DEC.why;
+$('dec-range').textContent = `${DEC.lo}–${DEC.hi} km`;
+$('dec-base').textContent = `${DEC.usePalier ? `Référence : le palier de ${nf(DEC.base)} km tenu ${DEC.palier} semaines.` : `Référence : la moyenne des 30 derniers jours, ${nf(DEC.base)} km par 7 jours.`} Une borne calculée sur le réalisé, pas un plan.`;
+const nOk = DEC.S.filter(s => s.st === 'good').length;
+$('sig-sum').textContent = `${nOk} sur ${DEC.S.length} au vert`;
+$('signals').innerHTML = DEC.S.map((s, i) => `<li><button class="row sig" data-sig="${i}" data-st="${s.st}">
+  <span class="t">${s.l}</span><span class="d"><span class="num">${s.v}</span> · ${s.vl}</span><span class="r"><span class="pill ${s.st}">${ST_TXT[s.st]}</span>${CHEV}</span></button></li>`).join('');
+$('signals').addEventListener('click', (e) => { const b = e.target.closest('[data-sig]'); if (b) openSignal(DEC.S[+b.dataset.sig]); });
+
+function openSignal(s) {
+  openSheet({ title: s.l, html: `
+    <div class="card"><div class="kv"><span class="sig-v">${s.v}</span><span class="pill ${s.st}">${ST_TXT[s.st]}</span></div>
+      <div class="muted" style="font-size:13px;margin-top:-6px">${s.vl}</div><p style="margin:0;color:var(--ink-2)">${s.h}</p></div>
+    <div class="card"><h3>Seuils de lecture</h3><div class="thr">
+      <span class="pill good">OK</span><span class="num">${s.thr[0]}</span>
+      <span class="pill warn">À surveiller</span><span class="num">${s.thr[1]}</span>
+      <span class="pill bad">Alerte</span><span class="num">${s.thr[2]}</span></div>
+      <p class="muted" style="margin:0;font-size:12.5px">${s.core ? 'Signal décisif : une alerte fait passer le verdict à « Alléger ».' : 'Signal d\'exécution : il peut retenir à « Maintenir », jamais faire « Alléger ».'} Seuils fixes du produit, publiés et non réglables.</p></div>` });
+}
+
+// ---------- Simulateur (feuille)
+function openSim() {
+  const base = DEC.base, mn = Math.round(base * .5), mx = Math.round(base * 1.6);
+  const last23 = agg(shift(yesterday, -22), yesterday).km;
+  const last30 = doneDays.filter(d => d.date >= shift(yesterday, -29));
+  const lpk = last30.reduce((a, d) => a + d.load, 0) / last30.reduce((a, d) => a + d.km, 0);
+  openSheet({ title: 'Et si je cours…', html: `
+    <div class="card">
+      <label for="sim-km" class="muted" style="font-size:13px">Kilomètres sur les 7 prochains jours</label>
+      <div class="sim-v" aria-hidden="true"><span id="sim-val"></span><small>km</small></div>
+      <input type="range" class="slider" id="sim-km" min="${mn}" max="${mx}" step="1" value="${Math.round((DEC.lo + DEC.hi) / 2)}">
+      <div class="sim-ticks"><span>${mn}</span><span>fourchette ${DEC.lo}–${DEC.hi}</span><span>${mx}</span></div>
+    </div>
+    <div class="card sim-out" id="sim-out" aria-live="polite"></div>` , mount: (b) => {
+    const sim = b.querySelector('#sim-km'), out = b.querySelector('#sim-out'), lab = b.querySelector('#sim-val');
+    const run = () => {
+      const km = +sim.value; lab.textContent = km;
+      sim.style.setProperty('--p', ((km - mn) / (mx - mn) * 100) + '%');
+      const r = km / ((last23 + km) / 30 * 7);
+      let ctl = f.ctl, atl = f.atl; for (let i = 0; i < 7; i++) { const L = km * lpk / 7; ctl += (L - ctl) / CFG.ctlDays; atl += (L - atl) / CFG.atlDays; }
+      const tsb = ctl - atl;
+      const rs = r > 1.5 ? 'bad' : (r > 1.3 || r < .8) ? 'warn' : 'good', ts = tsb < -25 ? 'bad' : tsb > 5 ? 'warn' : 'good';
+      out.innerHTML = `<div class="kv"><span>Ratio 7 j / 30 j projeté</span><span class="pill num ${rs}">${nf(r, 2)}</span></div>
+        <div class="kv"><span>Fraîcheur dans 7 jours</span><span class="pill num ${ts}">${sg(Math.round(tsb))}</span></div>
+        <div style="font-size:13.5px;color:var(--ink-2)">${km >= DEC.lo && km <= DEC.hi ? 'Dans la fourchette proposée.' : km > DEC.hi ? `${km - DEC.hi} km au-dessus de la fourchette.` : `${DEC.lo - km} km sous la fourchette.`} <span class="muted">Estimation à intensité inchangée.</span></div>`;
+    };
+    sim.addEventListener('input', run); run();
+  } });
+}
+$('open-sim').addEventListener('click', openSim);
+
+// ---------- Volume réalisé
+(() => {
+  const y0 = J.today.slice(0, 4) + '-01-01';
+  const P = [
+    { l: `Année ${J.today.slice(0, 4)}`, from: y0, wide: true, spark: 'week' },
+    { l: '30 jours', from: shift(yesterday, -29), prev: [shift(yesterday, -59), shift(yesterday, -30)], note: 'vs 30 j d\'avant' },
+    { l: '7 jours', from: shift(yesterday, -6), prev: [shift(yesterday, -13), shift(yesterday, -7)], note: 'vs 7 j d\'avant' },
+  ];
+  const box = $('counters');
+  P.forEach((p, pi) => {
+    const a = agg(p.from, yesterday), nd = (u.d(yesterday) - u.d(p.from)) / 864e5 + 1;
+    let delta;
+    if (p.prev) { const b = agg(p.prev[0], p.prev[1]).km; const pc = b ? (a.km - b) / b : null;
+      delta = pc == null ? '<span class="pill neutral">pas d\'historique</span>' : `<span class="pill num ${Math.abs(pc) > .3 ? 'warn' : 'neutral'}">${pc >= 0 ? '+' : '−'}${Math.abs(pc * 100).toFixed(0)} %</span><span>${p.note}</span>`; }
+    else delta = `<span class="pill num neutral">${nf(a.km / nd * 7, 1)} km/sem.</span><span>en moyenne</span>`;
+    const sub = `${u.hm(a.min)} · ${a.n} séances`;
+    const div = document.createElement('div'); div.className = 'counter' + (p.wide ? ' wide' : '');
+    div.innerHTML = `<span class="l"><span>${p.l}</span><span class="num">${u.date(p.from)} – ${u.date(yesterday)}</span></span>
+      <span class="v num">${Math.round(a.km).toLocaleString('fr-FR')}<small>km</small></span><span class="s">${sub}</span><span class="dl">${delta}</span>`;
+    box.appendChild(div);
+    const W = p.wide ? 320 : 150, H = 40;
+    const svg = el('svg', { class: 'chart', viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `Détail de la période ${p.l}` }); div.appendChild(svg);
+    const bars = [];
+    if (p.spark === 'week') J.weeks.filter(w => w.start >= shift(p.from, -6) && w.status !== 'planned').forEach(w => bars.push({ v: w.km, lab: `sem. du ${u.date(w.start)} · ${nf(w.km, 1)} km` }));
+    else for (let dt = p.from; dt <= yesterday; dt = shift(dt, 1)) { const d = byDate.get(dt); bars.push({ v: d ? d.km : 0, sub: d && d.type === 'subt', lab: `${dLong(dt)} · ${d && d.min ? d.label + ' · ' + nf(d.km, 1) + ' km' : 'Repos'}` }); }
+    const max = Math.max(...bars.map(b => b.v), 1), bw = W / bars.length;
+    bars.forEach((b, i) => { const h = b.v / max * (H - 4); el('rect', { x: i * bw + .5, y: H - 1 - h, width: Math.max(1, bw - (bars.length > 20 ? 1.5 : 4)), height: h, rx: 1.5, fill: b.sub ? 'var(--z-subt)' : 'var(--z-easy)' }, svg); });
+    el('line', { x1: 0, x2: W, y1: H - .5, y2: H - .5, stroke: 'var(--line)' }, svg);
+    const sEl = div.querySelector('.s');
+    scrub(svg, { W, H, pick: (px) => clamp(Math.floor(px / bw), 0, bars.length - 1), show: (i) => { sEl.innerHTML = `<span class="num" style="color:var(--accent)">${bars[i].lab}</span>`; }, hide: () => { sEl.textContent = sub; } });
+  });
+})();
+
+// ---------- 7 derniers jours
+(() => {
+  const last7 = J.days.filter(d => d.done && d.date >= shift(J.today, -7)).reverse();
+  const km = last7.reduce((a, d) => a + d.km, 0), n = last7.filter(d => d.min).length, ss = last7.reduce((a, d) => a + d.z.subt, 0);
+  $('wk-sub').textContent = `${n} séances · ${km.toFixed(0)} km · ${Math.round(ss)}' SS`;
+  $('week').innerHTML = last7.map(d => {
+    const tot = d.min || 1;
+    const bar = d.min ? `<span class="zb">${J.ZONES.filter(z => d.z[z]).map(z => `<span style="width:${d.z[z] / tot * 100}%;background:${ZC[z]}"></span>`).join('')}</span>` : '';
+    const det = d.min ? `${u.hm(d.min)} · ${d.km} km${d.hr ? ` · ${d.hr} bpm` : ''}${d.type === 'subt' ? ` · ${u.pace(mean(d.detail.reps.map(r => r.pace)))}/km en rép.` : ''}` : '';
+    return `<li><div class="row day ${d.min ? '' : 'rest'}"><span class="dn">${u.dowShort[d.dow]}<b>${u.d(d.date).getDate()}</b></span>
+      <span class="t">${d.min ? d.label : 'Repos'}</span>${det ? `<span class="d num">${det}</span>` : ''}${bar}</div></li>`;
+  }).join('');
+})();
+
+// ---------- Forme et fatigue
+(() => {
+  const fit = J.fitness.filter((_, i, a) => (a.length - 1 - i) % 2 === 0);
+  const W = 340, L = 30, R = 6;
+  const x = lin(0, fit.length - 1, L, W - R);
+  const s1 = frame('pmc', W, 150), T = 8, B = 18;
+  const [lo, hi] = dom(fit.flatMap(p => [p.ctl, p.atl]), { step: 10, span: 30 });
+  const y = lin(lo, hi, 150 - B, T);
+  yAxis(s1, y, ticks(lo, hi, 10), L, R, W);
+  el('path', { d: pathOf(fit, x, y, 'ctl') + `L${x(fit.length - 1)},${y(lo)}L${x(0)},${y(lo)}Z`, fill: 'var(--accent)', opacity: .12 }, s1);
+  el('path', { d: pathOf(fit, x, y, 'atl'), fill: 'none', stroke: 'var(--ink-3)', 'stroke-width': 1.6, 'stroke-linejoin': 'round' }, s1);
+  el('path', { d: pathOf(fit, x, y, 'ctl'), fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2, 'stroke-linejoin': 'round' }, s1);
+  dot(s1, x(fit.length - 1), y(fit[fit.length - 1].ctl), 'var(--accent)');
+  monthTicks(s1, fit.map(p => p.date), x, 150 - 4);
+  const s2 = frame('tsb', W, 100), T2 = 6, B2 = 6;
+  const [lo2, hi2] = dom(fit.map(p => p.tsb), { step: 10, incl: [-30, 30, -25, -10, 0] });
+  const y2 = lin(lo2, hi2, 100 - B2, T2);
+  yAxis(s2, y2, ticks(lo2, hi2, 10, 3).filter(v => v !== 0), L, R, W, (v) => sg(v));
+  el('rect', { x: L, width: W - L - R, y: y2(-10), height: y2(-25) - y2(-10), fill: 'var(--band)' }, s2);
+  el('line', { x1: L, x2: W - R, y1: y2(0), y2: y2(0), stroke: 'var(--ink-3)' }, s2); vt(s2, L - 5, y2(0) + 3.5, '0', { 'text-anchor': 'end' });
+  el('path', { d: pathOf(fit, x, y2, 'tsb'), fill: 'none', stroke: 'var(--ink-2)', 'stroke-width': 1.6, 'stroke-linejoin': 'round' }, s2);
+  dot(s2, x(fit.length - 1), y2(fit[fit.length - 1].tsb), 'var(--ink-2)');
+  vt(s2, L + 4, T2 + 8, 'fraîcheur (TSB)', { style: 'fill:var(--ink-2)' });
+  const def = `<b>Aujourd'hui</b><span>forme ${nf(f.ctl)} · fatigue ${nf(f.atl)} · fraîcheur ${sg(Math.round(f.tsb))}</span>`;
+  const ro = readout('ro-pmc', def);
+  const show = (i) => { const p = fit[i]; ro.set(`<b>${u.date(p.date, { day: 'numeric', month: 'short', year: 'numeric' })}</b><span>forme ${nf(p.ctl)} · fatigue ${nf(p.atl)} · fraîcheur ${sg(Math.round(p.tsb))}</span>`); };
+  const lines = [];
+  [[s1, 150, T, 150 - B], [s2, 100, T2, 100 - B2]].forEach(([s, H, t, b]) => scrub(s, { W, H, cross: [t, b], x, pick: idxLine(L, R, W, fit.length), show, hide: ro.reset }));
+  $('pmc-note').innerHTML =
+    `<p><b>Forme de fond (CTL)</b> : moyenne de la charge quotidienne sur ${CFG.ctlDays} jours. Elle monte lentement avec la régularité.</p>` +
+    `<p><b>Fatigue (ATL)</b> : même calcul sur ${CFG.atlDays} jours. Elle réagit vite aux grosses séances.</p>` +
+    `<p><b>Fraîcheur (TSB)</b> = forme − fatigue. De −10 à −25 (zone teintée), on charge et on progresse. Sous −25 : surcharge. Au-dessus de +5 : frais, mais le stimulus baisse si ça dure.</p>` +
+    `<p>Aujourd'hui : forme ${nf(f.ctl)}, fatigue ${nf(f.atl)}, fraîcheur ${sg(Math.round(f.tsb))}, soit <b>${tsbState}</b>. Seule la tendance compte.</p>`;
+})();
+
+// =========================================================== CHARGE
+let win = 112;
+function drawRoll() {
+  const first = shift(J.days[0].date, 29), all = [];
+  for (let dt = first; dt <= yesterday; dt = shift(dt, 1)) all.push(rollAt(dt));
+  const data = all.slice(-win), n = data.length;
+  const W = 340, L = 30, R = 6, H = 178, T = 22, B = 18;
+  const s1 = frame('roll', W, H);
+  const [, mx] = dom(data.flatMap(p => [p.s7, p.chronic]), { step: 20, incl: [0] });
+  const x = lin(0, n - 1, L, W - R), y = lin(0, mx, H - B, T);
+  yAxis(s1, y, ticks(0, mx, 20), L, R, W);
+  const bw = (W - L - R) / n;
+  data.forEach((p, i) => el('rect', { x: x(i) - bw / 2 + .15, y: y(p.s7), width: Math.max(.5, bw - (n > 200 ? .2 : .6)), height: y(0) - y(p.s7), fill: 'var(--z-easy)' }, s1));
+  el('path', { d: pathOf(data, x, y, 'chronic'), fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2, 'stroke-linejoin': 'round' }, s1);
+  dot(s1, x(n - 1), y(data[n - 1].chronic), 'var(--ink)');
+  vt(s1, 0, 9, 'km sur 7 jours');
+  monthTicks(s1, data.map(p => p.dt), x, H - 4, win > 200 ? 3 : 1);
+  const H2 = 96, T2 = 8, B2 = 6, s2 = frame('ratio', W, H2);
+  const [lo2, hi2] = dom(data.map(p => p.r), { step: .2, incl: [.4, 1.8] });
+  const y2 = lin(lo2, hi2, H2 - B2, T2);
+  el('rect', { x: L, width: W - L - R, y: y2(1.3), height: y2(.8) - y2(1.3), fill: 'var(--band)' }, s2);
+  yAxis(s2, y2, ticks(lo2, hi2, .2, 3), L, R, W, (v) => nf(v, 1));
+  el('line', { x1: L, x2: W - R, y1: y2(1.5), y2: y2(1.5), stroke: 'var(--bad)', 'stroke-dasharray': '3 3' }, s2);
+  vt(s2, W - R, y2(1.5) - 3, 'vigilance 1,5', { 'text-anchor': 'end', style: 'fill:var(--bad)' });
+  el('path', { d: pathOf(data, x, y2, 'r'), fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2, 'stroke-linejoin': 'round' }, s2);
+  data.forEach((p, i) => { if (p.r > 1.3) el('circle', { cx: x(i), cy: y2(p.r), r: 2.2, fill: p.r > 1.5 ? 'var(--bad)' : 'var(--warn)' }, s2); });
+  const lp = data[n - 1];
+  dot(s2, x(n - 1), y2(lp.r), 'var(--accent)');
+  vt(s2, x(n - 1) - 8, y2(lp.r) - 7, nf(lp.r, 2), { 'text-anchor': 'end', style: 'fill:var(--ink);font:600 11px var(--f-mono)' });
+  const fmt = (p) => `<span>7 j ${nf(p.s7)} km · moy. 30 j ${nf(p.chronic)} km · ratio ${nf(p.r, 2)}</span>`;
+  const ro = readout('ro-roll', `<b>Hier soir</b>${fmt(lp)}`);
+  [[s1, H, T, H - B], [s2, H2, T2, H2 - B2]].forEach(([s, HH, t, b]) => scrub(s, { W, H: HH, cross: [t, b], x, pick: idxLine(L, R, W, n),
+    show: (i) => ro.set(`<b>${dLong(data[i].dt)}</b>${fmt(data[i])}`), hide: ro.reset }));
+}
+
+function barChart(id, roId, wk, o) {
+  const W = 340, L = 30, R = 6, H = 178, T = o.unit ? 22 : 12, B = 18, svg = frame(id, W, H);
+  const [lo, hi] = o.dom; const y = lin(lo, hi, H - B, T), n = wk.length, bw = (W - L - R) / n;
+  if (o.band) el('rect', { x: L, width: W - L - R, y: y(o.band[1]), height: y(o.band[0]) - y(o.band[1]), fill: 'var(--band)' }, svg);
+  yAxis(svg, y, ticks(lo, hi, o.step), L, R, W, o.fmtY);
+  if (o.unit) vt(svg, 0, 9, o.unit);
+  wk.forEach((w, i) => { const v = o.v(w); el('rect', { x: L + i * bw + 1, y: y(v), width: Math.max(1, bw - 2), height: y(lo) - y(v), rx: 1.5, fill: o.fill(w) }, svg);
+    if (i % o.every === 0) vt(svg, L + i * bw, H - 4, u.date(w.start)); });
+  if (o.after) o.after(svg, y, L, R, W);
+  const ro = readout(roId, o.def);
+  scrub(svg, { W, H, cross: [T, H - B], x: (i) => L + i * bw + bw / 2, pick: idxBand(L, R, W, n), show: (i) => ro.set(o.tip(wk[i])), hide: ro.reset });
+}
+(() => {
+  const wk = J.weeks.filter(w => w.status === 'done').slice(-26);
+  const avg = mean(wk.slice(-4).map(w => w.z.subt));
+  barChart('subtmin', 'ro-subtmin', wk, { dom: dom(wk.map(w => w.z.subt), { step: 20, incl: [0] }), step: 20, unit: 'minutes par semaine', every: 6,
+    v: (w) => w.z.subt, fill: () => 'var(--z-subt)',
+    def: `<b>Moyenne des 4 dernières semaines</b><span>${Math.round(avg)} min de sous-seuil par semaine</span>`,
+    tip: (w) => `<b>Semaine du ${u.date(w.start)}</b><span>${Math.round(w.z.subt)} min de sous-seuil · ${w.subtSessions} séances</span>`,
+    after: (svg, y, L, R, W) => { el('line', { x1: L, x2: W - R, y1: y(avg), y2: y(avg), stroke: 'var(--ink)', 'stroke-dasharray': '4 3' }, svg);
+      vt(svg, W - R, y(avg) - 4, `moy. 4 sem. ${Math.round(avg)} min`, { 'text-anchor': 'end', style: 'fill:var(--ink)' }); } });
+
+  const wk2 = J.weeks.filter(w => w.status === 'done').slice(-30);
+  $('disc-sub').textContent = `cible ${CFG.subtPctLo}–${CFG.subtPctHi} %`;
+  const last = wk2[wk2.length - 1];
+  barChart('subtpct', 'ro-subtpct', wk2, { dom: dom(wk2.map(w => w.subtPct), { step: .05, incl: [0, .35, SS_LO, SS_HI] }), step: .05, every: 7, band: [SS_LO, SS_HI],
+    fmtY: (v) => Math.round(v * 100) + '%', v: (w) => w.subtPct, fill: (w) => inBand(w) ? 'var(--z-subt)' : 'var(--z-easy)',
+    def: `<b>Dernière semaine terminée</b><span>${u.pct(last.subtPct)} du temps en sous-seuil · ${inBand(last) ? 'dans la cible' : 'hors cible'}</span>`,
+    tip: (w) => `<b>Semaine du ${u.date(w.start)}</b><span>${u.pct(w.subtPct)} du temps · ${w.subtSessions} séances · ${inBand(w) ? 'dans la cible' : 'hors cible'}</span>`,
+    after: (svg, y, L, R, W) => vt(svg, W - R, y(SS_HI) - 4, `cible ${CFG.subtPctLo}–${CFG.subtPctHi} %`, { 'text-anchor': 'end', style: 'fill:var(--accent)' }) });
+  const l8 = wk2.slice(-8);
+  $('nsa-note').innerHTML = `Footings sous ${CFG.easyCap} bpm : <b>${u.pct(mean(l8.map(w => w.easyCompliance)))}</b> sur 8 semaines. Monotonie de Foster moyenne <b>${nf(mean(l8.map(w => w.monotony)), 1)}</b> : élevée par construction en NSA, à lire avec la charge et non comme une alerte isolée. Barres claires : semaines hors cible.`;
+})();
+
+// =========================================================== PROGRESSION
+// ---------- Comparer deux périodes
+(() => {
+  const ids = ['cmp-a1', 'cmp-a2', 'cmp-b1', 'cmp-b2'].map($);
+  const first = J.days[0].date;
+  const PRESETS = { prev: '12 dern. sem. / 12 précédentes', year: '12 dern. sem. / il y a un an', custom: 'Dates personnalisées' };
+  let preset = 'prev';
+  ids.forEach(i => { i.min = first; i.max = yesterday; });
+  function applyPreset() {
+    const b2 = yesterday, b1 = shift(yesterday, -83); let a1, a2;
+    if (preset === 'prev') { a2 = shift(b1, -1); a1 = shift(b1, -84); } else if (preset === 'year') { a1 = shift(b1, -364); a2 = shift(b2, -364); } else return;
+    if (a1 < first) a1 = first;
+    [a1, a2, b1, b2].forEach((v, i) => ids[i].value = v);
+  }
+  function M(from, to) {
+    const ds = doneDays.filter(d => d.date >= from && d.date <= to);
+    const n = Math.max(1, Math.round((u.d(to) - u.d(from)) / 864e5) + 1), wks = n / 7;
+    const min = ds.reduce((a, d) => a + d.min, 0), subt = ds.reduce((a, d) => a + d.z.subt, 0);
+    const ss = J.subtSessions.filter(s => s.date >= from && s.date <= to), easy = ds.filter(d => d.type === 'easy');
+    const lrs = J.longRuns.filter(r => r.date >= from && r.date <= to), fit = J.fitness.filter(p => p.date >= from && p.date <= to);
+    const tt = J.timeTrials.filter(t => t.date >= from && t.date <= to);
+    const rolls = []; for (let d = from < shift(first, 29) ? shift(first, 29) : from; d <= to; d = shift(d, 1)) rolls.push(rollAt(d).r);
+    return { n, km: ds.reduce((a, d) => a + d.km, 0) / wks, h: min / 60 / wks, ses: ds.filter(d => d.min).length / wks,
+      subt: subt / wks, subtPct: min ? subt / min : NaN, pace: mean(ss.map(normPace)), hrEnd: mean(ss.map(s => s.reps[s.reps.length - 1].hr)),
+      ef: mean(easy.map(d => (1000 / d.pace * 60) / d.hr)), comp: easy.length ? easy.filter(d => d.hr <= CFG.easyCap).length / easy.length : NaN,
+      dec: mean(lrs.map(r => r.decoupling)), ctl: mean(fit.map(p => p.ctl)), ctlMax: fit.length ? Math.max(...fit.map(p => p.ctl)) : NaN,
+      rMax: rolls.length ? Math.max(...rolls) : NaN, tt: tt.length ? Math.min(...tt.map(t => t.sec)) : NaN };
+  }
+  const ROWS = [
+    ['Volume', 'km', 'km / sem.', v => nf(v, 1), 1], ['Volume', 'h', 'h / sem.', v => u.hm(v * 60), 1], ['Volume', 'ses', 'séances / sem.', v => nf(v, 1), 0],
+    ['Sous-seuil', 'subt', 'min / sem.', v => Math.round(v), 1], ['Sous-seuil', 'subtPct', '% du temps', v => nf(v * 100) + ' %', 0],
+    ['Sous-seuil', 'pace', `allure à ${CFG.refHr} bpm`, v => u.pace(v), -1], ['Sous-seuil', 'hrEnd', 'FC fin dern. rép.', v => Math.round(v), 0],
+    ['Endurance', 'ef', 'efficacité footing', v => nf(v, 2), 1], ['Endurance', 'comp', `footings ≤ ${CFG.easyCap}`, v => nf(v * 100) + ' %', 1],
+    ['Endurance', 'dec', 'découplage SL', v => nf(v, 1) + ' %', -1],
+    ['Charge', 'ctl', 'forme de fond moy.', v => nf(v), 1], ['Charge', 'ctlMax', 'forme de fond max.', v => nf(v), 1], ['Charge', 'rMax', 'pic ratio 7 j / 30 j', v => nf(v, 2), 0],
+    ['Performance', 'tt', 'meilleur test 5 km', v => u.dur(v), -1],
+  ];
+  function draw() {
+    $('cmp-label').textContent = PRESETS[preset];
+    const [a1, a2, b1, b2] = ids.map(i => i.value), msg = $('cmp-msg');
+    if (!a1 || !a2 || !b1 || !b2 || a1 > a2 || b1 > b2) { msg.textContent = 'Chaque période doit commencer avant de finir.'; return; }
+    msg.textContent = '';
+    const A = M(a1, a2), B = M(b1, b2);
+    let html = `<div class="cr hd"><span>${A.n} j / ${B.n} j${A.n < B.n - 6 ? ' · A partielle' : ''}</span><span class="v">A</span><span class="v">B</span><span class="v">écart</span></div>`;
+    ROWS.forEach(([grp, k, l, fm, dir], i) => {
+      if (i === 0 || ROWS[i - 1][0] !== grp) html += `<div class="g">${grp}</div>`;
+      const a = A[k], b = B[k], ok = isFinite(a) && isFinite(b);
+      let d = '–';
+      if (ok) {
+        const diff = b - a, better = dir === 0 ? null : dir * diff > 0;
+        const txt = k === 'pace' ? `${diff > 0 ? '+' : '−'}${Math.abs(Math.round(diff))} s` : k === 'tt' ? `${diff > 0 ? '+' : '−'}${u.dur(Math.abs(diff))}` : k === 'h' ? `${diff >= 0 ? '+' : '−'}${u.hm(Math.abs(diff) * 60)}`
+          : `${diff >= 0 ? '+' : '−'}${String(fm(Math.abs(diff))).replace(/ ?%$/, '')}${/%$/.test(String(fm(1))) ? ' pt' : ''}`;
+        d = !/[1-9]/.test(txt) ? '=' : `<span class="pill ${better == null ? 'neutral' : better ? 'good' : 'warn'}">${txt}</span>`;
+      }
+      html += `<div class="cr"><span>${l}</span><span class="v">${isFinite(a) ? fm(a) : '–'}</span><span class="v">${isFinite(b) ? fm(b) : '–'}</span><span class="e">${d}</span></div>`;
+    });
+    $('cmp').innerHTML = html;
+    store.set('jog-cmp-p', JSON.stringify({ p: preset, v: ids.map(i => i.value) }));
+  }
+  try { const s0 = JSON.parse(store.get('jog-cmp-p', 'null')); if (s0 && PRESETS[s0.p]) { preset = s0.p; if (preset === 'custom') s0.v.forEach((v, i) => ids[i].value = v); } } catch (e) {}
+  if (preset !== 'custom') applyPreset();
+  ids.forEach(i => i.addEventListener('change', () => { preset = 'custom'; draw(); }));
+  $('cmp-menu').addEventListener('click', (e) => openMenu(e.currentTarget, Object.entries(PRESETS).map(([k, l]) => ({ l, on: k === preset, act: () => { preset = k; applyPreset(); draw(); } }))));
+  draw();
+})();
+
+// ---------- Tendances
+(() => {
+  const smooth = (arr, k) => arr.map((p, i) => ({ date: p.date, v: mean(arr.slice(Math.max(0, i - k + 1), i + 1).map(q => q.v)), raw: p.v }));
+  const items = [
+    { id: 'p-pace', t: `Allure sous-seuil à ${CFG.refHr} bpm`, d: smooth(J.paceAtHr, 4), fmt: u.pace, unit: '/km', better: -1, opt: { step: 5, span: 20 }, note: 'Normalisée sur la FC de fin de répétition, lissée sur 4 semaines.',
+      delta: (a, b) => `${b - a > 0 ? '+' : '−'}${Math.abs(Math.round(b - a))} s/km` },
+    { id: 'p-ef', t: 'Efficacité en footing', d: smooth(J.efEasy, 4), fmt: v => nf(v, 2), unit: 'm/min/bpm', better: 1, opt: { step: .05, span: .1 }, note: 'Vitesse ÷ FC moyenne, lissée sur 4 semaines.', delta: (a, b) => sg(b - a, 2) },
+    { id: 'p-dec', t: 'Découplage en sortie longue', d: smooth(J.longRuns.map(r => ({ date: r.date, v: r.decoupling })), 3), fmt: v => nf(v, 1) + ' %', unit: '', better: -1, opt: { step: 1, incl: [0, 10], floor: 0 }, band: [0, 5],
+      note: 'Portions faciles, lissé sur 3 sorties ; sous 5 %, la base tient.', delta: (a, b) => sg(b - a, 1) + ' pt' },
+  ];
+  $('prog').innerHTML = items.map(it => {
+    const a = it.d[0].v, b = it.d[it.d.length - 1].v, good = it.better * (b - a) > 0;
+    return `<div class="card"><h3>${it.t}</h3>
+      <div class="kv"><span><span class="big num">${it.fmt(b)}</span> <span class="muted">${it.unit}</span></span><span class="pill num ${good ? 'good' : 'warn'}">${it.delta(a, b)}</span></div>
+      <div class="readout" id="ro-${it.id}"></div><svg class="chart" id="${it.id}" role="img" aria-label="${it.t}, tendance"></svg>
+      <div class="muted" style="font-size:12px">${it.note}</div></div>`;
+  }).join('');
+  items.forEach(it => {
+    const W = 340, L = 34, R = 6, H = 120, T = 6, B = 16, s = frame(it.id, W, H), d = it.d, n = d.length;
+    const [lo, hi] = dom(d.map(p => p.v).concat(it.band || []), it.opt);
+    const x = lin(0, n - 1, L, W - R), y = it.better < 0 && it.id === 'p-pace' ? lin(hi, lo, H - B, T) : lin(lo, hi, H - B, T);
+    if (it.band) el('rect', { x: L, width: W - L - R, y: Math.min(y(it.band[0]), y(it.band[1])), height: Math.abs(y(it.band[0]) - y(it.band[1])), fill: 'var(--band)' }, s);
+    yAxis(s, y, ticks(lo, hi, it.opt.step, 3), L, R, W, it.id === 'p-pace' ? u.pace : it.id === 'p-ef' ? (v) => nf(v, 2) : (v) => v + '%');
+    el('path', { d: pathOf(d, x, y), fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2, 'stroke-linejoin': 'round' }, s);
+    dot(s, x(n - 1), y(d[n - 1].v), 'var(--accent)');
+    monthTicks(s, d.map(p => p.date), x, H - 2);
+    const ro = readout('ro-' + it.id, `<b>Depuis ${u.date(d[0].date, { month: 'long', year: 'numeric' })}</b><span>${it.fmt(d[0].v)} → ${it.fmt(d[n - 1].v)}${it.id === 'p-pace' ? ' (plus haut = plus rapide)' : ''}</span>`);
+    scrub(s, { W, H, cross: [T, H - B], x, pick: idxLine(L, R, W, n), show: (i) => ro.set(`<b>${u.date(d[i].date, { day: 'numeric', month: 'short', year: 'numeric' })}</b><span>lissé ${it.fmt(d[i].v)} · mesuré ${it.fmt(d[i].raw)}</span>`), hide: ro.reset });
+  });
+})();
+
+// ---------- Allure × FC
+let cmp = store.get('jog-cmp', 'year'); if (!['year', 'prev'].includes(cmp)) cmp = 'year';
+function periods() {
+  const end = cw.start, from = shift(end, -84);
+  if (cmp === 'prev') { const pf = shift(from, -84); return [{ name: '12 sem. précédentes', r: `${u.date(pf)} – ${u.date(shift(from, -1))}`, from: pf, to: from }, { name: '12 dernières sem.', r: `${u.date(from)} – ${u.date(shift(end, -1))}`, from, to: end }]; }
+  const refFrom = shift(from, -364), refTo = shift(end, -364), f0 = refFrom < J.days[0].date ? J.days[0].date : refFrom;
+  return [{ name: 'Il y a un an', r: `${u.date(f0)} – ${u.date(shift(refTo, -1))}`, from: f0, to: refTo }, { name: '12 dernières sem.', r: `${u.date(from)} – ${u.date(shift(end, -1))}`, from, to: end }];
+}
+function drawPhr() {
+  const W = 340, H = 250, L = 30, R = 8, T = 14, B = 30, svg = frame('phr', W, H);
+  const P = periods();
+  const groups = P.map(p => J.subtSessions.filter(s => s.date >= p.from && s.date < p.to).flatMap(s => s.reps.map((r, i) => ({ s, i, pace: r.pace, hr: r.hr }))));
+  const all = groups.flat();
+  const [pLo, pHi] = dom(all.map(r => r.pace), { step: 5, span: 20 });
+  const [hLo, hHi] = dom(all.map(r => r.hr), { step: 2, span: 10, incl: J.athlete.subtHrBand });
+  const x = lin(pHi, pLo, L, W - R), y = lin(hLo, hHi, H - B, T);
+  const g = el('g', { class: 'grid' }, svg);
+  ticks(pLo, pHi, 5, 5).forEach(v => { el('line', { x1: x(v), x2: x(v), y1: T, y2: H - B }, g); vt(svg, x(v), H - B + 13, u.pace(v), { 'text-anchor': 'middle' }); });
+  const [b0, b1] = J.athlete.subtHrBand;
+  el('rect', { x: L, width: W - L - R, y: y(b1), height: y(b0) - y(b1), fill: 'var(--band)' }, svg);
+  yAxis(svg, y, ticks(hLo, hHi, 2, 5), L, R, W);
+  vt(svg, W - R, H - 3, 'allure /km, plus rapide →', { 'text-anchor': 'end' }); vt(svg, L, T - 4, 'FC fin de rép. (bpm)');
+  const COL = ['var(--z-easy)', 'var(--z-subt)'], pts = [];
+  groups.forEach((reps, gi) => reps.forEach((r, k) => {
+    const cx = x(r.pace) + ((k * 37) % 9 - 4) / 4, cy = y(r.hr);
+    gi === 0 ? el('circle', { cx, cy, r: 3.2, fill: COL[0], 'fill-opacity': .9, stroke: 'var(--surface)', 'stroke-width': .8 }, svg)
+      : el('rect', { x: cx - 3, y: cy - 3, width: 6, height: 6, rx: 1, fill: COL[1], 'fill-opacity': .9, stroke: 'var(--surface)', 'stroke-width': .8 }, svg);
+    pts.push({ ...r, cx, cy });
+  }));
+  const ctr = groups.map(rs => [mean(rs.map(r => r.pace)), mean(rs.map(r => r.hr))]);
+  const defs = el('defs', {}, svg), mk = el('marker', { id: 'arr', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto' }, defs);
+  el('path', { d: 'M0,0 L10,5 L0,10 z', fill: 'var(--ink)' }, mk);
+  el('line', { x1: x(ctr[0][0]), y1: y(ctr[0][1]), x2: x(ctr[1][0]) - 7, y2: y(ctr[1][1]), stroke: 'var(--ink)', 'stroke-width': 2, 'marker-end': 'url(#arr)' }, svg);
+  ctr.forEach((c, i) => el(i ? 'rect' : 'circle', i ? { x: x(c[0]) - 6, y: y(c[1]) - 6, width: 12, height: 12, rx: 2, fill: COL[1], stroke: 'var(--ink)', 'stroke-width': 2 } : { cx: x(c[0]), cy: y(c[1]), r: 6, fill: COL[0], stroke: 'var(--ink)', 'stroke-width': 2 }, svg));
+  const ring = el('circle', { r: 7, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.5, visibility: 'hidden' }, svg);
+  const norm = rs => mean(rs.map(r => r.pace + (r.hr - CFG.refHr) * 1.1)), gain = Math.round(norm(groups[0]) - norm(groups[1]));
+  $('phr-legend').innerHTML = P.map((p, i) => `<span><i style="background:${COL[i]};${i ? '' : 'border-radius:50%'}"></i>${p.name} · ${p.r} · ${groups[i].length} rép.</span>`).join('') + '<span><i style="background:var(--band)"></i>Bande FC sous-seuil</span>';
+  $('phr-note').innerHTML = `Centres : <b>${u.pace(ctr[0][0])}/km à ${Math.round(ctr[0][1])} bpm</b> → <b>${u.pace(ctr[1][0])}/km à ${Math.round(ctr[1][1])} bpm</b>. Ramené à ${CFG.refHr} bpm : <b>${gain >= 0 ? gain + ' s/km plus rapide' : -gain + ' s/km plus lent'}</b>.`;
+  const ro = readout('ro-phr', `<b>Touchez un point</b><span>${all.length} répétitions sous-seuil sur les deux périodes</span>`);
+  scrub(svg, { W, H, pick: (px, py) => { let bi = null, bd = 400; pts.forEach((p, i) => { const dd = (p.cx - px) ** 2 + (p.cy - py) ** 2; if (dd < bd) { bd = dd; bi = i; } }); return bi; },
+    show: (i) => { const p = pts[i]; ring.setAttribute('cx', p.cx); ring.setAttribute('cy', p.cy); ring.setAttribute('visibility', 'visible');
+      ro.set(`<b>${u.date(p.s.date, { day: 'numeric', month: 'short', year: 'numeric' })} · ${p.s.fmt.replace('x', '×')}' · rép. ${p.i + 1}</b><span>${u.pace(p.pace)}/km · ${p.hr} bpm</span>`); },
+    hide: () => { ring.setAttribute('visibility', 'hidden'); ro.reset(); } });
+}
+
+// ---------- Dernière séance sous-seuil
+(() => {
+  const s = cur.lastSubt, target = Math.round(mean(s.reps.map(r => r.pace)));
+  const W = 340, H = 190, L = 34, R = 8, T = 12, B = 30, svg = frame('reps', W, H);
+  const [lo, hi] = dom(s.reps.map(r => r.pace).concat([target - 3, target + 3, LT2]), { step: 5, span: 20 });
+  const y = lin(hi, lo, H - B, T), n = s.reps.length, bw = (W - L - R) / n;
+  yAxis(svg, y, ticks(lo, hi, 5, 4), L, R, W, u.pace);
+  el('rect', { x: L, width: W - L - R, y: y(target - 3), height: y(target + 3) - y(target - 3), fill: 'var(--band)', stroke: 'var(--accent)', 'stroke-width': .5 }, svg);
+  el('line', { x1: L, x2: W - R, y1: y(LT2), y2: y(LT2), stroke: 'var(--bad)', 'stroke-dasharray': '4 3' }, svg);
+  vt(svg, W - R, y(LT2) - 4, `seuil ${CFG.lt2Pace}`, { 'text-anchor': 'end', style: 'fill:var(--bad)' });
+  const offOf = (r) => r.pace < LT2 ? 'plus rapide que l\'allure seuil' : r.hr > CFG.subtHrHi ? `FC au-dessus de ${CFG.subtHrHi} bpm` : null;
+  s.reps.forEach((r, i) => {
+    const cx = L + i * bw + bw / 2, off = offOf(r);
+    el('line', { x1: cx, x2: cx, y1: y(target), y2: y(r.pace), stroke: 'var(--z-subt)', 'stroke-width': 2 }, svg);
+    el('circle', { cx, cy: y(r.pace), r: 5, fill: off ? 'var(--bad)' : 'var(--z-subt)', stroke: 'var(--surface)', 'stroke-width': 2 }, svg);
+    vt(svg, cx, H - 16, '#' + (i + 1), { 'text-anchor': 'middle' }); vt(svg, cx, H - 4, r.hr, { 'text-anchor': 'middle', style: 'fill:var(--ink-2)' });
+  });
+  vt(svg, L - 5, H - 4, 'bpm', { 'text-anchor': 'end' });
+  const nOff = s.reps.filter(offOf).length;
+  const ro = readout('ro-reps', `<b>${u.date(s.date, { weekday: 'long', day: 'numeric', month: 'long' })} · ${s.fmt.replace('x', '×')}' · récup ${s.rest}'</b><span>moyenne ${u.pace(target)}/km · ${nOff ? nOff + ' hors sous-seuil' : 'tout en sous-seuil'}</span>`);
+  scrub(svg, { W, H, cross: [T, H - B], x: (i) => L + i * bw + bw / 2, pick: idxBand(L, R, W, n), show: (i) => { const r = s.reps[i], off = offOf(r);
+    ro.set(`<b>Répétition ${i + 1}</b><span>${u.pace(r.pace)}/km (${sg(r.pace - target)} s vs moyenne) · FC fin ${r.hr} bpm${off ? ' · hors sous-seuil : ' + off : ''}</span>`); }, hide: ro.reset });
+})();
+
+// ---------- Niveau estimé
+(() => {
+  const ref = J.timeTrials[J.timeTrials.length - 1];
+  const prDates = { '5 km': ref.date, '10 km': '2026-06-21', 'Semi': '2026-03-08' };
+  $('lvl-sub').textContent = `Équivalences de Riegel depuis le test ${ref.dist} du ${u.date(ref.date, { day: 'numeric', month: 'long' })} (${ref.time}). Un niveau, pas une prédiction : sur longue distance, le volume compte aussi.`;
+  $('pred').innerHTML = J.predictions.map(p => {
+    const eq = ref.sec * Math.pow(p.km / 5, 1.06), df = p.pr ? eq - p.pr : null;
+    const gap = df == null ? '' : Math.abs(df) < 1 ? '<span class="pill neutral">au niveau</span>' : df < 0 ? `<span class="pill num good">−${u.dur(-df)}</span>` : `<span class="num muted" style="font-size:12.5px">+${u.dur(df)}</span>`;
+    return `<li><div class="row"><span class="t">${p.dist} <span class="num" style="font-weight:600">${u.dur(eq)}</span></span>
+      <span class="d num">${u.pace(eq / p.km)}/km · record ${p.pr ? `${u.dur(p.pr)} (${u.date(prDates[p.dist], { month: 'short', year: '2-digit' })})` : '<span style="font-family:var(--f-display)">pas encore couru</span>'}</span><span class="r">${gap}</span></div></li>`;
+  }).join('');
+})();
+
+// =========================================================== HISTORIQUE
+let range = store.get('jog-range', 'all'); if (!['12', '26', 'all'].includes(range)) range = 'all';
+function weeksInRange() { const i = J.weeks.indexOf(cw), n = range === '12' ? 12 : range === '26' ? 26 : i + 1; return J.weeks.slice(Math.max(0, i - n + 1), i + 1); }
+$('zone-legend').innerHTML = J.ZONES.map(z => `<span><i style="background:${ZC[z]}"></i>${J.ZONE_LABEL[z]}</span>`).join('');
+function drawSeason() {
+  const wk = weeksInRange(), n = wk.length;
+  const W = 340, H = 220, L = 28, R = 4, T = 34, B = 18, svg = frame('season', W, H);
+  const [, mx] = dom(wk.map(w => w.km), { step: 20, incl: [0] });
+  const bw = (W - L - R) / n, gap = n > 40 ? .8 : 2, x = (i) => L + i * bw, y = lin(0, mx, H - B, T);
+  yAxis(svg, y, ticks(0, mx, 20), L, R, W); vt(svg, L - 5, T - 13, 'km', { 'text-anchor': 'end' });
+  J.races.filter(r => r.result && r.date < J.today).forEach((r, k) => {
+    const ri = wk.findIndex(w => r.date >= w.start && r.date < wEnd(w)); if (ri < 0) return;
+    const cx = x(ri) + bw / 2, ty = k % 2 ? 22 : 10;
+    el('line', { x1: cx, x2: cx, y1: ty + 3, y2: y(0), stroke: 'var(--ink)', 'stroke-dasharray': '2 3' }, svg);
+    vt(svg, cx, ty, r.dist, { 'text-anchor': ri > n - 4 ? 'end' : ri < 3 ? 'start' : 'middle', style: 'fill:var(--ink);font:600 10.5px var(--f-display)' });
+  });
+  wk.forEach((w, i) => { let acc = 0; J.ZONES.forEach(z => { const h = w.min ? w.km * w.z[z] / w.min : 0; if (!h) return;
+    const y0 = y(acc), y1 = y(acc + h); el('rect', { x: x(i), y: y1 + .6, width: Math.max(.8, bw - gap), height: Math.max(0, y0 - y1 - .6), fill: ZC[z], rx: n > 40 ? .8 : 1.5 }, svg); acc += h; }); });
+  const ti = wk.indexOf(cw);
+  if (ti >= 0) { const tx = x(ti) + bw * (((u.d(J.today) - u.d(cw.start)) / 864e5 + .5) / 7); el('line', { x1: tx, x2: tx, y1: T - 4, y2: y(0), stroke: 'var(--accent)', 'stroke-width': 2 }, svg); }
+  let lm = ''; wk.forEach((w, i) => { const m = w.start.slice(0, 7); if (m !== lm && u.d(w.start).getDate() <= 7) { lm = m; const mo = +m.slice(5);
+    if (n <= 26 || (mo - 1) % 3 === 0) vt(svg, x(i), H - 4, u.date(w.start, { month: 'short' }) + (n > 26 ? ' ' + m.slice(2, 4) : '')); } });
+  const race = (w) => J.races.find(r => r.result && r.date >= w.start && r.date < wEnd(w));
+  const tot = wk.filter(w => w.status !== 'planned').reduce((a, w) => a + w.km, 0);
+  const ro = readout('ro-season', `<b>${{ '12': '12 semaines', '26': '26 semaines', all: 'Toutes les saisons' }[range]}</b><span>${Math.round(tot).toLocaleString('fr-FR')} km · trait bleu : aujourd'hui</span>`);
+  scrub(svg, { W, H, cross: [T - 4, H - B], x: (i) => x(i) + bw / 2, pick: idxBand(L, R, W, n), show: (i) => { const w = wk[i], rc = race(w);
+    ro.set(`<b>Sem. du ${u.date(w.start)}${w.status === 'current' ? ' · en cours' : ''}${rc ? ` · ${rc.dist} en ${rc.result}` : ''}</b><span>${nf(w.km, 1)} km · ${u.hm(w.min)} · SS ${Math.round(w.z.subt)}' (${u.pct(w.subtPct)}) · ratio ${nf(weekRatio(w), 2)}</span>`); }, hide: ro.reset });
+}
+function drawLog() {
+  const rows = weeksInRange().filter(w => w.status !== 'planned').slice().reverse();
+  $('log-sub').textContent = `${rows.length} sem. · récente en haut`;
+  $('log').innerHTML = rows.map((w, i) => {
+    const isC = w.status === 'current', tot = w.min || 1, wr = weekRatio(w);
+    const flag = !isC && (!inBand(w) || w.easyCompliance < .9) || wr > 1.3 || wr < .8;
+    const st = wr > 1.5 || (!isC && w.easyCompliance < .75) ? 'bad' : flag ? 'warn' : '';
+    const zb = `<span class="zb">${J.ZONES.filter(z => w.z[z]).map(z => `<span style="width:${w.z[z] / tot * 100}%;background:${ZC[z]}"></span>`).join('')}</span>`;
+    return `<li><button class="row wk ${isC ? 'cur' : ''}" data-w="${w.start}" data-st="${st}"><span class="t">${u.date(w.start, { day: 'numeric', month: 'short', year: '2-digit' })}${isC ? ' <span class="pill neutral">en cours</span>' : ''}</span>
+      <span class="d num">${u.hm(w.min)} · SS ${isC ? '–' : Math.round(w.subtPct * 100) + ' %'} · ratio ${nf(wr, 2)}</span>${zb}<span class="r"><span class="km">${nf(w.km, 1)}</span>${CHEV}</span></button></li>`;
+  }).join('');
+}
+$('log').addEventListener('click', (e) => { const b = e.target.closest('[data-w]'); if (b) openWeek(J.weeks.find(w => w.start === b.dataset.w)); });
+function openWeek(w) {
+  const isC = w.status === 'current', wr = weekRatio(w), pill = (c, t) => `<span class="pill num ${c}">${t}</span>`;
+  const rows = [
+    ['Kilomètres', `<span class="num">${nf(w.km, 1)} km</span>`], ['Durée', `<span class="num">${u.hm(w.min)}</span>`],
+    ['Sous-seuil', isC ? '<span class="muted">en cours</span>' : pill(inBand(w) ? 'good' : 'warn', Math.round(w.subtPct * 100) + ' %')],
+    ['Séances sous-seuil', `<span class="num">${w.subtSessions}</span>`], ['Charge', `<span class="num">${isC ? '–' : w.load}</span>`],
+    ['Ratio 7 j / 30 j', wr > 1.5 ? pill('bad', nf(wr, 2)) : (wr > 1.3 || wr < .8) ? pill('warn', nf(wr, 2)) : `<span class="num">${nf(wr, 2)}</span>`],
+    ['Monotonie (Foster)', `<span class="num">${isC ? '–' : nf(w.monotony, 2)}</span>`], ['Contrainte (Foster)', `<span class="num">${isC ? '–' : w.strain}</span>`],
+    [`Footings ≤ ${CFG.easyCap} bpm`, isC ? '–' : w.easyCompliance < .75 ? pill('bad', Math.round(w.easyCompliance * 100) + ' %') : w.easyCompliance < .9 ? pill('warn', Math.round(w.easyCompliance * 100) + ' %') : `<span class="num">${Math.round(w.easyCompliance * 100)} %</span>`],
+  ];
+  const days = J.days.filter(d => d.done && d.date >= w.start && d.date < wEnd(w));
+  const tot = w.min || 1;
+  openSheet({ title: `Semaine du ${u.date(w.start)}`, html: `
+    <div class="card" style="gap:8px"><div class="zb" style="height:8px;margin:0">${J.ZONES.filter(z => w.z[z]).map(z => `<span style="width:${w.z[z] / tot * 100}%;background:${ZC[z]}"></span>`).join('')}</div>
+      <div class="legend">${J.ZONES.filter(z => w.z[z]).map(z => `<span><i style="background:${ZC[z]}"></i>${J.ZONE_LABEL[z]} ${Math.round(w.z[z])}'</span>`).join('')}</div></div>
+    <ul class="list">${rows.map(([k, v]) => `<li><div class="row"><span class="t" style="font-weight:500">${k}</span><span class="r">${v}</span></div></li>`).join('')}</ul>
+    <ul class="list">${days.map(d => `<li><div class="row"><span class="t" style="font-weight:${d.min ? 600 : 500};${d.min ? '' : 'color:var(--ink-3)'}">${u.dowShort[d.dow]} ${u.d(d.date).getDate()} · ${d.min ? d.label : 'Repos'}</span>${d.min ? `<span class="d num">${u.hm(d.min)} · ${d.km} km${d.hr ? ' · ' + d.hr + ' bpm' : ''}</span>` : ''}</div></li>`).join('')}</ul>` });
+}
+
+// =========================================================== Segmentés
+function seg(id, value, onPick) {
+  const s = $(id), bs = [...s.querySelectorAll('button')];
+  const set = (v) => { const i = Math.max(0, bs.findIndex(b => b.dataset.v === String(v) || b.dataset.theme === String(v))); s.style.setProperty('--i', i); bs.forEach((b, k) => b.setAttribute('aria-pressed', k === i)); };
+  set(value); bs.forEach(b => b.addEventListener('click', () => { const v = b.dataset.v ?? b.dataset.theme; set(v); onPick(v); }));
+}
+seg('win-seg', win, (v) => { win = +v; drawRoll(); });
+seg('phr-seg', cmp, (v) => { cmp = v; store.set('jog-cmp', v); drawPhr(); });
+seg('range-seg', range, (v) => { range = v; store.set('jog-range', v); drawSeason(); drawLog(); });
+const applyTheme = (t) => { if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t; };
+const theme0 = store.get('jog-theme', 'auto'); applyTheme(theme0);
+seg('theme-seg', theme0, (v) => { applyTheme(v); store.set('jog-theme', v); });
+drawRoll(); drawPhr(); drawSeason(); drawLog();
+
+// =========================================================== Navigation : onglets, grand titre, barre réduite
+const screen = $('screen'), scroller = $('scroller'), tabbar = $('tabbar');
+const VIEWS = ['apercu', 'charge', 'progression', 'historique'];
+const tabs = [...tabbar.querySelectorAll('[role="tab"]')];
+const scrollPos = {}; let view = null, lastY = 0;
+function showView(v, focus) {
+  if (!VIEWS.includes(v)) v = 'apercu';
+  if (view === v && !tabbar.classList.contains('min')) { scroller.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  if (view) scrollPos[view] = scroller.scrollTop;
+  view = v;
+  document.querySelectorAll('main.view').forEach(m => m.hidden = m.id !== 'v-' + v);
+  tabs.forEach((t, i) => { const on = t.dataset.view === v; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; if (on) tabbar.style.setProperty('--i', i); if (on && focus) t.focus(); });
+  $('ctitle').textContent = $('v-' + v).dataset.title;
+  scroller.scrollTop = scrollPos[v] || 0; lastY = scroller.scrollTop;
+  tabbar.classList.remove('min'); syncChrome();
+  store.set('jog-view', v);
+}
+tabs.forEach((t, i) => {
+  t.addEventListener('click', () => showView(t.dataset.view));
+  t.addEventListener('keydown', (e) => { const k = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (k) { e.preventDefault(); showView(tabs[(i + k + tabs.length) % tabs.length].dataset.view, true); } });
+});
+tabbar.addEventListener('click', (e) => { if (tabbar.classList.contains('min')) { e.stopPropagation(); tabbar.classList.remove('min'); syncChrome(); } }, true);
+function syncChrome() {
+  const st = scroller.scrollTop;
+  $('ctitle').classList.toggle('on', st > 46); $('edge-top').classList.toggle('on', st > 4);
+}
+scroller.addEventListener('scroll', () => {
+  const st = scroller.scrollTop, dy = st - lastY; lastY = st;
+  if (dy > 6 && st > 120) tabbar.classList.add('min');
+  else if (dy < -8 || st < 40) tabbar.classList.remove('min');
+  syncChrome();
+}, { passive: true });
+
+// =========================================================== Feuilles
+const sheet = $('sheet'), scrim = $('scrim'), body = $('sheet-body');
+let onOk = null, lastFocus = null;
+function openSheet({ title, html, mount, large = false, ok = null }) {
+  closeMenu();
+  lastFocus = document.activeElement;
+  $('sheet-title').textContent = title; body.innerHTML = html; body.scrollTop = 0;
+  sheet.classList.toggle('large', large); $('sheet-ok').hidden = !ok; onOk = ok;
+  scrim.hidden = false; sheet.hidden = false; sheet.style.transform = '';
+  requestAnimationFrame(() => requestAnimationFrame(() => { scrim.classList.add('on'); sheet.classList.add('open'); if (large) screen.classList.add('receded'); }));
+  if (mount) mount(body);
+  setTimeout(() => $('sheet-close').focus({ preventScroll: true }), 50);
+}
+function closeSheet() {
+  if (sheet.hidden) return;
+  sheet.classList.remove('open'); scrim.classList.remove('on'); screen.classList.remove('receded'); sheet.style.transform = '';
+  setTimeout(() => { sheet.hidden = true; scrim.hidden = true; body.innerHTML = ''; }, 420);
+  if (lastFocus) lastFocus.focus({ preventScroll: true });
+}
+$('sheet-close').addEventListener('click', closeSheet);
+scrim.addEventListener('click', closeSheet);
+$('sheet-ok').addEventListener('click', () => onOk && onOk());
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeMenu(); closeSheet(); } });
+(() => { // glisser vers le bas pour fermer
+  const h = $('sheet-h'); let y0 = null, dy = 0;
+  h.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) return; y0 = e.clientY; dy = 0; h.setPointerCapture(e.pointerId); sheet.style.transition = 'none'; });
+  h.addEventListener('pointermove', (e) => { if (y0 == null) return; dy = Math.max(0, (e.clientY - y0) / SCALE); sheet.style.transform = `translateY(${dy}px)`; });
+  const end = () => { if (y0 == null) return; y0 = null; sheet.style.transition = ''; if (dy > 90) closeSheet(); else sheet.style.transform = ''; };
+  h.addEventListener('pointerup', end); h.addEventListener('pointercancel', end);
+})();
+
+// =========================================================== Menu déroulant
+const menu = $('menu'); let menuBtn = null;
+function openMenu(btn, items) {
+  menuBtn = btn; btn.setAttribute('aria-expanded', 'true');
+  menu.innerHTML = items.map((it, i) => `<button role="menuitemradio" aria-checked="${it.on}" data-i="${i}"><span>${it.on ? CHECK : ''}</span><span>${it.l}</span></button>`).join('');
+  menu.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { items[+b.dataset.i].act(); closeMenu(); }));
+  const sr = screen.getBoundingClientRect(), br = btn.getBoundingClientRect();
+  menu.style.left = (br.left - sr.left) / SCALE + 'px'; menu.style.top = (br.bottom - sr.top) / SCALE + 8 + 'px';
+  menu.hidden = false; requestAnimationFrame(() => menu.classList.add('open'));
+  menu.querySelector('button').focus({ preventScroll: true });
+}
+function closeMenu() { if (menu.hidden) return; menu.classList.remove('open'); if (menuBtn) menuBtn.setAttribute('aria-expanded', 'false'); setTimeout(() => { menu.hidden = true; }, 200); }
+document.addEventListener('pointerdown', (e) => { if (!menu.hidden && !menu.contains(e.target) && e.target !== menuBtn && !menuBtn.contains(e.target)) closeMenu(); });
+scroller.addEventListener('scroll', closeMenu, { passive: true });
+
+// =========================================================== Paramètres (feuille pleine hauteur)
+$('open-cfg').addEventListener('click', () => {
+  const F = [
+    { t: 'Fréquence cardiaque', help: 'Bases des zones et des plafonds.', f: [['hrMax', 'FC max', 'bpm'], ['hrRest', 'FC repos', 'bpm'], ['easyCap', 'Plafond des footings', 'bpm', 'Au-dessus, un footing compte comme trop rapide.']] },
+    { t: 'Seuil', help: 'Au-dessus, on sort du sous-seuil.', f: [['lt2Hr', 'FC au seuil', 'bpm'], ['lt2Pace', 'Allure au seuil', '/km', 'Format m:ss.', 'text'], ['refHr', 'FC de référence', 'bpm', 'Pour l\'allure normalisée.']] },
+    { t: 'Méthode NSA', help: 'Repères pour juger le réalisé.', f: [['subtPctLo', 'Part de sous-seuil, min.', '%'], ['subtPctHi', 'Part de sous-seuil, max.', '%'], ['subtHrLo', 'FC fin de rép., bas', 'bpm'], ['subtHrHi', 'FC fin de rép., haut', 'bpm']] },
+    { t: 'Zones', help: 'Limite haute de chaque zone, en % de la FC max.', zones: true, f: [['z1', 'Zone 1, récupération', '%'], ['z2', 'Zone 2, endurance', '%'], ['z3', 'Zone 3, tempo', '%'], ['z4', 'Zone 4, seuil', '%']] },
+    { t: 'Modèle de charge', help: 'Constantes du modèle forme / fatigue.', f: [['ctlDays', 'Forme de fond (CTL)', 'jours'], ['atlDays', 'Fatigue (ATL)', 'jours']] },
+  ];
+  const html = `<form id="cfg-form" novalidate style="display:grid;gap:22px">` + F.map(g => `<div class="fgrp"><h3>${g.t}</h3><div class="list">` +
+    g.f.map(([k, l, un, help, type]) => `<label class="field" for="cfg-${k}"><span>${l}</span><span class="in"><input id="cfg-${k}" name="${k}" type="${type || 'number'}" inputmode="${type ? 'text' : 'numeric'}" value="${CFG[k]}">${un}</span>${help ? `<small>${help}</small>` : ''}</label>`).join('') +
+    (g.zones ? '<table class="zt" id="zt"></table>' : '') + `</div><p class="help">${g.help}</p></div>`).join('') +
+    `<div class="msg" id="cfg-msg" role="status"></div><div class="list"><button type="button" class="txtbtn" id="cfg-reset">Revenir aux valeurs par défaut</button></div></form>`;
+  const save = () => {
+    const form = $('cfg-form'), msg = $('cfg-msg'), next = {};
+    for (const k of Object.keys(CFG_DEF)) { const raw = form.elements[k].value.trim();
+      if (k === 'lt2Pace') { if (!/^\d:\d{2}$/.test(raw)) { msg.textContent = 'Allure au seuil : format m:ss, par exemple 4:02.'; form.elements[k].focus(); return; } next[k] = raw; }
+      else { const n = +raw; if (!raw || !isFinite(n) || n <= 0) { msg.textContent = 'Une valeur est manquante ou invalide.'; form.elements[k].focus(); return; } next[k] = n; } }
+    if (next.subtPctLo >= next.subtPctHi || next.subtHrLo >= next.subtHrHi || !(next.z1 < next.z2 && next.z2 < next.z3 && next.z3 < next.z4 && next.z4 < 100)) { msg.textContent = 'Chaque borne basse doit être inférieure à la borne haute, et les zones doivent croître.'; return; }
+    try { localStorage.setItem('jog-cfg', JSON.stringify(next)); } catch (e) { msg.textContent = 'Impossible d\'enregistrer (stockage bloqué).'; return; }
+    location.reload();
+  };
+  openSheet({ title: 'Paramètres', large: true, ok: save, html, mount: (b) => {
+    const form = b.querySelector('#cfg-form');
+    const zt = () => { const v = (k) => +form.elements[k].value, m = v('hrMax'), bz = [0, v('z1'), v('z2'), v('z3'), v('z4'), 100];
+      b.querySelector('#zt').innerHTML = '<tr><th>Zone</th><th class="r">% FC max</th><th class="r">bpm</th></tr>' + [1, 2, 3, 4, 5].map(i => `<tr><td>Z${i}</td><td class="r num">${bz[i - 1]}–${bz[i]} %</td><td class="r num">${Math.round(m * bz[i - 1] / 100)}–${Math.round(m * bz[i] / 100)}</td></tr>`).join(''); };
+    form.addEventListener('input', zt); zt();
+    form.addEventListener('submit', (e) => { e.preventDefault(); save(); });
+    b.querySelector('#cfg-reset').addEventListener('click', () => { try { localStorage.removeItem('jog-cfg'); } catch (e) {} location.reload(); });
+  } });
+});
+
+// =========================================================== Mise à l'échelle du cadre sur bureau
+let SCALE = 1;
+function fitDevice() {
+  const d = $('device'), w = $('device-wrap');
+  if (innerWidth <= 520) { SCALE = 1; d.style.transform = ''; w.style.width = w.style.height = ''; return; }
+  SCALE = Math.min(1, (innerHeight - 48) / 898);
+  d.style.transform = `scale(${SCALE})`; w.style.width = 426 * SCALE + 'px'; w.style.height = 898 * SCALE + 'px';
+}
+addEventListener('resize', fitDevice); fitDevice();
+
+showView(store.get('jog-view', 'apercu'));
+})();
+</script>
+</body>
+</html>

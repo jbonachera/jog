@@ -1,6 +1,6 @@
 # 0008 · Langage, outillage et organisation du dépôt
 
-- **Statut** : Acceptée
+- **Statut** : Remplacée par [0014](0014-app-ios-native.md) (2026-10-28, migration iOS). Historique : Acceptée
 - **Date** : 2026-10-21
 - **Dépend de** : 0001, 0003, 0005, 0006
 

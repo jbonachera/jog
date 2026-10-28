@@ -1,5 +1,7 @@
 # Contrats de types partagés
 
+> **Historique (2026-10-28)** : ces contrats ont été écrits en TypeScript. Depuis la migration (ADR 0014), les types Swift de `ios/JogCore/Sources/JogCore/types.swift` font foi ; les chemins `src/` et les commandes `npm` cités ci-dessous n'existent plus.
+
 Ces types sont la **frontière** entre les modules. Le lot 0 les recopie tels quels dans `src/core/types.ts`. Un lot peut ajouter des champs à la `Vue`. Il ne renomme ni ne retire rien sans mettre ce fichier à jour.
 
 Références : ADR 0003 (pivot), 0005 (stockage), 0006 (pipeline), 0007 (dates), 0009 (Vue).

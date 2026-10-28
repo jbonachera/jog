@@ -1,6 +1,6 @@
 # 0003 · Sources des données par adaptateurs, à commencer par l'archive Strava
 
-- **Statut** : Acceptée
+- **Statut** : Remplacée par [0014](0014-app-ios-native.md) (2026-10-28, migration iOS). Historique : Acceptée
 - **Date** : 2026-10-20
 - **Dépend de** : 0001. Remplace 0002.
 

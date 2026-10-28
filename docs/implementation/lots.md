@@ -1,5 +1,7 @@
 # Plan de réalisation · Jog
 
+> **État (2026-10-28)** : la migration vers l'app iOS native est faite ([`migration-ios.md`](migration-ios.md), ADR 0014). Ce plan décrit le web TypeScript d'origine, supprimé au lot 6 ; il reste comme historique, et les « Écarts proposés » en fin de document restent en vigueur.
+
 Découpage en lots. Chaque lot est une tranche utilisable de bout en bout, qui part des données réelles et va jusqu'à l'écran. Il est livré par une suite de tâches. Les références renvoient à la spécification (`docs/design/`), aux décisions D-0xx et aux ADR (`docs/adr/`). Les types partagés sont dans [contrats.md](contrats.md).
 
 ## Méthode, pour toutes les tâches

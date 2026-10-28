@@ -1,6 +1,6 @@
 # 0010 · Sécurité et données personnelles
 
-- **Statut** : Acceptée
+- **Statut** : Acceptée, amendée par [0014](0014-app-ios-native.md) (données dans l'app iOS : HealthKit en lecture seule, fichiers protégés sur l'appareil, aucune sortie réseau)
 - **Date** : 2026-10-21
 - **Dépend de** : 0001, 0003, 0005, 0008, 0009
 

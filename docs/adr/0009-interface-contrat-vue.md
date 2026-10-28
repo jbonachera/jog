@@ -1,6 +1,6 @@
 # 0009 · Interface : DOM et SVG sans framework, contrat « Vue » produit par le Worker
 
-- **Statut** : Acceptée
+- **Statut** : Remplacée par [0014](0014-app-ios-native.md) (2026-10-28, migration iOS). Historique : Acceptée
 - **Date** : 2026-10-21
 - **Dépend de** : 0001, 0006, 0007, 0008
 

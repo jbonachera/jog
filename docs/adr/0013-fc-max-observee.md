@@ -1,5 +1,7 @@
 # 0013 · FC max observée : pic soutenu par séance, suggestion dans Paramètres
 
+> **Note (2026-10-28)** : le fond de cette décision reste valable (ADR 0014). Les chemins `src/`, `tests/` et les commandes `npm` cités ont disparu avec le web TypeScript ; l'équivalent Swift est dans `ios/JogCore`.
+
 - **Statut** : Acceptée
 - **Date** : 2026-10-22
 - **Dépend de** : 0004, 0006, 0009 ; règle fonctionnelle D-019

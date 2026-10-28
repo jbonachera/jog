@@ -2,6 +2,8 @@
 
 Spécification de référence pour l'implémentation du tableau de bord de suivi de course à pied de Jog. Elle décrit ce que le produit doit permettre, comment il est organisé, chaque composant, chaque calcul et le système visuel. La maquette jointe en est l'illustration exécutable.
 
+> **Design de référence de l'app** : `maquette/mobile.html` (iPhone, iOS 26). `maquette/index.html` est la maquette historique du tableau de bord web.
+
 > **Statut** : design validé sur maquette (v4, octobre 2026). Les valeurs de la maquette sont des **données d'exemple** générées.
 
 ## Ouvrir la maquette
@@ -11,6 +13,7 @@ file:///<chemin du dépôt>/docs/design/maquette/index.html
 ```
 
 - `maquette/index.html` : la maquette complète (HTML, CSS et JS dans un seul fichier).
+- `maquette/mobile.html` : la maquette iPhone (iOS 26, Liquid Glass, thème Fjord). Mêmes données et mêmes calculs que la maquette bureau. Sur un écran large, elle s'affiche dans un cadre d'iPhone ; sur un téléphone, en plein écran. *Proposition, pas encore validée.*
 - `maquette/data.js` : le générateur de données d'exemple, déterministe. Il produit un athlète fictif sur 14 mois en méthode NSA.
 
 La maquette n'a besoin d'aucun serveur. Elle charge seulement les polices depuis Google Fonts, et reste lisible hors ligne avec les polices de repli.
