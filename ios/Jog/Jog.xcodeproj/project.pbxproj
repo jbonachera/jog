@@ -19,11 +19,10 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		00000000000000000000B010 /* Exceptions de « Jog », cible Jog */ = {
+		00000000000000000000B010 /* Exceptions for "Jog" folder in "Jog" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				Jog.entitlements,
 			);
 			target = 00000000000000000000A030 /* Jog */;
 		};
@@ -33,7 +32,7 @@
 		00000000000000000000A012 /* Jog */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				00000000000000000000B010 /* Exceptions de « Jog », cible Jog */,
+				00000000000000000000B010 /* Exceptions for "Jog" folder in "Jog" target */,
 			);
 			path = Jog;
 			sourceTree = "<group>";
@@ -160,6 +159,7 @@
 			packageReferences = (
 				00000000000000000000A050 /* XCLocalSwiftPackageReference "../JogCore" */,
 			);
+			preferredProjectObjectVersion = 77;
 			productRefGroup = 00000000000000000000A011 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -244,15 +244,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Jog/Jog.entitlements";
+				CODE_SIGN_ENTITLEMENTS = Jog/Jog.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = "";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = DK4JT53B9M;
 				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "Jog/Info.plist";
+				INFOPLIST_FILE = Jog/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -276,15 +275,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Jog/Jog.entitlements";
+				CODE_SIGN_ENTITLEMENTS = Jog/Jog.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = "";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = DK4JT53B9M;
 				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "Jog/Info.plist";
+				INFOPLIST_FILE = Jog/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
