@@ -29,7 +29,7 @@ public struct SemaineEntree: Codable, Sendable, Equatable {
 }
 
 /// Entrées de `decider`. Différence avec le TypeScript : `paramsAuJour` (une fonction) est remplacé par `parametres`,
-/// la fonction étant `parametresAuJour(parametres, date)` (scripts/oracle.ts).
+/// la fonction étant `parametresAuJour(parametres, date)`  (cas dorés).
 public struct EntreesDecision: Codable, Sendable, Equatable {
     public var J: DateCivile
     /// Jour 1 de l'historique.

@@ -2,8 +2,9 @@ import Foundation
 import Testing
 @testable import JogCore
 
-// Évaluation de l'estimation des répétitions (D-021) sur des références réelles, tours retirés. Sur le modèle de
-// `npm run verif:reel` : ignoré sans variable d'environnement, aucune donnée dans le dépôt, des agrégats seulement.
+// Évaluation de l'estimation des répétitions (D-021) sur des références réelles, tours retirés. Ignoré
+// sans variable d'environnement, aucune donnée dans le dépôt, des agrégats seulement. La référence (local-data/reference)
+// venait d'un script TypeScript supprimé au lot 6 : elle n'est plus régénérable, il faut la conserver.
 //
 // Lancement (le dossier est celui de local-data/reference : index.json et <n>.json, ignorés par git) :
 //   cd ios/JogCore && JOG_REEL_REFERENCE=/chemin/reference swift test -c release --disable-sandbox \
