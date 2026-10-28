@@ -9,11 +9,11 @@ Spécification de référence pour l'implémentation du tableau de bord de suivi
 ## Ouvrir la maquette
 
 ```
-file:///<chemin du dépôt>/docs/design/maquette/index.html
+file:///<chemin du dépôt>/docs/design/maquette/mobile.html
 ```
 
-- `maquette/index.html` : la maquette complète (HTML, CSS et JS dans un seul fichier).
-- `maquette/mobile.html` : la maquette iPhone (iOS 26, Liquid Glass, thème Fjord). Mêmes données et mêmes calculs que la maquette bureau. Sur un écran large, elle s'affiche dans un cadre d'iPhone ; sur un téléphone, en plein écran. *Proposition, pas encore validée.*
+- `maquette/index.html` : la maquette historique du tableau de bord web (HTML, CSS et JS dans un seul fichier).
+- `maquette/mobile.html` : la maquette iPhone (iOS 26, Liquid Glass, thème Fjord). Mêmes données et mêmes calculs que la maquette bureau. Sur un écran large, elle s'affiche dans un cadre d'iPhone ; sur un téléphone, en plein écran. **
 - `maquette/data.js` : le générateur de données d'exemple, déterministe. Il produit un athlète fictif sur 14 mois en méthode NSA.
 
 La maquette n'a besoin d'aucun serveur. Elle charge seulement les polices depuis Google Fonts, et reste lisible hors ligne avec les polices de repli.

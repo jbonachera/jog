@@ -1,5 +1,7 @@
 # 02 · Navigation et structure
 
+> **Note (2026-10-28)** : le stockage décrit ici (IndexedDB, sauvegarde par fichier, messages « navigateur ») est remplacé par des fichiers JSON sur l'appareil (ADR 0014).
+
 ## Barre supérieure
 
 Barre **fixe** en haut de page, avec un fond semi-opaque flouté et une bordure basse. De gauche à droite :

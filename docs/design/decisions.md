@@ -1,5 +1,7 @@
 # Journal des décisions · Jog
 
+> **Note (2026-10-28)** : le stockage décrit ici (IndexedDB, sauvegarde par fichier, messages « navigateur ») est remplacé par des fichiers JSON sur l'appareil (ADR 0014).
+
 Décisions prises sur les questions ouvertes de la spécification. Chaque entrée renvoie aux fichiers où la règle est écrite de façon définitive.
 
 ## D-001 · Classement des minutes par intensité

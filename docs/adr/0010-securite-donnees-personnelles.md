@@ -1,5 +1,7 @@
 # 0010 · Sécurité et données personnelles
 
+> **Note (2026-10-28)** : amendée par ADR 0014. Restent valables : données personnelles hors dépôt, aucune sortie réseau, pas de journal de données de santé. IndexedDB, CSP, `vite build` et clé d'API ne s'appliquent plus.
+
 - **Statut** : Acceptée, amendée par [0014](0014-app-ios-native.md) (données dans l'app iOS : HealthKit en lecture seule, fichiers protégés sur l'appareil, aucune sortie réseau)
 - **Date** : 2026-10-21
 - **Dépend de** : 0001, 0003, 0005, 0008, 0009

@@ -1,5 +1,7 @@
 # 06 · Paramètres
 
+> **Note (2026-10-28)** : le stockage décrit ici (IndexedDB, sauvegarde par fichier, messages « navigateur ») est remplacé par des fichiers JSON sur l'appareil (ADR 0014).
+
 L'onglet **Paramètres** permet à l'athlète d'ajuster ses repères. Toutes les valeurs sont des **mesures ou des repères obtenus avec une montre GPS et une ceinture cardio**.
 
 ## Champs
