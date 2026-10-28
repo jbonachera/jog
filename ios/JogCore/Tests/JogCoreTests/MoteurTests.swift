@@ -145,6 +145,34 @@ private func fuseau(_ identifiant: String) -> TimeZone {
     #expect(await lectures.nombre == 1)
 }
 
+@Test func uneSeanceDatedeDAujourdhuiCompteDesQueLaCoupureEstLeLendemain() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (moteur, _) = moteurNeuf(dossier)
+    try await moteur.ajouterOuMettreAJour(activites: [
+        activite("hier", "2026-09-09"), activite("aujourdhui", J), activite("demain", "2026-09-11"),
+    ])
+    // Le 10 septembre à midi à Paris.
+    let coupure = moteur.jourDeCoupure(maintenant: instant("2026-09-10T10:00:00Z"), fuseau: fuseau("Europe/Paris"))
+
+    let vue = try await moteur.recalculer(J: coupure, derniereSynchro: nil)
+
+    #expect(coupure == "2026-09-11")
+    #expect(vue.seances.map(\.cleSource).sorted() == ["aujourdhui", "hier"])
+    #expect(vue.jours.date.last == J)
+    #expect(vue.compteurs.jours7.nbSeances == 2)
+}
+
+@Test func laCoupureChangeAMinuitLocal() {
+    let dossier = FileManager.default.temporaryDirectory.appendingPathComponent("coupure-\(UUID().uuidString)")
+    let moteur = Moteur(stockage: Stockage(racine: dossier), lireFlux: { _ in nil })
+    let paris = fuseau("Europe/Paris")
+
+    #expect(moteur.jourDeCoupure(maintenant: instant("2026-10-21T21:59:59Z"), fuseau: paris) == "2026-10-22")
+    #expect(moteur.jourDeCoupure(maintenant: instant("2026-10-21T22:00:00Z"), fuseau: paris) == "2026-10-23")
+    #expect(moteur.jourDeCoupure(maintenant: instant("2026-12-31T12:00:00Z"), fuseau: paris) == "2027-01-01")
+}
+
 @Test func uneActiviteSansFluxEstEcarteeSansBloquerLaVue() async throws {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }

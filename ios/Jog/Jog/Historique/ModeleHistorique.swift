@@ -142,7 +142,7 @@ enum ModeleHistorique {
             barres: barres,
             courses: lignes.flatMap(\.courses),
             domaineKm: domaineKm(maxKm: maxKm),
-            aujourdhui: lignes.contains { $0.enCours } ? ModeleApercu.date(vue.J) : nil
+            aujourdhui: lignes.contains { $0.enCours } ? ModeleApercu.veille(vue.J).flatMap(ModeleApercu.date) : nil
         )
     }
 

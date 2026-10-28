@@ -156,7 +156,7 @@ enum ModeleProgression {
         return String(format: "%04ld-%02ld-%02ld", composantes.year ?? 1970, composantes.month ?? 1, composantes.day ?? 1)
     }
 
-    /// Bornes de saisie des dates : du premier jour de l'historique à hier (03, P1).
+    /// Bornes de saisie des dates : du premier jour de l'historique à aujourd'hui (03, P1 ; D-022).
     static func bornes(premierJour: DateCivile?, J: DateCivile) -> ClosedRange<Date>? {
         guard let premier = premierJour,
               let veille = ModeleApercu.veille(J),

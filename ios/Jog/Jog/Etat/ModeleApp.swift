@@ -173,8 +173,9 @@ final class ModeleApp {
             do {
                 let anciens = try await services.moteur.lireParametres()
                 let nouveaux = modifier(anciens)
-                let J = services.moteur.jourCourant(maintenant: Date(), fuseau: .current)
-                if case let .echec(_, message) = validerParametres(nouveaux, J) {
+                let J = services.moteur.jourDeCoupure(maintenant: Date(), fuseau: .current)
+                let aujourdhui = services.moteur.jourCourant(maintenant: Date(), fuseau: .current)
+                if case let .echec(_, message) = validerParametres(nouveaux, aujourdhui) {
                     throw ErreurParametres.ecriture(message)
                 }
                 try await services.moteur.modifierParametres(nouveaux)
@@ -287,7 +288,7 @@ final class ModeleApp {
         await enfiler { [self] in
             guard let services else { return }
             do {
-                let J = services.moteur.jourCourant(maintenant: Date(), fuseau: .current)
+                let J = services.moteur.jourDeCoupure(maintenant: Date(), fuseau: .current)
                 let vue = try await services.moteur.recalculer(J: J, derniereSynchro: derniereSynchro)
                 // Un bandeau d'erreur déjà affiché reste : seule la Vue dessous est mise à jour.
                 if case .erreur(let message, _) = etat {

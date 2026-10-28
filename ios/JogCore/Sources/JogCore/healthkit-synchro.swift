@@ -223,8 +223,8 @@ public actor Synchroniseur {
             try stockage.ecrireAncre(changements.ancre)
         }
 
-        // Recalcul seulement si quelque chose a changé, ou si la Vue stockée n'est pas celle du jour (J) ou manque.
-        let J = moteur.jourCourant(maintenant: maintenant, fuseau: fuseau)
+        // Recalcul seulement si quelque chose a changé, ou si la Vue stockée n'est pas celle du jour (même coupure J, D-022) ou manque.
+        let J = moteur.jourDeCoupure(maintenant: maintenant, fuseau: fuseau)
         let stockee = await moteur.charger()
         if !illisibles, resultatVide, let stockee, stockee.J == J {
             return stockee

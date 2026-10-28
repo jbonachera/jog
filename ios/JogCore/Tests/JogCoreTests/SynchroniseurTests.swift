@@ -262,3 +262,37 @@ private actor Progressions {
     private(set) var valeurs: [(Int, Int)] = []
     func ajouter(_ traitees: Int, _ total: Int) { valeurs.append((traitees, total)) }
 }
+
+// MARK: - Séance du jour (D-022)
+
+@Test func uneSeanceDuJourApporteeParLaSynchroEntreDansLaVueDeLaMemeJournee() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (stockage, moteur) = contexte(dossier)
+    let paris = TimeZone(identifier: "Europe/Paris")!
+    let aujourdhui = Date(timeIntervalSince1970: dateTest("2026-07-03T18:00:00+0200").timeIntervalSince1970)
+    var hier = ConstructeurSeance()
+    hier.id = identifiantA.uuidString
+    hier.debut = dateTest("2026-07-02T07:00:00+0200")
+    var ceMatin = ConstructeurSeance()
+    ceMatin.id = identifiantB.uuidString
+    ceMatin.debut = dateTest("2026-07-03T07:00:00+0200")
+
+    let premiere = Synchroniseur(
+        source: FauxSource(changements: changements(aLire: [identifiantA]), seances: [try hier.brute()]),
+        stockage: stockage, moteur: moteur, decalage: { _ in 120 }
+    )
+    let avant = try await premiere.synchroniser(maintenant: aujourdhui, fuseau: paris)
+    #expect(avant.seances.map(\.date) == ["2026-07-02"])
+
+    // Même journée, donc même Vue stockée : la séance d'aujourd'hui force pourtant le recalcul.
+    let seconde = Synchroniseur(
+        source: FauxSource(changements: changements(aLire: [identifiantB]), seances: [try ceMatin.brute()]),
+        stockage: stockage, moteur: moteur, decalage: { _ in 120 }
+    )
+    let apres = try await seconde.synchroniser(maintenant: aujourdhui, fuseau: paris)
+
+    #expect(apres.seances.map(\.date) == ["2026-07-02", "2026-07-03"])
+    #expect(apres.jours.date.last == "2026-07-03")
+    #expect(apres.J == apres.jours.date.last.flatMap { try? ajouterJours($0, 1) })
+}

@@ -116,6 +116,7 @@ enum ModeleApercu {
         return try? Date.ISO8601FormatStyle().parse(texte)
     }
 
+    /// Dernier jour compté pour une Vue de coupure `J` : aujourd'hui (D-022).
     static func veille(_ J: DateCivile) -> DateCivile? {
         try? ajouterJours(J, -1)
     }
@@ -136,7 +137,7 @@ enum ModeleApercu {
 
     static func surtitre(J: DateCivile) -> String {
         guard let veille = veille(J) else { return "Décision volume" }
-        return "Décision volume · données arrêtées au \(formatJourDate(veille)) au soir"
+        return "Décision volume · données jusqu’au \(formatJourDate(veille))"
     }
 
     static func titreVerdict(_ verdict: Verdict) -> String {
@@ -423,7 +424,7 @@ enum ModeleApercu {
         let lignes: [LigneJour]
     }
 
-    /// Les jours de J−1 à J−7, le plus récent en premier (03, A3). Chaque jour a sa ligne : un jour sans séance, ou sans
+    /// Les 7 derniers jours, d'aujourd'hui (J−1, D-022) à J−7, le plus récent en premier (03, A3). Chaque jour a sa ligne : un jour sans séance, ou sans
     /// trace dans l'historique, est un repos. Le total de km vient du compteur 7 jours du moteur (même fenêtre).
     static func septDerniersJours(_ vue: Vue) -> SeptJours {
         let jours = (1...7).compactMap { try? ajouterJours(vue.J, -$0) }

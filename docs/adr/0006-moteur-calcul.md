@@ -2,6 +2,8 @@
 
 > **Note (2026-10-28)** : le fond de cette décision reste valable (ADR 0014). Les chemins `src/`, `tests/` et les commandes `npm` cités ont disparu avec le web TypeScript ; l'équivalent Swift est dans `ios/JogCore`.
 
+> **Note (2026-10-28)** : les séances du jour comptent aussitôt (D-022). Le cœur du moteur garde sa règle, il calcule jusqu'à la veille de sa coupure ; l'app lui passe le lendemain du jour courant, donc « J−1 » ci-dessous désigne aujourd'hui.
+
 - **Statut** : Acceptée
 - **Date** : 2026-10-21
 - **Dépend de** : 0001, 0003, 0004, 0005

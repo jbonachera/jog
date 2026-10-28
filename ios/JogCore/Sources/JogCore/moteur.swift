@@ -69,7 +69,8 @@ public actor Moteur {
     }
 
     /// Recalcule la Vue en entier. Persiste la mémoire de ②a et la Vue, puis la diffuse à `vues()`.
-    /// `J` est la journée en cours : elle n'entre dans aucun calcul (ADR 0007). Une séance dont le flux manque ou dont
+    /// `J` est le premier jour exclu du calcul (D-022) : l'app y passe `jourDeCoupure`, le lendemain du jour courant,
+    /// pour que les séances d'aujourd'hui comptent tout de suite. Une séance dont le flux manque ou dont
     /// la lecture échoue est écartée (`ecartees`), sans bloquer les autres.
     public func recalculer(J: DateCivile, derniereSynchro: String?) async throws -> Vue {
         try chargerSiBesoin()
@@ -223,6 +224,13 @@ public actor Moteur {
         let calendrier = calendrierGregorien(fuseau)
         let composantes = calendrier.dateComponents([.year, .month, .day], from: maintenant)
         return "\(chiffresPad(composantes.year ?? 0, 4))-\(chiffresPad(composantes.month ?? 0, 2))-\(chiffresPad(composantes.day ?? 0, 2))"
+    }
+
+    /// Premier jour exclu du calcul (D-022) : le lendemain du jour courant. Les séances d'aujourd'hui comptent aussitôt ;
+    /// la Vue calculée porte ce jour dans `J`, et son dernier jour compté est `J−1`, soit aujourd'hui.
+    public nonisolated func jourDeCoupure(maintenant: Date, fuseau: TimeZone) -> DateCivile {
+        let courant = jourCourant(maintenant: maintenant, fuseau: fuseau)
+        return (try? ajouterJours(courant, 1)) ?? courant
     }
 
     /// Prochain minuit local strictement après `maintenant`, dans `fuseau`. L'app y programme un recalcul de J.

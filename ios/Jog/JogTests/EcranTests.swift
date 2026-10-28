@@ -40,6 +40,19 @@ import JogCore
     #expect(sept.lignes.allSatisfy { $0.titre == "Repos" })
 }
 
+@Test func lesSeptDerniersJoursCommencentAujourdhui() {
+    // La Vue de coupure J compte jusqu'à J−1, c'est-à-dire aujourd'hui (D-022).
+    let sept = ModeleApercu.septDerniersJours(Vue.vide(J: "2026-10-29"))
+    #expect(sept.lignes.first?.id == "2026-10-28")
+    #expect(sept.lignes.last?.id == "2026-10-22")
+}
+
+@Test func leSurtitreDitQueLesDonneesVontJusquAuJourMemeSansLeSoir() {
+    let surtitre = ModeleApercu.surtitre(J: "2026-10-29")
+    #expect(surtitre.contains("28"))
+    #expect(!surtitre.contains("au soir"))
+}
+
 @Test func leResumeDesSeptJoursCompteLesSeances() {
     let sept = ModeleApercu.septDerniersJours(Vue.vide(J: "2026-10-20"))
     #expect(sept.resume.hasPrefix("0 séance"))

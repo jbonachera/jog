@@ -4,7 +4,7 @@ Toutes les métriques sont calculables à partir des données d'une **montre GPS
 
 ## Notations
 
-- `J` : aujourd'hui. Les calculs portent sur les jours **terminés**, jusqu'à `J−1` inclus.
+- `J` : le lendemain d'aujourd'hui (D-022). Les calculs portent sur les jours jusqu'à `J−1` inclus, c'est-à-dire **jusqu'à aujourd'hui compris** : une séance du jour compte aussitôt.
 - `km(d)`, `min(d)`, `charge(d)` : somme sur toutes les séances du jour `d`. Elle vaut 0 un jour sans séance.
 - **Séance sous-seuil** : séance dont des répétitions ont été identifiées. Chaque répétition `r` a une allure moyenne `r.pace` (s/km) et une FC de fin `r.hr` (bpm).
 - Allures en **secondes par km**, affichées en `m:ss`.

@@ -301,3 +301,13 @@ Décisions prises sur les questions ouvertes de la spécification. Chaque entré
 - **Fichiers modifiés** : `06-parametres.md`.
 - **À valider sur données réelles** : le pic retenu sur l'export et la séance citée.
 
+## D-022 · Les séances du jour comptent aussitôt
+
+- **Date** : 2026-10-28
+- **Question** : Une séance enregistrée aujourd'hui doit-elle attendre minuit pour entrer dans la Vue ?
+- **Décision** : non. Les séances du jour **comptent immédiatement**, partout (Vue, listes, tous les calculs). Les calculs s'arrêtent à **J inclus** au lieu de J−1. Le cœur du moteur garde sa règle (« il calcule jusqu'à la veille de sa coupure ») ; l'app lui passe le **lendemain** de J comme coupure. Les notations `J−1`, `J−n…J−1` de `04`, `05` et `06` désignent donc, pour l'app, aujourd'hui et les jours qui le précèdent.
+- **Options écartées** : attendre minuit (la séance du matin reste invisible toute la journée).
+- **Raison** : l'athlète veut voir sa séance juste après l'avoir courue.
+- **Impacts** : `jourDeCoupure` (moteur, synchro, recalcul de l'app) ; surtitre de l'Aperçu (« données jusqu'au … ») ; « 7 derniers jours » et fenêtres 7/30 jours qui se terminent aujourd'hui ; semaine en cours = celle qui contient aujourd'hui. Une journée en cours est moins complète qu'une journée terminée : ses km et sa charge peuvent encore croître. Les autres règles ne changent pas.
+- **Fichiers modifiés** : `04-metriques.md`.
+- **À valider sur données réelles** : le ratio et la fraîcheur lus en cours de journée.
