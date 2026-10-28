@@ -90,14 +90,14 @@ struct ComparateurView: View {
         }
     }
 
+    @ViewBuilder
     private func ligneDates(
         _ titre: String, periode: ErreurPeriodeInvalide.Periode, dates: PeriodeDates, bornes: ClosedRange<Date>
     ) -> some View {
-        HStack(spacing: 12) {
-            Text(titre)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.encre2)
-                .frame(minWidth: 100, alignment: .leading)
+        let libelle = Text(titre)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(.encre2)
+        let selecteurs = HStack(spacing: 12) {
             DatePicker(
                 "Début de la période \(periode.rawValue)",
                 selection: liaison(dates, periode, debut: true),
@@ -112,6 +112,18 @@ struct ComparateurView: View {
                 displayedComponents: .date
             )
             .labelsHidden()
+        }
+        // Libellé à côté des dates si ça tient ; sinon au-dessus (petite largeur, Dynamic Type plus grand).
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) {
+                libelle
+                    .frame(minWidth: 100, alignment: .leading)
+                selecteurs
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                libelle
+                selecteurs
+            }
         }
         .environment(\.timeZone, ModeleProgression.calendrierUTC.timeZone)
         .environment(\.calendar, ModeleProgression.calendrierUTC)

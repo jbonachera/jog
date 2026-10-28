@@ -10,12 +10,24 @@
 		00000000000000000000A029 /* JogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A028 /* JogTests.swift */; };
 		00000000000000000000A053 /* JogCore in Frameworks */ = {isa = PBXBuildFile; productRef = 00000000000000000000A051 /* JogCore */; };
 		00000000000000000000A054 /* JogCore in Frameworks */ = {isa = PBXBuildFile; productRef = 00000000000000000000A052 /* JogCore */; };
+		00000000000000000000A060 /* ProgressionLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A061 /* ProgressionLayoutTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		00000000000000000000A070 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00000000000000000000A000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 00000000000000000000A030;
+			remoteInfo = Jog;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		00000000000000000000A028 /* JogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JogTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A02A /* Jog.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jog.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00000000000000000000A02B /* JogTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JogTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		00000000000000000000A061 /* ProgressionLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionLayoutTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -81,6 +93,7 @@
 			isa = PBXGroup;
 			children = (
 				00000000000000000000A028 /* JogTests.swift */,
+				00000000000000000000A061 /* ProgressionLayoutTests.swift */,
 			);
 			path = JogTests;
 			sourceTree = "<group>";
@@ -121,6 +134,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				00000000000000000000A071 /* PBXTargetDependency */,
 			);
 			name = JogTests;
 			packageProductDependencies = (
@@ -193,10 +207,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				00000000000000000000A029 /* JogTests.swift in Sources */,
+				00000000000000000000A060 /* ProgressionLayoutTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		00000000000000000000A071 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 00000000000000000000A030 /* Jog */;
+			targetProxy = 00000000000000000000A070 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		00000000000000000000A043 /* Debug */ = {
@@ -304,7 +327,8 @@
 		00000000000000000000A047 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "";
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Jog.app/Jog";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -325,7 +349,8 @@
 		00000000000000000000A048 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "";
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Jog.app/Jog";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
