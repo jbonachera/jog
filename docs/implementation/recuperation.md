@@ -790,7 +790,7 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 | 1 | fait | swift test 308 verts, relu |
 | 2 | fait | swift test 320 verts, relu |
 | 3 | fait | swift test 337 verts, perf serie 0,24 ms, relu |
-| 4 | à faire | — |
+| 4 | fait | swift test 356 verts, relu |
 | 5 | à faire | — |
 | 6 | à faire | — |
 | 7 | à faire | — |
