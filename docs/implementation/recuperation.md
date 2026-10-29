@@ -796,7 +796,7 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 | 7 | fait | swift test 390 verts, relu |
 | 8 | fait | xcodebuild test vert (75 tests), swift test 390 ; iPhone à faire par l'utilisateur |
 | 9 | fait | xcodebuild test vert (78 tests), swift test 390, relu ; captures à faire |
-| 10 | à faire | — |
+| 10 | fait | xcodebuild test vert (102 tests), swift test 390, relu |
 | 11 | à faire | — |
 | 12 | à faire | — |
 | 13 | à faire | — |
@@ -814,3 +814,5 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 - Lot 8 : à l'autorisation de récupération sur une installation existante, la clé n'est posée qu'après succès de `demanderAutorisation` (sinon la demande est refaite au lancement suivant). Aucun test d'app : `ModeleApp` n'injecte ni `UserDefaults` ni lecteur HealthKit.
 - À faire par l'utilisateur (lot 8, iPhone) : la feuille d'autorisation propose Sommeil, VFC et Fréquence respiratoire ; au deuxième lancement, seules 3 nuits sont relues (journal DEBUG) ; le lancement reste instantané.
 - À faire par l'utilisateur (lot 9) : captures de l'onglet « Aujourd’hui » et du sélecteur Entraînement · Récupération, clair et sombre (non faites).
+- Lot 10 : le plan (test 10.4) cite « Nuit du mar. 28 oct. au mer. 29 oct. » pour A = 2026-10-29, or c'est un jeudi : le code produit « mer. 28 oct. au jeu. 29 oct. » (le libellé du plan est testé sur 2025).
+- Lot 10 : `Tuile.bandeBas/bandeHaut` sont optionnels (norme absente).
