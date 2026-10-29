@@ -178,3 +178,21 @@ public let JOURS_PAR_SEMAINE = 7
 /// Écart signalé (orange) entre une période et la précédente, en fraction (A2, 04, « Compteurs »).
 /// Comparaison stricte : signalé si |écart| > 0,30.
 public let ECART_VOLUME_SIGNALE = 0.3
+
+// Récupération nocturne (D-023 ; docs/design/04-metriques.md, « Récupération »).
+/// VERSION_RECUPERATION : version des règles de sommeil et de VFC nocturne, à monter à chaque changement de leur résultat.
+/// Distincte de REGLES_VERSION, pour ne pas relire les flux de séances (docs/implementation/recuperation.md).
+public let VERSION_RECUPERATION = 1
+
+/// Seuils et tailles de fenêtres de la récupération (D-023). Durées en minutes, sauf mention.
+public enum RECUPERATION {
+    public static let nuitsFenetre = 7, minNuitsFenetre = 4
+    public static let nuitsNorme = 60, minNuitsNorme = 21
+    public static let kEcartType = 0.95
+    public static let ecartSessionMax_min = 60.0, sommeilMinNuit_min = 180.0
+    public static let nuitBasseFraction = 0.9
+    public static let sommeilSurveiller_min = 45.0, regulariteSurveiller_min = 45.0
+    public static let ecartHebdoSignale_pct = -8.0
+    public static let besoinDefaut_min = 450.0, besoinMin_min = 240.0, besoinMax_min = 720.0, besoinPas_min = 15.0
+    public static let nuitsLues = 250, nuitsRelues = 3, nuitsSerie = 182, semainesCharge = 16
+}
