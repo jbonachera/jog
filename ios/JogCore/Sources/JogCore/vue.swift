@@ -377,7 +377,8 @@ private func assemblerVue(_ entree: EntreeVue) throws -> Vue {
             palier: palierVue,
             seances: seances,
             globaux: parametres.globaux,
-            parametres: parametres
+            parametres: parametres,
+            recuperation: recuperation
         ))
     }
 

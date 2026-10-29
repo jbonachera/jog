@@ -48,10 +48,13 @@ public struct EntreesDecision: Codable, Sendable, Equatable {
     public var globaux: ParamsGlobaux
     /// Paramètres datés : la valeur en vigueur à une date s'obtient par `parametresAuJour(parametres, date)`.
     public var parametres: Parametres
+    /// Vue de la récupération à la veille (D-023). Nil sans nuits : pas de 8ᵉ signal, et les sorties sont celles des goldens.
+    public var recuperation: VueRecuperation?
 
     public init(
         J: DateCivile, premierJour: DateCivile?, serieCharge: [PointCharge], ratio: [PointRatio], joursKm: [JourKm],
-        semaines: [SemaineEntree], palier: Palier, seances: [Seance], globaux: ParamsGlobaux, parametres: Parametres
+        semaines: [SemaineEntree], palier: Palier, seances: [Seance], globaux: ParamsGlobaux, parametres: Parametres,
+        recuperation: VueRecuperation? = nil
     ) {
         self.J = J
         self.premierJour = premierJour
@@ -63,6 +66,7 @@ public struct EntreesDecision: Codable, Sendable, Equatable {
         self.seances = seances
         self.globaux = globaux
         self.parametres = parametres
+        self.recuperation = recuperation
     }
 }
 

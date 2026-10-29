@@ -792,7 +792,7 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 | 3 | fait | swift test 337 verts, perf serie 0,24 ms, relu |
 | 4 | fait | swift test 356 verts, relu |
 | 5 | fait | swift test 366 verts, goldens intacts, relu |
-| 6 | à faire | — |
+| 6 | fait | swift test 375 verts, goldens intacts, relu |
 | 7 | à faire | — |
 | 8 | à faire | — |
 | 9 | à faire | — |
@@ -809,3 +809,4 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 - Lot 4 : avec une norme absente mais une moyenne 7 nuits disponible, les indicateurs VFC et FC affichent la valeur (état « Données insuffisantes ») au lieu de « – » ; 04 dit « – » seulement sous 4 nuits. Choix conservé, à trancher.
 - Lot 4 : la FC de repos s'affiche sans décimale (04 et plan) alors que la maquette en met une.
 - Lot 5 : `FORMAT_VUE` passe à 6 alors que les 34 goldens de la Vue portent `formatVersion: 5`. `VueOracleTests` ramène donc `formatVersion` à 5 dans la sortie comparée (adaptateur `auFormatDesGoldens`, seule clé touchée) ; aucun JSON n'est modifié, et le format 6 est testé dans `RecuperationVueTests`.
+- Lot 6 : le plan (test 6.5) écrit « Footings sous le plafond, Récupération » ; l'énumération existante donne « X et Y » à deux éléments, conservée.

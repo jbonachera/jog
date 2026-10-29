@@ -11,6 +11,7 @@ public let NOMS_SIGNAUX: [CleSignal: String] = [
     .footings: "Footings sous le plafond",
     .decouplage: "Découplage de la dernière sortie longue",
     .palier: "Palier de volume",
+    .recuperation: "Récupération",
 ]
 
 /// Phrase d'une mesure qui n'est pas un nombre fini (NaN, infini) : état insuffisant, valeur « – ».
@@ -28,11 +29,12 @@ struct ContexteSignaux {
     let index: IndexParametres
 }
 
-/// Tous les signaux, dans l'ordre de la liste de 05. `e.seances` doit être trié (voir `decider`).
+/// Tous les signaux, dans l'ordre de la liste de 05, puis la Récupération (8ᵉ, D-023) en fin de liste, seulement si elle est
+/// présente. `e.seances` doit être trié (voir `decider`).
 func calculerSignaux(_ e: EntreesDecision, _ veille: DateCivile) throws -> [Signal] {
     let index = try indexerParametres(e.parametres)
     let ctx = ContexteSignaux(e: e, J: e.J, veille: veille, paramsVeille: index.auJour(veille), index: index)
-    return [
+    var signaux = [
         try signalProgressivite(ctx),
         try signalFraicheur(ctx),
         try signalReponse(ctx),
@@ -41,6 +43,10 @@ func calculerSignaux(_ e: EntreesDecision, _ veille: DateCivile) throws -> [Sign
         try signalDecouplage(ctx),
         try signalPalier(ctx),
     ]
+    if let recuperation = e.recuperation {
+        signaux.append(try signalRecuperation(recuperation))
+    }
+    return signaux
 }
 
 private func nomDe(_ cle: CleSignal) -> String {

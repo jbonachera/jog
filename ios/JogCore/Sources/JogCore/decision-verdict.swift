@@ -35,8 +35,15 @@ public func verdictDe(_ signaux: [Signal], _ manqueProgressivite: Int) -> Verdic
     let insuffisantsDecisifs = decisifs.filter { $0.etat == .insuffisant }
     let aSurveiller = signaux.filter { $0.etat == .surveiller || $0.etat == .alerte }
     if !aSurveiller.isEmpty {
-        let titre = aSurveiller.count == 1 ? "Point à surveiller" : "Points à surveiller"
-        var phrase = "Rien d’alarmant, mais mieux vaut consolider avant de monter. \(titre) : \(enumerer(aSurveiller.map { $0.nom }))."
+        var phrase: String
+        if aSurveiller.count == 1, let seul = aSurveiller.first, seul.cle == .recuperation {
+            // 05 : la Récupération seule à surveiller ou en alerte a sa propre phrase, qui dit son état.
+            let etatTexte = seul.etat == .alerte ? "basse" : "sous ta norme"
+            phrase = "Rien d’alarmant côté entraînement, mais la récupération est \(etatTexte) : mieux vaut consolider avant de monter."
+        } else {
+            let titre = aSurveiller.count == 1 ? "Point à surveiller" : "Points à surveiller"
+            phrase = "Rien d’alarmant, mais mieux vaut consolider avant de monter. \(titre) : \(enumerer(aSurveiller.map { $0.nom }))."
+        }
         if !insuffisantsDecisifs.isEmpty {
             phrase += " Pas assez de données sur : \(enumerer(insuffisantsDecisifs.map { $0.nom }))."
         }

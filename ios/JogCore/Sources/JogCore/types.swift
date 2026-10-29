@@ -742,6 +742,8 @@ public enum EtatSignal: String, Codable, Sendable, Equatable {
 
 public enum CleSignal: String, Codable, Sendable, Equatable {
     case progressivite, fraicheur, reponse, horsSousSeuil, footings, decouplage, palier
+    /// 8ᵉ signal, la récupération nocturne (D-023) : présent seulement quand la Vue a des nuits.
+    case recuperation
 }
 
 public struct Signal: Codable, Sendable, Equatable {
