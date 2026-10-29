@@ -786,4 +786,23 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 
 | Lot | État | Vérification |
 |---|---|---|
-| 0 à 14 | à faire | — |
+| 0 | fait | grep D-023 : 7 fichiers, ancres résolues, relu |
+| 1 | à faire | — |
+| 2 | à faire | — |
+| 3 | à faire | — |
+| 4 | à faire | — |
+| 5 | à faire | — |
+| 6 | à faire | — |
+| 7 | à faire | — |
+| 8 | à faire | — |
+| 9 | à faire | — |
+| 10 | à faire | — |
+| 11 | à faire | — |
+| 12 | à faire | — |
+| 13 | à faire | — |
+| 14 | à faire | — |
+
+## Écarts proposés
+
+- Lot 0 : la clé de persistance du sélecteur « Partie de Charge » (`jog-charge-partie`) n'est pas inscrite dans `02-navigation.md` (non précisée par le plan).
+- Lot 0 : `03-composants.md` (Conventions communes) dit que la journée en cours n'entre dans aucun calcul, ce qui contredit D-022 (écart préexistant).

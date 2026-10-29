@@ -8,7 +8,7 @@ C'est le cœur du produit. Chaque jour, à partir du réalisé jusqu'à hier soi
 
 Ce n'est **pas** un plan. Le produit ne dit ni quelles séances faire, ni quand. Il borne le volume à partir de ce que l'athlète a réellement absorbé.
 
-## Les 7 signaux
+## Les 8 signaux
 
 Chaque signal a un état **OK**, **À surveiller** ou **Alerte**, une valeur affichée et une phrase d'explication.
 
@@ -21,6 +21,7 @@ Chaque signal a un état **OK**, **À surveiller** ou **Alerte**, une valeur aff
 | 5 | **Footings sous le plafond** | part des footings sur 14 jours avec FC moy. ≤ [easyCap] | ≥ 90 % | 75 à 90 % | < 75 % | ceinture |
 | 6 | **Découplage de la dernière sortie longue** | découplage de la dernière sortie longue utilisable, sur ses portions faciles | ≤ 5 % | 5 à 8 % | > 8 % | GPS + ceinture |
 | 7 | **Palier de volume** | semaines consécutives à ±10 % du volume de la dernière semaine | ≥ 2 | < 2 | — | GPS |
+| 8 | **Récupération** | moyenne VFC 7 nuits face à la norme, avec la FC de repos ([D-023](decisions.md#d-023--récupération-nocturne)) | Dans ta norme | Sous ta norme | Récupération basse | Apple Watch, la nuit |
 
 Textes d'explication, selon l'état :
 
@@ -33,6 +34,7 @@ Textes d'explication, selon l'état :
 | Footings | « FC moyenne ≤ {easyCap} bpm. Des footings trop rapides empiètent sur la récupération. » |
 | Découplage | Date et distance de la sortie, puis « Sous 5 %, la base aérobie tient la durée. » Si des segments à allure marathon ont été retirés, on ajoute « portions faciles : {retenu} min sur {total} ». |
 | Palier | « Volume tenu assez longtemps pour envisager une hausse. » · « Volume atteint récemment : le consolider avant de monter. » La valeur s'écrit « n sem. autour de X km ». |
+| Récupération | « VFC des 7 dernières nuits dans ta norme ({bas}–{haut} ms). » · « VFC des 7 dernières nuits sous ta norme ({bas}–{haut} ms). » · « VFC sous ta norme et FC de repos au-dessus de la sienne. » La valeur s'écrit « VFC {n} ms ». |
 
 ## Seuils du verdict
 
@@ -76,6 +78,9 @@ Règle de [D-007](decisions.md#d-007--données-insuffisantes). Un signal sous so
 | 5 Footings | 3 footings entre J−14 et J−1 | « Il faut 3 footings sur 14 jours ({n} pour l'instant). » |
 | 6 Découplage | une sortie longue utilisable entre J−14 et J−1 | « Aucune sortie longue utilisable sur les 14 derniers jours. » |
 | 7 Palier | 2 semaines terminées | « Il faut 2 semaines terminées. » |
+| 8 Récupération | 4 nuits mesurées sur 7, et 21 nuits mesurées pour la norme | Phrases de [04](04-metriques.md#récupération). |
+
+**Sans aucune nuit mesurée sur les 250 dernières, le signal n'existe pas** : il n'apparaît pas dans la liste.
 
 ## Règle du verdict
 
@@ -93,11 +98,13 @@ sinon                                             → AUGMENTER
 - Un signal insuffisant ne déclenche jamais « Alléger », et il n'est jamais compté comme « À surveiller ». Un signal décisif insuffisant empêche seulement « Augmenter ».
 - Sans verdict, la carte affiche « Pas encore de verdict », sans fourchette ni simulateur.
 - « Hors sous-seuil », « Footings » et « Palier » ne déclenchent jamais « Alléger ». Ils portent sur la qualité d'exécution ou la consolidation, et peuvent seulement retenir à « Maintenir ».
+- **Récupération** n'est pas décisive : en Alerte comme À surveiller, elle retient à Maintenir et ne déclenche jamais Alléger. Insuffisante, elle n'a pas d'effet, sinon le mot « disponibles » dans la phrase d'Augmenter.
 - La monotonie et la contrainte de Foster n'entrent pas dans le verdict, car elles sont élevées par construction en NSA.
 
 **Phrase d'explication**
 - AUGMENTER : « Tous les signaux sont au vert : la charge actuelle est absorbée. » Si un signal non décisif est insuffisant : « Tous les signaux disponibles sont au vert : la charge actuelle est absorbée. »
 - MAINTENIR, avec au moins un signal À surveiller ou en Alerte : « Rien d'alarmant, mais mieux vaut consolider avant de monter. Point(s) à surveiller : {signaux À surveiller ou en Alerte}. » Si un signal décisif est insuffisant, on ajoute « Pas assez de données sur : {signaux décisifs insuffisants}. »
+- MAINTENIR, quand Récupération est le seul signal À surveiller ou en Alerte : « Rien d’alarmant côté entraînement, mais la récupération est {sous ta norme | basse} : mieux vaut consolider avant de monter. »
 - MAINTENIR, seulement à cause de données insuffisantes : « Aucun signal défavorable, mais pas assez de données pour conseiller une hausse : {signaux décisifs insuffisants}. »
 - ALLÉGER : « À surveiller en priorité : {signaux décisifs en alerte}. »
 - PAS DE VERDICT : « Il faut 30 jours d'historique pour comparer la semaine au mois (encore {n} jours). »
@@ -152,3 +159,5 @@ Tout est OK, donc le verdict est **AUGMENTER**, avec une fourchette de **100 à 
 - Changer un paramètre (plafond, allure seuil, FC de référence, coefficient allure ↔ FC, bande de FC) se répercute sur les signaux concernés après recalcul.
 - Les tests unitaires couvrent au moins trois cas, un par verdict, plus les bornes de chaque seuil.
 - Chaque signal sous son minimum affiche « Données insuffisantes », en état neutre, avec sa phrase. Les tests couvrent aussi : aucun verdict avant 30 jours ; « Maintenir » quand seul un signal décisif est insuffisant ; un signal non décisif insuffisant sans effet.
+- Récupération basse seule → Maintenir, jamais Alléger.
+- Sans nuit, la liste garde 7 signaux et les verdicts ne changent pas.

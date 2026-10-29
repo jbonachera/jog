@@ -13,7 +13,7 @@ Conventions communes :
 
 ---
 
-## Onglet Aperçu
+## Onglet Aujourd'hui (ex-Aperçu)
 
 ### A1 · Décision volume
 
@@ -26,15 +26,39 @@ Conventions communes :
   3. Phrase d'explication.
   4. **Fourchette** des 7 prochains jours, en grand chiffre (« 100–105 km »), avec sa référence de calcul en petit.
   5. **Simulateur** dans un encart : curseur et résultats.
-- **Colonne droite** : **7 cartes de signaux** en grille de 2 colonnes (une seule sous 640 px). Chaque carte contient une pastille d'état, le nom du signal, sa valeur en chasse fixe et une explication d'une ligne. Une carte à surveiller ou en alerte a une bordure teintée. Une carte « Données insuffisantes » a une pastille neutre, la valeur « – » et une phrase qui dit ce qui manque.
+- **Colonne droite** : **8 cartes de signaux** (7 sans nuit mesurée) en grille de 2 colonnes (une seule sous 640 px). Chaque carte contient une pastille d'état, le nom du signal, sa valeur en chasse fixe et une explication d'une ligne. Une carte à surveiller ou en alerte a une bordure teintée. Une carte « Données insuffisantes » a une pastille neutre, la valeur « – » et une phrase qui dit ce qui manque.
 
 **Données, règles, simulateur** : voir [05-decision-volume.md](05-decision-volume.md).
 
 **Critères d'acceptation**
-- Le verdict, la fourchette et les 7 signaux sont visibles sans défiler sur un écran de 1440 × 900.
+- Le verdict, la fourchette et les signaux sont visibles sans défiler sur un écran de 1440 × 900.
 - Chaque signal affiche sa valeur chiffrée, et pas seulement un état.
 - Le curseur met à jour ses résultats en direct. Les résultats sont annoncés aux lecteurs d'écran (`aria-live="polite"`).
 - La phrase d'explication nomme les signaux qui déclenchent « Maintenir » ou « Alléger ».
+
+### A5 · Récupération (carte)
+
+**But** : lire le matin, en une carte, si le corps absorbe la charge.
+**Données** : `Vue.recuperation` (D-023, `04` « Récupération »).
+**Affichage** :
+- en-tête de section « Récupération », avec à droite un lien « Tendances » (vers Charge › Récupération) ;
+- titre : l'état (Dans ta norme · Sous ta norme · Récupération basse · Norme en cours de calcul · Pas assez de nuits), avec une pastille (OK · À surveiller · Alerte · Données insuffisantes) et un chevron ;
+- 3 tuiles : **VFC** (« 52 ms », « norme 40–59 »), **FC repos** (« 46 bpm », « norme 44–48 »), **Sommeil** (« 6h52 », « besoin 7h30 »). Chaque tuile porte une mini-courbe des 14 dernières moyennes sur 7 nuits, sur la bande de norme. Pour le sommeil, la bande va du besoin − 45 min au besoin ;
+- la phrase d'explication de l'état.
+**Sans aucune nuit mesurée** : « Aucune nuit mesurée dans Santé. Porte l’Apple Watch la nuit, avec le suivi du sommeil activé. », sans tuiles.
+**Interactions** : un appui sur la carte ouvre A6. « Tendances » ouvre Charge › Récupération.
+**Critères** : à 320 pt, aucune valeur de tuile n'est tronquée ; une valeur absente s'écrit « – ».
+
+### A6 · Cette nuit (feuille)
+
+**Affichage** :
+- durée endormie en grand (« 6 h 41 »), avec la pastille « −49 min / besoin », orange si l'écart est ≤ −45 min, neutre sinon ;
+- la date « Nuit du mar. 28 oct. au mer. 29 oct. » ;
+- un **hypnogramme** en 4 couloirs, de haut en bas Éveillé, Paradoxal, Léger, Profond, avec 3 heures sous l'axe (début, milieu, fin) ;
+- 4 valeurs : VFC (ms), FC de repos (bpm), Profond (min), Paradoxal (min) ;
+- un bouton « Tendances de récupération » vers Charge › Récupération.
+Sans nuit mesurée aujourd'hui : « Pas de nuit mesurée cette nuit. », et le bouton seul.
+**Couleurs** : profond `ZAuDessus`, paradoxal `ZSousSeuil`, léger `ZFacile`, éveillé `Attention`.
 
 ### A2 · Volume réalisé
 
@@ -75,7 +99,17 @@ La pastille d'écart est **orange si |écart| > 30 %**, neutre sinon. Les barres
 
 **Critères** : aucune notion de « prévu ». Une ligne Repos n'a pas de cadre plein.
 
+---
+
+## Onglet Charge
+
+### Charge · sélecteur Entraînement · Récupération
+
+Un sélecteur segmenté sous le grand titre (« Ce que tu fais, et comment ton corps l'encaisse »). Il est mémorisé.
+
 ### A4 · Forme et fatigue
+
+*Déplacée de l'Aperçu (D-023).*
 
 **But** : situer la charge chronique, la fatigue aiguë et la fraîcheur, avec une explication en clair.
 
@@ -98,10 +132,6 @@ La pastille d'écart est **orange si |écart| > 30 %**, neutre sinon. Les barres
 **Interactions** : réticule vertical et infobulle multi-séries (date, CTL, ATL).
 
 **Critères** : un seul axe Y par graphique. La forme et la fraîcheur ne partagent pas un axe. Les constantes affichées suivent les paramètres.
-
----
-
-## Onglet Charge
 
 ### C1 · Progressivité : 7 jours face à 30 jours
 
@@ -147,6 +177,40 @@ La pastille d'écart est **orange si |écart| > 30 %**, neutre sinon. Les barres
   - part des footings sous le plafond sur 8 semaines ;
   - monotonie de Foster moyenne, avec cet avertissement : « élevée par construction en NSA, à lire avec la charge et non comme une alerte isolée » ;
   - légende des couleurs de barres.
+
+
+### R1 · État de récupération
+- surtitre « Ce matin · moyenne des 7 dernières nuits face à ta norme de 60 jours » ;
+- l'état en grand titre, coloré (vert, orange, rouge ; `ink-2` s'il manque des données) ;
+- la phrase d'explication (`04`).
+
+### R2 · Signaux de récupération
+Une liste, avec le résumé « n sur m au vert » (m sans les contextes). Chaque ligne porte le nom, « valeur · détail », une pastille et un chevron. Un appui ouvre une feuille : valeur, pastille, détail, explication, repères (OK / À surveiller / Alerte), et la note « Norme : 60 nuits précédentes, plus ou moins un écart-type environ. ».
+Signaux : VFC, FC de repos, Sommeil, Régularité, Fréquence respiratoire (contexte, pastille neutre « Contexte »). Textes et seuils : `04`, « Indicateurs de récupération ».
+
+### R3 · Variabilité cardiaque (VFC nocturne) et R4 · FC de repos
+- Sélecteur 8 semaines · 6 mois (56 ou 182 nuits), commun à R3 et R4.
+- Un point par nuit mesurée (`ZFacile`, plus petit à 6 mois).
+- Une courbe 2 px accent : la moyenne sur 7 nuits. Point final marqué.
+- La bande de norme teintée (`Bande`).
+- Axe Y calculé sur les données (D-009), au pas de 5 ms (VFC) ou de 2 bpm (FC).
+- Lecture par défaut : « Ce matin : moy. 7 nuits 52 ms · norme 40–59 ». Au doigt : « Nuit du {date} : nuit 49 ms · moy. 7 n. 52 · norme 40–59 », ou « pas de mesure (montre non portée) ».
+- Légende : Nuit · Moyenne 7 nuits · Ta norme. Vue tableau (D-011).
+
+### R5 · Sommeil, 14 dernières nuits
+- Barres empilées par phase (profond, paradoxal, léger, éveillé, de bas en haut), avec une ligne pointillée encre au besoin.
+- Axe de 0 à 10 h, une graduation toutes les 2 h.
+- Une nuit absente est marquée « – ».
+- Lecture : « Moyenne 14 nuits : 7 h 02 · profond 58 min · paradoxal 1 h 31 ». Au doigt : la nuit et ses phases, éveillé en minutes.
+
+### R6 · Récupération et charge
+Sur 16 semaines (lundi → dimanche, semaine en cours comprise), deux graphiques alignés :
+- barres en km par semaine, la semaine en cours en contour ;
+- courbe de l'écart moyen de la VFC des nuits de la semaine à sa norme, en %, avec la ligne zéro ; les points sous −8 % sont orange.
+Lecture : « Semaine en cours : 62 km · VFC −3 % face à la norme ». Note : « Quand le volume monte et que la VFC passe sous sa norme plusieurs semaines de suite, la charge n’est plus absorbée. Une baisse isolée d’une nuit ne veut rien dire. »
+
+### R7 · Comment c'est calculé
+Un bloc repliable, avec les 4 paragraphes de la maquette (Mesure, Norme, État, Sommeil), puis la mention « Source : Apple Santé (HealthKit). Pas de score sur 100 : chaque valeur est affichée face à sa propre norme. ».
 
 ---
 

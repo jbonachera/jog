@@ -7,7 +7,7 @@
 Barre **fixe** en haut de page, avec un fond semi-opaque flouté et une bordure basse. De gauche à droite :
 
 1. **Marque** : « Jog », suivi du nom de l'athlète et de la méthode (« Athlète exemple · NSA »).
-2. **Onglets** : Aperçu · Charge · Progression · Historique · Paramètres.
+2. **Onglets** : Aujourd'hui · Charge · Progression · Historique · Paramètres.
 3. **Mention d'état** à droite (dans la maquette : « Données d'exemple »). En production, on y affiche la date de la dernière synchronisation.
 
 ## Onglets
@@ -24,11 +24,11 @@ Navigation **par onglets**, pas par ancres ni par défilement piloté.
 
 | Onglet | Question | Composants, dans l'ordre |
 |---|---|---|
-| **Aperçu** (par défaut) | « Où j'en suis, et qu'est-ce que je fais cette semaine ? » | 1. Décision volume (verdict, fourchette, simulateur, signaux) · 2. Volume réalisé (année, 30 jours, 7 jours) · 3. En deux colonnes : 7 derniers jours, Forme et fatigue |
-| **Charge** | « Est-ce que je charge bien et progressivement ? » | 1. Charge, en deux colonnes : Progressivité 7 j / 30 j, Minutes de sous-seuil par semaine · 2. Discipline NSA, en deux colonnes : part de sous-seuil par semaine, note |
+| **Aujourd'hui** (par défaut) | « Où j'en suis, et qu'est-ce que je fais cette semaine ? » | 1. Décision volume · 2. Récupération (carte, feuille Cette nuit) · 3. Volume réalisé · 4. 7 derniers jours |
+| **Charge** | « Est-ce que je charge bien et progressivement ? » | sélecteur Entraînement · Récupération. Entraînement : Forme et fatigue, Progressivité, Minutes de sous-seuil, Discipline NSA. Récupération : R1 à R7 |
 | **Progression** | « Est-ce que je progresse ? » | 1. Comparer deux périodes · 2. Tendances (3 petits graphiques) · 3. En deux colonnes : Allure × FC par répétition, Dernière séance sous-seuil · 4. Niveau estimé |
 | **Historique** | « Qu'est-ce que j'ai fait au fil des saisons ? » | 1. Saisons et volume hebdomadaire · 2. Journal hebdomadaire |
-| **Paramètres** | « Mes repères sont-ils justes ? » | Formulaire en 5 groupes, enregistrement, réinitialisation |
+| **Paramètres** | « Mes repères sont-ils justes ? » | Formulaire en 6 groupes, enregistrement, réinitialisation |
 
 Les fiches détaillées sont dans [03-composants.md](03-composants.md).
 
@@ -43,6 +43,8 @@ Chaque sélecteur agit sur son propre composant, pas sur toute la page.
 | Comparaison allure × FC | vs il y a un an (défaut) · vs 12 semaines précédentes | Allure × FC | Oui |
 | Vue d'un graphique | Graphique (défaut) · Tableau | Ce graphique | Non |
 | Comparateur de périodes | 12 dernières sem. / 12 précédentes (défaut) · 12 dernières sem. / même période il y a un an · Dates personnalisées | Comparer deux périodes | Oui, avec les dates |
+| Partie de Charge | Entraînement (défaut) · Récupération | onglet Charge | Oui |
+| Fenêtre de la récupération | 8 semaines (défaut) · 6 mois | VFC et FC de repos | Non |
 
 ## Persistance locale (navigateur)
 

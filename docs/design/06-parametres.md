@@ -20,8 +20,11 @@ L'onglet **Paramètres** permet à l'athlète d'ajuster ses repères. Toutes les
 | Zones | `z1`…`z4` | Limite haute des zones 1 à 4 | 68 / 78 / 85 / 92 | % FC max | Tableau des zones en bpm, mis à jour pendant la saisie. Zone 5 = de `z4` à 100 %. `z2` sert aussi de borne basse de l'allure marathon ; `z1`, `z3` et `z4` n'ont qu'un rôle d'affichage |
 | Modèle de charge | `ctlDays` | Forme de fond (CTL) | 42 | jours | Modèle forme / fatigue, note explicative, simulateur |
 | | `atlDays` | Fatigue (ATL) | 7 | jours | idem |
+| Récupération | `besoinSommeil` | Besoin de sommeil | 7 h 30 | h:mm, de 4 h à 12 h au pas de 15 min | repère du sommeil (A5, A6, R2, R5). Non daté, sans recalcul : il n'entre ni dans l'état ni dans le verdict ([D-023](decisions.md#d-023--récupération-nocturne)) |
 
 Chaque groupe porte une phrase d'aide. Le seuil y est décrit comme « estimé à la FC et à l'allure, par un test de 30 min ou un 10 km couru autour d'une heure ». Il n'y a **aucune** référence au lactate.
+
+Le groupe Récupération porte la phrase d'aide : « Durée de sommeil qui te laisse reposé. C’est un repère de lecture, pas une consigne. »
 
 ## Validation, au moment d'enregistrer
 

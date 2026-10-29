@@ -18,10 +18,11 @@
 
 | Question | Où |
 |---|---|
-| Est-ce que j'augmente, je maintiens ou j'allège mon volume cette semaine ? De combien ? | Aperçu, carte Décision volume |
-| Que se passe-t-il si je cours X km la semaine prochaine ? | Aperçu, simulateur |
-| Combien ai-je couru cette année, ce mois-ci, cette semaine ? | Aperçu, volume réalisé |
-| Où en sont ma forme de fond et ma fatigue ? | Aperçu, forme et fatigue |
+| Est-ce que j'augmente, je maintiens ou j'allège mon volume cette semaine ? De combien ? | Aujourd'hui, carte Décision volume |
+| Que se passe-t-il si je cours X km la semaine prochaine ? | Aujourd'hui, simulateur |
+| Combien ai-je couru cette année, ce mois-ci, cette semaine ? | Aujourd'hui, volume réalisé |
+| Où en sont ma forme de fond et ma fatigue ? | Charge, Entraînement, forme et fatigue |
+| Mon corps absorbe-t-il la charge ? | Aujourd'hui, carte Récupération ; Charge, Récupération |
 | Mon volume augmente-t-il progressivement ? | Charge, progressivité |
 | Est-ce que je respecte la méthode (part de sous-seuil, footings faciles) ? | Charge, minutes de sous-seuil et discipline NSA |
 | Ai-je progressé par rapport à il y a 12 semaines ou un an ? | Progression, comparer deux périodes |
@@ -33,8 +34,8 @@
 ## Principes
 
 1. **Le réalisé, rien que le réalisé.** Aucune séance prévue, aucun plan, aucun cycle, aucun objectif ni compte à rebours de course. Les courses passées n'apparaissent que comme des résultats.
-2. **Seulement ce qui se mesure** avec une montre GPS et une ceinture cardio : distance, allure, durée, FC échantillonnée par la ceinture (1 à 5 s selon l'appareil), altitude, cadence. Pas de lactate, de ressenti, de sommeil ni de saisie manuelle.
-3. **Un verdict, puis le détail.** Le résumé vient d'abord (Aperçu), le détail ensuite (onglets).
+2. **Seulement ce qui se mesure** avec une montre GPS et une ceinture cardio : distance, allure, durée, FC échantillonnée par la ceinture (1 à 5 s selon l'appareil), altitude, cadence. **La nuit**, avec l'Apple Watch : VFC, FC et fréquence respiratoire pendant le sommeil, et phases du sommeil ([D-023](decisions.md#d-023--récupération-nocturne)). Pas de lactate, de ressenti, de score de récupération ni de saisie manuelle.
+3. **Un verdict, puis le détail.** Le résumé vient d'abord (Aujourd'hui), le détail ensuite (onglets).
 4. **Toujours expliquer.** Chaque signal affiche sa valeur, son état et une phrase d'explication. Chaque modèle abstrait (forme, fatigue, fraîcheur) est expliqué en clair à côté de son graphique.
 5. **Des repères, pas des injonctions.** Les repères de l'athlète (FC max, seuil, plafond des footings, cible de sous-seuil) sont réglables. Les seuils du verdict sont fixes et publiés : ce sont des repères de lecture, pas des vérités scientifiques, et ils ne changent que par une décision tracée après retour d'usage. La fourchette de volume est une borne calculée sur le réalisé, pas un plan.
 6. **La tendance prime sur la valeur absolue.** Les courbes sont lissées, et on compare des périodes plutôt que des points.
@@ -45,5 +46,6 @@
 - Construire ou générer un plan d'entraînement, proposer des séances.
 - Préparer une course précise (compte à rebours, objectif chrono, prédiction « jour J »).
 - Afficher la notion de cycle, de bloc ou de semaine allégée : il n'y en a pas en NSA.
-- Gérer le lactate, la puissance, le ressenti, le sommeil ou la nutrition.
+- Gérer le lactate, la puissance, le ressenti ou la nutrition.
+- Noter la récupération par un score ou un pourcentage, ou juger une nuit isolée.
 - Offrir une dimension sociale ou des classements.

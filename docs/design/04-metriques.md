@@ -211,6 +211,37 @@ sinon : portions retenues mises bout à bout, coupées en deux moitiés de même
 
 Sans segment à allure marathon, la durée retenue est la séance entière. Repères : < 5 % base solide ; 5–8 % à surveiller ; > 8 % alerte.
 
+## Récupération
+
+Règle de [D-023](decisions.md#d-023--récupération-nocturne). `A` = aujourd'hui (J−1, D-022). Une nuit est datée du jour de son réveil.
+
+- **Nuit mesurée** pour la VFC : au moins une mesure de VFC pendant la session. Pour la FC : une FC moyenne existe. Une nuit absente ou non mesurée ne compte dans aucune moyenne, et n'est jamais comptée à zéro.
+- `vfc(n) = exp( moyenne des ln(SDNN_ms) )` sur les mesures de la session ; `fc(n)` = FC moyenne pendant la session.
+- `F7(d)` = nuits datées de d−6 à d. `N60(d)` = nuits datées de d−66 à d−7.
+- `vfc7(d) = exp( moyenne ln vfc(n), n ∈ F7(d) mesurées )`, si au moins 4 nuits ; `fc7(d)` de même, en moyenne simple.
+- Norme, si au moins 21 nuits de `N60(d)` sont mesurées : `m = moyenne ln vfc`, `s = écart-type de population ln vfc`, bande VFC = `[exp(m − 0,95 s) ; exp(m + 0,95 s)]`, milieu `exp(m)`. Bande FC = `moyenne ± 0,95 × écart-type` de `fc`.
+- **État** (D-015) : `bas = arrondi(vfc7) < arrondi(vfcBas)` ; `haute = arrondi(fc7) > arrondi(fcHaut)` (arrondi au plus proche, mi-chemin loin de zéro). `basse` si bas et haute ; `sous` si bas seul ; `dans` sinon. Moins de 4 nuits mesurées dans F7 : « Pas assez de nuits ». Norme absente : « Norme en cours de calcul ».
+- **Phrase** :
+  - dans : « VFC et FC de repos des 7 dernières nuits restent dans ta plage habituelle. » Si la nuit du jour est basse (`arrondi(vfc(A)) < arrondi(0,9 × vfcBas)`) : « Nuit dernière basse (VFC {v} ms), mais une nuit isolée ne change pas la tendance des 7 nuits. » ;
+  - sous : « La VFC des 7 dernières nuits est passée sous ta plage habituelle. La FC de repos tient encore. » ;
+  - basse : « VFC sous ta norme ({vfc7} ms contre {bas}–{haut}) et FC de repos au-dessus ({fc7} bpm). Le corps n’absorbe pas la charge actuelle. » ;
+  - norme en cours : « Norme en cours de calcul : il faut 21 nuits mesurées ({n} pour l’instant). » ;
+  - pas assez : « Il faut 4 nuits mesurées sur les 7 dernières ({n} pour l’instant). ».
+
+### Indicateurs de récupération (R2)
+
+| Indicateur | Valeur (précision) | OK | À surveiller | Alerte |
+|---|---|---|---|---|
+| VFC | vfc7, 1 ms | dans la norme ou au-dessus | sous la norme | sous la norme et FC de repos haute (repère seulement) |
+| FC de repos | fc7, 1 bpm | dans la norme ou en dessous | au-dessus de la norme | — |
+| Sommeil | moyenne des durées endormies de F7(A), 1 min ; écart = besoin − moyenne | moins de 45 min sous le besoin | 45 min ou plus sous le besoin | — |
+| Régularité | écart-type de population de l'heure d'endormissement sur F7(A), 1 min | ≤ 45 min | > 45 min | — |
+| Fréquence respiratoire | moyenne sur F7(A), 0,1 /min | contexte, sans état | | |
+
+Chaque indicateur demande au moins 4 nuits dans F7(A) ; sinon, valeur « – », état « Données insuffisantes ».
+Durée endormie = léger + profond + paradoxal (« endormi non précisé » compte en léger) ; l'éveil n'en fait pas partie. Heure d'endormissement = début du premier segment endormi, en minutes depuis 18 h la veille.
+Écart hebdomadaire (R6) = moyenne, sur les nuits mesurées de la semaine qui ont une norme, de `(vfc(n) ÷ milieu(n) − 1) × 100`.
+
 ## Performance
 
 ### Équivalences (niveau estimé)

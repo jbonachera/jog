@@ -311,3 +311,58 @@ Décisions prises sur les questions ouvertes de la spécification. Chaque entré
 - **Impacts** : `jourDeCoupure` (moteur, synchro, recalcul de l'app) ; surtitre de l'Aperçu (« données jusqu'au … ») ; « 7 derniers jours » et fenêtres 7/30 jours qui se terminent aujourd'hui ; semaine en cours = celle qui contient aujourd'hui. Une journée en cours est moins complète qu'une journée terminée : ses km et sa charge peuvent encore croître. Les autres règles ne changent pas.
 - **Fichiers modifiés** : `04-metriques.md`.
 - **À valider sur données réelles** : le ratio et la fraîcheur lus en cours de journée.
+
+## D-023 · Récupération nocturne
+
+- **Date** : 2026-10-29
+- **Question** : Jog doit-il lire ce que l'Apple Watch mesure pendant le sommeil, et comment le faire entrer dans la décision volume ?
+- **Décision** : oui. Jog lit la nuit, compare chaque valeur à **la norme de l'athlète**, et n'en tire **aucun score**.
+  - **Données** (Santé) : VFC (SDNN), FC et fréquence respiratoire pendant le sommeil ; phases du sommeil (léger, profond, paradoxal, éveillé). Une nuit sans montre est **ignorée, jamais comptée à zéro**.
+  - **Nuit** : les échantillons de sommeil d'une même source, séparés de 60 min au plus, forment une session. La session est datée du jour civil de son réveil. Pour chaque date, on garde la session la plus longue, si elle compte au moins 3 h endormi : les siestes sont ignorées. Quand plusieurs sources se recouvrent, on garde celle qui donne des phases (l'Apple Watch). Les échantillons « au lit » sont ignorés.
+  - **VFC de la nuit** : exp(moyenne des ln(SDNN)) des mesures prises pendant la session. **FC de repos de la nuit** : FC moyenne pendant la session, et non la « FC au repos » du jour donnée par Santé.
+  - **Moyenne 7 nuits** : la nuit du jour et les 6 précédentes, s'il y a au moins **4 nuits mesurées** (moyenne des ln pour la VFC).
+  - **Norme** : les **60 nuits** qui précèdent ces 7 nuits, s'il y a au moins **21 nuits mesurées** ; sinon, « Norme en cours de calcul ». Bande = moyenne ± **0,95 écart-type** (écart-type de population ; en logarithme pour la VFC).
+  - **État**, comparé sur les valeurs arrondies (D-015 : VFC à 1 ms, FC à 1 bpm) :
+    - **Dans ta norme** : VFC sur 7 nuits ≥ bas de sa bande ;
+    - **Sous ta norme** : VFC sur 7 nuits < bas de sa bande, FC de repos sur 7 nuits ≤ haut de sa bande ;
+    - **Récupération basse** : VFC sur 7 nuits < bas de sa bande **et** FC de repos sur 7 nuits > haut de sa bande.
+  - **Figé au réveil** : l'état ne dépend que des nuits terminées ; il ne change plus avant la nuit suivante.
+  - **Sommeil** : c'est un contexte, pas une entrée de l'état. Le repère est le besoin de sommeil, réglable, 7 h 30 par défaut.
+  - **8ᵉ signal « Récupération »** de la décision volume, **non décisif** : il peut faire passer Augmenter à Maintenir, jamais déclencher Alléger seul.
+- **Seuils publiés** (constantes du produit, comme D-008) :
+
+  | Constante | Valeur |
+  |---|---|
+  | Fenêtre courte / minimum mesuré | 7 nuits / 4 nuits |
+  | Norme / minimum mesuré | 60 nuits précédant la fenêtre / 21 nuits |
+  | Largeur de la bande | ± 0,95 écart-type |
+  | Nuit retenue | ≥ 3 h endormi ; sessions séparées au-delà de 60 min |
+  | Nuit basse (phrase seulement) | VFC de la nuit < 0,9 × bas de la bande |
+  | Sommeil, à surveiller | moyenne 7 nuits ≥ 45 min sous le besoin |
+  | Régularité du coucher, à surveiller | écart-type de l'heure d'endormissement > 45 min |
+  | Écart hebdomadaire de la VFC, marqué | < −8 % de la norme |
+  | Besoin de sommeil | 7 h 30 par défaut, de 4 h à 12 h, au pas de 15 min |
+
+- **Options écartées** :
+  - score de récupération de 0 à 100 % (Athlytic, Whoop) : opaque, contraire au principe 4 ;
+  - score composite et anneaux (Bevel) ;
+  - RMSSD : Santé ne le fournit pas ;
+  - « FC au repos » quotidienne de Santé : elle mêle la journée ;
+  - sommeil dans l'état : une mauvaise nuit isolée ne dit rien de la charge ;
+  - signal décisif : la VFC bouge avec la chaleur, l'alcool, la maladie, pas seulement avec l'entraînement.
+- **Raison** : la tendance de la VFC et de la FC nocturnes, face à une norme personnelle, est le repère le plus documenté de l'absorption de la charge (statut VFC de Garmin, HRV4Training). La garder secondaire respecte « le réalisé d'abord ».
+- **Impacts** :
+  - `01` (principe 2, non-objectifs) ;
+  - onglet Aperçu renommé **Aujourd'hui** ; Forme et fatigue passe dans Charge › Entraînement ;
+  - Charge scindé en Entraînement · Récupération ;
+  - 8ᵉ signal (`05`) ;
+  - autorisations HealthKit ;
+  - Paramètres (besoin de sommeil).
+- **Fichiers modifiés** : `01-vision.md`, `02-navigation.md`, `03-composants.md`, `04-metriques.md`, `05-decision-volume.md`, `06-parametres.md`, `07-donnees.md`.
+- **À valider sur données réelles** :
+  - le nombre de mesures de VFC par nuit (souvent 1 à 5) ;
+  - la part de nuits sans VFC ;
+  - les sources tierces de sommeil (AutoSleep, Pillow) qui doublent la Watch ;
+  - les nuits coupées en deux sessions ;
+  - la largeur réelle de la bande (0,95 σ) ;
+  - la répartition des états sur 6 mois.

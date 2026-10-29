@@ -13,8 +13,12 @@ Seulement ce qu'enregistrent une **montre GPS** et une **ceinture cardio** :
 | Cadence | montre ou ceinture | non utilisée pour l'instant |
 | Tours (manuels ou programmés) | montre | découpage des répétitions |
 | Type d'activité, nom, marquage course | montre / plateforme | classification des séances, courses, tests |
+| VFC (SDNN) pendant le sommeil | Apple Watch | état de récupération, 8ᵉ signal |
+| FC pendant le sommeil | Apple Watch | FC de repos nocturne |
+| Fréquence respiratoire | Apple Watch | contexte |
+| Phases du sommeil (léger, profond, paradoxal, éveillé) | Apple Watch | sommeil, régularité, hypnogramme |
 
-Exclus : lactate, puissance, ressenti, sommeil, saisie manuelle.
+Exclus : lactate, puissance, ressenti, saisie manuelle, score de récupération.
 
 ## Entités
 
@@ -40,6 +44,16 @@ course / test : distance de référence, temps
 ```
 
 Un jour sans activité est un jour de **repos**, de charge nulle.
+
+### Nuit (lue dans Santé, D-023)
+
+```
+date (jour du réveil), début, fin, heure d'endormissement, durée endormie,
+minutes par phase { léger, profond, paradoxal, éveillé },
+VFC de la nuit (ms, moyenne géométrique) | absente, FC moyenne | absente, fréquence respiratoire | absente
+```
+
+Conservées sur l'appareil : 250 nuits au plus.
 
 ### Paramètres de l'athlète
 
