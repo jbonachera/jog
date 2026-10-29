@@ -25,13 +25,14 @@ public enum ErreurLecteur: LocalizedError, Equatable, Sendable {
 /// Lecture des séances de course dans HealthKit. Les séries (FC, distances, tracé, étapes) sont lues à la demande,
 /// séance par séance, par la synchronisation (`SourceSeances`) et par le flux du moteur.
 public actor LecteurHealthKit: SourceSeances {
-    private let store = HKHealthStore()
+    /// Interne : `LecteurNuits.swift` (lecture des nuits) s'appuie sur le même magasin.
+    let store = HKHealthStore()
     /// Observation active pour la livraison en arrière-plan. Gardée pour pouvoir l'arrêter.
     private var observation: HKObserverQuery?
 
     public init() {}
 
-    /// Types lus : séances, FC, distances, tracé, énergie. Rien n'est écrit.
+    /// Types lus : séances, FC, distances, tracé, énergie, sommeil, VFC, fréquence respiratoire. Rien n'est écrit.
     private static var typesLecture: Set<HKObjectType> {
         [
             HKObjectType.workoutType(),
@@ -39,6 +40,9 @@ public actor LecteurHealthKit: SourceSeances {
             HKQuantityType(.distanceWalkingRunning),
             HKSeriesType.workoutRoute(),
             HKQuantityType(.activeEnergyBurned),
+            HKCategoryType(.sleepAnalysis),
+            HKQuantityType(.heartRateVariabilitySDNN),
+            HKQuantityType(.respiratoryRate),
         ]
     }
 

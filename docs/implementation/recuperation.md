@@ -794,7 +794,7 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 | 5 | fait | swift test 366 verts, goldens intacts, relu |
 | 6 | fait | swift test 375 verts, goldens intacts, relu |
 | 7 | fait | swift test 390 verts, relu |
-| 8 | à faire | — |
+| 8 | fait | xcodebuild test vert (75 tests), swift test 390 ; iPhone à faire par l'utilisateur |
 | 9 | à faire | — |
 | 10 | à faire | — |
 | 11 | à faire | — |
@@ -811,3 +811,5 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 - Lot 5 : `FORMAT_VUE` passe à 6 alors que les 34 goldens de la Vue portent `formatVersion: 5`. `VueOracleTests` ramène donc `formatVersion` à 5 dans la sortie comparée (adaptateur `auFormatDesGoldens`, seule clé touchée) ; aucun JSON n'est modifié, et le format 6 est testé dans `RecuperationVueTests`.
 - Lot 6 : le plan (test 6.5) écrit « Footings sous le plafond, Récupération » ; l'énumération existante donne « X et Y » à deux éléments, conservée.
 - Lot 7 : `nuits.json` suit la protection des autres fichiers (`completeFileProtectionUntilFirstUserAuthentication`, lisible téléphone verrouillé pour la livraison en arrière-plan) et non `complete` comme écrit au plan ; le moteur lève `nuitsNonCalculees` au chargement d'un relevé (le drapeau n'est pas persisté, une app tuée avant le recalcul ne doit pas laisser une Vue sans nuits) ; `synchroniser` ignore les sessions antérieures à la fenêtre `depuis`.
+- Lot 8 : à l'autorisation de récupération sur une installation existante, la clé n'est posée qu'après succès de `demanderAutorisation` (sinon la demande est refaite au lancement suivant). Aucun test d'app : `ModeleApp` n'injecte ni `UserDefaults` ni lecteur HealthKit.
+- À faire par l'utilisateur (lot 8, iPhone) : la feuille d'autorisation propose Sommeil, VFC et Fréquence respiratoire ; au deuxième lancement, seules 3 nuits sont relues (journal DEBUG) ; le lancement reste instantané.

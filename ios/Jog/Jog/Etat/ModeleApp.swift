@@ -8,6 +8,9 @@ import JogCore
 
 /// Préférence « autorisation HealthKit demandée » : sans elle, l'app montre l'écran d'accueil.
 private let CLE_AUTORISATION_DEMANDEE = "autorisationDemandee"
+/// Préférence « autorisation de la récupération (sommeil, VFC, respiration) demandée ». Absente des installations
+/// antérieures à la récupération : la demande est alors refaite une fois (iOS ne présente que les types nouveaux).
+private let CLE_AUTORISATION_RECUPERATION = "autorisationRecuperationDemandee"
 
 @MainActor
 @Observable
@@ -38,6 +41,7 @@ final class ModeleApp {
         let lecteur: LecteurHealthKit
         let moteur: Moteur
         let synchro: Synchroniseur
+        let synchroNuits: SynchroniseurNuits
     }
 
     init() {
@@ -46,7 +50,8 @@ final class ModeleApp {
             let lecteur = LecteurHealthKit()
             let moteur = Moteur(stockage: stockage, lireFlux: Synchronisation.lectureFlux(lecteur: lecteur))
             let synchro = Synchroniseur(source: lecteur, stockage: stockage, moteur: moteur)
-            services = Services(lecteur: lecteur, moteur: moteur, synchro: synchro)
+            let synchroNuits = SynchroniseurNuits(source: lecteur, moteur: moteur)
+            services = Services(lecteur: lecteur, moteur: moteur, synchro: synchro, synchroNuits: synchroNuits)
         } catch {
             services = nil
             etat = .erreur(message: "Les données de l’app n’ont pas pu être ouvertes.", vue: nil)
@@ -67,6 +72,10 @@ final class ModeleApp {
         UserDefaults.standard.bool(forKey: CLE_AUTORISATION_DEMANDEE)
     }
 
+    private var autorisationRecuperationDemandee: Bool {
+        UserDefaults.standard.bool(forKey: CLE_AUTORISATION_RECUPERATION)
+    }
+
     // MARK: - Cycle de vie
 
     /// Au lancement de l'interface : affiche la dernière Vue tout de suite, puis synchronise et recalcule.
@@ -78,6 +87,7 @@ final class ModeleApp {
         etat = TransitionsApp.suivant(etat, .lancement(autorisationDemandee: autorisee, vue: vue))
         armerChangementDeJour()
         if autorisee {
+            await demanderAutorisationRecuperation()
             await synchroniser()
         }
     }
@@ -112,9 +122,22 @@ final class ModeleApp {
             return
         }
         UserDefaults.standard.set(true, forKey: CLE_AUTORISATION_DEMANDEE)
+        UserDefaults.standard.set(true, forKey: CLE_AUTORISATION_RECUPERATION)
         etat = TransitionsApp.suivant(etat, .autorisationAccordee)
         armerLivraisonEnArrierePlan()
         await synchroniser()
+    }
+
+    /// Installations déjà autorisées avant la récupération : redemande l'accès, qui ajoute Sommeil, VFC et respiration.
+    /// Un échec n'est pas montré et n'arrête pas la synchronisation ; la demande est refaite au lancement suivant.
+    private func demanderAutorisationRecuperation() async {
+        guard let services, !autorisationRecuperationDemandee else { return }
+        do {
+            try await services.lecteur.demanderAutorisation()
+        } catch {
+            return
+        }
+        UserDefaults.standard.set(true, forKey: CLE_AUTORISATION_RECUPERATION)
     }
 
     /// « Réessayer » : relance la demande d'autorisation si elle n'a pas abouti, sinon la synchronisation.
@@ -239,6 +262,7 @@ final class ModeleApp {
             try? await services.lecteur.arreterLivraisonEnArrierePlan()
             await services.synchro.reinitialiser()
             UserDefaults.standard.removeObject(forKey: CLE_AUTORISATION_DEMANDEE)
+            UserDefaults.standard.removeObject(forKey: CLE_AUTORISATION_RECUPERATION)
             UserDefaults.standard.removeObject(forKey: CLE_HRMAX_IGNOREE)
             derniereSynchro = nil
             etat = .premiereOuverture
@@ -269,6 +293,8 @@ final class ModeleApp {
                 aRelancer = false
                 progressionRecue = 0
                 do {
+                    // Secondaire : son échec ne bloque jamais les séances.
+                    _ = try? await services.synchroNuits.synchroniser()
                     let vue = try await services.synchro.synchroniser { traitees, total in
                         await self.progression(traitees, total)
                     }
