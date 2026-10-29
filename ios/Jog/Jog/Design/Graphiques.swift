@@ -293,6 +293,10 @@ enum DimensionsGraphique {
     static let minutesSousSeuil: CGFloat = 180
     static let progressiviteVolume: CGFloat = 220
     static let progressiviteRatio: CGFloat = 140
+    static let recuperationTendance: CGFloat = 170
+    static let recuperationSommeil: CGFloat = 180
+    static let recuperationKm: CGFloat = 96
+    static let recuperationEcart: CGFloat = 110
 
     /// Hauteur de l'axe Y : la hauteur du graphique moins les lignes des libellés X, sous le tracé (une ligne par défaut).
     @MainActor

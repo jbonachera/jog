@@ -196,6 +196,21 @@ enum ModeleRecuperation {
         let absente: Bool
         /// Profond, paradoxal, léger, éveillé : de bas en haut sur la barre, en minutes.
         let phases: [(PhaseSommeil, Double)]
+
+        /// Minutes d'une phase (0 pour une nuit absente).
+        func minutes(_ phase: PhaseSommeil) -> Double {
+            phases.first { $0.0 == phase }?.1 ?? 0
+        }
+
+        /// Temps endormi : profond, paradoxal et léger.
+        var sommeil: Double {
+            minutes(.profond) + minutes(.paradoxal) + minutes(.leger)
+        }
+
+        /// Hauteur de la barre : toutes les phases, éveillé compris.
+        var total: Double {
+            phases.reduce(0) { $0 + $1.1 }
+        }
     }
 
     /// Les 14 nuits de A−13 à A (R5). Une nuit absente donne une barre vide, marquée « – ».
@@ -355,6 +370,269 @@ enum ModeleRecuperation {
             puces: []
         ),
     ]
+
+    // MARK: - Graphiques R3 à R6 (lot 13)
+
+    /// Fenêtre de R3 et R4 : 8 semaines (56 nuits) ou 6 mois (la série de JogCore, 182 nuits au plus).
+    enum FenetreTendance: CaseIterable, Hashable {
+        case huitSemaines, sixMois
+
+        var nuits: Int {
+            switch self {
+            case .huitSemaines: 56
+            case .sixMois: RECUPERATION.nuitsSerie
+            }
+        }
+
+        var libelle: String {
+            switch self {
+            case .huitSemaines: "8 semaines"
+            case .sixMois: "6 mois"
+            }
+        }
+    }
+
+    /// Un point d'une série : la date civile (identité) et sa date sur l'axe.
+    struct Repere: Identifiable {
+        let id: DateCivile
+        let date: Date
+        let valeur: Double
+    }
+
+    /// Bande de norme d'une nuit (R3, R4) : de `bas` à `haut`.
+    struct Bande: Identifiable {
+        let id: DateCivile
+        let date: Date
+        let bas: Double
+        let haut: Double
+    }
+
+    /// Modèle de R3 ou R4 : les nuits, les moyennes en segments (une absence coupe la courbe), les bandes, les bornes de
+    /// l'axe Y (D-009) et la vue tableau.
+    struct Tendance {
+        let points: [PointTendance]
+        let nuits: [Repere]
+        let moyennes: [[Repere]]
+        let bandes: [Bande]
+        let domaine: ClosedRange<Double>
+        let tableau: TableauAffiche
+    }
+
+    /// Pas de l'axe Y de R3 (5 ms) et de R4 (2 bpm).
+    static func pasTendance(_ mesure: CleIndicateur) -> Double {
+        mesure == .vfc ? 5 : 2
+    }
+
+    static func modeleTendance(_ r: VueRecuperation, mesure: CleIndicateur, fenetre: FenetreTendance) -> Tendance {
+        let points = tendance(r, mesure: mesure, nuits: fenetre.nuits)
+        let valeurs = points.flatMap { [$0.nuit, $0.moyenne7, $0.bas, $0.haut] }.compactMap { $0 }
+        // D-009 : au pas de 5 ms pour la VFC, de 2 bpm pour la FC ; la plage minimale de la VFC est de 20 ms.
+        let domaine = mesure == .vfc
+            ? domaineAxe(ParamsDomaine(valeurs: valeurs, plageMin: .etendue(20), pas: pasTendance(mesure)))
+            : domaineAxe(valeurs, preset: .fcFin)
+        let nuits = points.compactMap { p in p.nuit.map { Repere(id: p.id, date: p.date, valeur: $0) } }
+        var segments: [[Repere]] = [[]]
+        for p in points {
+            if let moyenne = p.moyenne7 {
+                segments[segments.count - 1].append(Repere(id: p.id, date: p.date, valeur: moyenne))
+            } else if !(segments.last?.isEmpty ?? true) {
+                segments.append([])
+            }
+        }
+        let bandes = points.compactMap { p -> Bande? in
+            guard let bas = p.bas, let haut = p.haut else { return nil }
+            return Bande(id: p.id, date: p.date, bas: bas, haut: haut)
+        }
+        return Tendance(
+            points: points, nuits: nuits, moyennes: segments.filter { !$0.isEmpty }, bandes: bandes, domaine: domaine,
+            tableau: tableauTendance(points, mesure: mesure)
+        )
+    }
+
+    /// Dernier point ayant une moyenne 7 nuits (le point final marqué de R3 et R4).
+    static func pointFinal(_ tendance: Tendance) -> Repere? {
+        tendance.moyennes.last?.last
+    }
+
+    /// Tableau de R3 et R4 : une ligne par nuit de la fenêtre, dans l'ordre du graphique.
+    static func tableauTendance(_ points: [PointTendance], mesure: CleIndicateur) -> TableauAffiche {
+        let unite = mesure == .vfc ? "ms" : "bpm"
+        return TableauAffiche(
+            entetes: ["Nuit", "Mesure (\(unite))", "Moyenne 7 nuits", "Norme"],
+            lignes: points.map { p in
+                [formatJourDate(p.id), nombre(p.nuit), nombre(p.moyenne7), plage(nil, p.bas, p.haut)]
+            }
+        )
+    }
+
+    /// Une tranche de barre de R5 : une phase d'une nuit, de `debut` à `fin` en minutes depuis le bas de la barre.
+    struct TrancheBarre: Identifiable {
+        let id: String
+        let date: Date
+        let debut: Double
+        let fin: Double
+        let phase: PhaseSommeil
+    }
+
+    /// Les tranches des nuits mesurées de R5, de bas en haut (profond, paradoxal, léger, éveillé). Une nuit absente n'en a pas.
+    static func tranches(_ barres: [BarreSommeil]) -> [TrancheBarre] {
+        var resultat: [TrancheBarre] = []
+        for barre in barres where !barre.absente {
+            guard let date = ModeleApercu.date(barre.id) else { continue }
+            var bas = 0.0
+            for (phase, minutes) in barre.phases {
+                resultat.append(TrancheBarre(id: "\(barre.id)-\(phase.rawValue)", date: date, debut: bas, fin: bas + minutes, phase: phase))
+                bas += minutes
+            }
+        }
+        return resultat
+    }
+
+    /// Axe Y de R5 : de 0 à 10 h au moins, au-delà si une nuit dépasse (pas de 2 h).
+    static func domaineSommeil(_ barres: [BarreSommeil]) -> ClosedRange<Double> {
+        let maximum = barres.map(\.total).max() ?? 0
+        return 0...max(600, (maximum / 120).rounded(.up) * 120)
+    }
+
+    /// Durée des lectures de R5 : « 1 h 40 » sans coupure entre l'heure et les minutes (espaces insécables).
+    private static func dureeLecture(_ minutes: Double) -> String {
+        dureeEspacee(minutes).replacingOccurrences(of: " ", with: "\u{00A0}")
+    }
+
+    /// La ligne de lecture de R5 : moyenne des nuits mesurées, « Moyenne 14 nuits : 7 h 02 · profond 58 min · paradoxal 1 h 31 ».
+    static func lectureSommeil(_ barres: [BarreSommeil]) -> String {
+        let mesurees = barres.filter { !$0.absente }
+        guard !mesurees.isEmpty else { return ModeleApercu.tiret }
+        let n = Double(mesurees.count)
+        let sommeil = mesurees.reduce(0) { $0 + $1.sommeil } / n
+        let profond = mesurees.reduce(0) { $0 + $1.minutes(.profond) } / n
+        let paradoxal = mesurees.reduce(0) { $0 + $1.minutes(.paradoxal) } / n
+        return "Moyenne \(barres.count) nuits : \(dureeLecture(sommeil)) · profond \(nombre(profond)) min · paradoxal \(dureeLecture(paradoxal))"
+    }
+
+    /// La lecture d'une nuit touchée au doigt (R5) : la durée, les phases, l'éveillé en minutes.
+    static func lectureNuit(_ barre: BarreSommeil) -> String {
+        let quand = "Nuit du \(formatJourDate(barre.id))"
+        guard !barre.absente else { return "\(quand) : pas de mesure (montre non portée)" }
+        return "\(quand) : \(dureeLecture(barre.sommeil)) · profond \(nombre(barre.minutes(.profond))) min · paradoxal \(dureeLecture(barre.minutes(.paradoxal))) · éveillé \(nombre(barre.minutes(.eveille))) min"
+    }
+
+    /// Tableau de R5 : une ligne par nuit de A−13 à A ; une nuit absente porte des tirets.
+    static func tableauSommeil(_ barres: [BarreSommeil]) -> TableauAffiche {
+        TableauAffiche(
+            entetes: ["Nuit", "Sommeil", "Profond", "Paradoxal", "Léger", "Éveillé"],
+            lignes: barres.map { barre in
+                guard !barre.absente else {
+                    return [formatJourDate(barre.id)] + Array(repeating: ModeleApercu.tiret, count: 5)
+                }
+                return [
+                    formatJourDate(barre.id), dureeEspacee(barre.sommeil), "\(nombre(barre.minutes(.profond))) min",
+                    dureeEspacee(barre.minutes(.paradoxal)), "\(nombre(barre.minutes(.leger))) min", "\(nombre(barre.minutes(.eveille))) min",
+                ]
+            }
+        )
+    }
+
+    /// Un point de l'écart de R6 : la semaine (centre sur l'axe), son écart, et la marque orange sous −8 %.
+    struct PointEcart: Identifiable {
+        let id: DateCivile
+        let date: Date
+        let valeur: Double
+        let marque: Bool
+    }
+
+    /// Les écarts de R6 en segments continus : une semaine sans norme coupe la courbe.
+    static func segmentsEcart(_ semaines: [SemaineChargeRecup]) -> [[PointEcart]] {
+        var segments: [[PointEcart]] = [[]]
+        for semaine in semaines {
+            if let ecart = semaine.ecart {
+                let date = Date(timeIntervalSince1970: centreSemaine(semaine.id))
+                segments[segments.count - 1].append(PointEcart(id: semaine.id, date: date, valeur: ecart, marque: semaine.marque))
+            } else if !(segments.last?.isEmpty ?? true) {
+                segments.append([])
+            }
+        }
+        return segments.filter { !$0.isEmpty }
+    }
+
+    /// Axe Y de R6 pour les kilomètres : de 0 au moins 50 km, par pas de 50.
+    static func domaineKm(_ semaines: [SemaineChargeRecup]) -> ClosedRange<Double> {
+        domaineAxe(ParamsDomaine(valeurs: semaines.map(\.km), plageMin: .intervalle(0, 50), pas: 50, plancher: 0))
+    }
+
+    /// Axe Y de R6 pour l'écart de la VFC : au moins −8 % à +8 %, par pas de 5 % (le seuil −8 % reste visible).
+    static func domaineEcart(_ semaines: [SemaineChargeRecup]) -> ClosedRange<Double> {
+        domaineAxe(ParamsDomaine(valeurs: semaines.compactMap(\.ecart), plageMin: .intervalle(-8, 8), pas: 5))
+    }
+
+    /// La lecture de R6 : « Semaine en cours : 62 km · VFC −3 % face à la norme », ou la semaine touchée au doigt.
+    static func lectureCharge(_ semaine: SemaineChargeRecup?) -> String {
+        guard let semaine else { return ModeleApercu.tiret }
+        let quand = semaine.enCours ? "Semaine en cours" : "Semaine du \(formatDate(semaine.id))"
+        let ecart = semaine.ecart.map(ModeleApercu.ecartPourcentage) ?? ModeleApercu.tiret
+        return "\(quand) : \(nombre(semaine.km)) km · VFC \(ecart) face à la norme"
+    }
+
+    /// Note de R6 (03, R6 ; maquette) : la charge n'est plus absorbée quand le volume monte et la VFC reste basse.
+    static let noteCharge = "Quand le volume monte et que la VFC passe sous sa norme plusieurs semaines de suite, la charge n’est plus absorbée. Une baisse isolée d’une nuit ne veut rien dire."
+
+    /// Tableau de R6 : une ligne par semaine, dans l'ordre du graphique.
+    static func tableauCharge(_ semaines: [SemaineChargeRecup]) -> TableauAffiche {
+        TableauAffiche(
+            entetes: ["Semaine du", "km", "Écart VFC"],
+            lignes: semaines.map { [formatDate($0.id), nombre($0.km), $0.ecart.map(ModeleApercu.ecartPourcentage) ?? ModeleApercu.tiret] }
+        )
+    }
+
+    /// Instant d'une date civile à midi UTC (ModeleApercu.date) : position d'une nuit sur l'axe des jours.
+    static func temps(_ jour: DateCivile) -> Double {
+        ModeleApercu.date(jour)?.timeIntervalSince1970 ?? 0
+    }
+
+    /// Domaine de l'axe des nuits : chaque nuit occupe un jour, centré sur midi.
+    static func domaineNuits(_ jours: [DateCivile]) -> ClosedRange<Double> {
+        guard let premier = jours.first, let dernier = jours.last else { return 0...1 }
+        return (temps(premier) - 43_200)...(temps(dernier) + 43_200)
+    }
+
+    /// Centre d'une semaine (lundi à dimanche) : jeudi à midi UTC. Les barres de R6 y sont centrées.
+    static func centreSemaine(_ lundi: DateCivile) -> Double {
+        temps(lundi) + 3 * 86_400
+    }
+
+    /// Marge du bord du tracé, en plus de la demi-étiquette : le dernier libellé, centré sur sa position, reste dans la carte.
+    static let margeBordAxe: CGFloat = 8
+
+    /// Domaine prolongé à droite de `marge` pt sur un axe de `longueur` pt : le dernier libellé, centré sur sa position,
+    /// ne sort pas du tracé.
+    static func domaineAvecMarge(_ domaine: ClosedRange<Double>, longueur: CGFloat, marge: CGFloat) -> ClosedRange<Double> {
+        guard longueur > 0 else { return domaine }
+        let etendue = domaine.upperBound - domaine.lowerBound
+        return domaine.lowerBound...(domaine.upperBound + Double(marge) * etendue / Double(longueur))
+    }
+
+    /// Domaine de l'axe des semaines : chaque semaine occupe sept jours, du lundi 0 h au lundi suivant 0 h.
+    static func domaineSemaines(_ lundis: [DateCivile]) -> ClosedRange<Double> {
+        guard let premier = lundis.first, let dernier = lundis.last else { return 0...1 }
+        return (temps(premier) - 43_200)...(temps(dernier) - 43_200 + 7 * 86_400)
+    }
+
+    static func etiquetteHeures(_ minutes: Double) -> String {
+        ModeleApercu.nombre(minutes / 60) + " h"
+    }
+
+    static func etiquetteEcart(_ pourcent: Double) -> String {
+        ModeleApercu.ecartPourcentage(pourcent)
+    }
+
+    /// Étiquette d'une nuit sur l'axe de R5 : « mer. 21 ».
+    static func etiquetteNuit(_ jour: DateCivile) -> String {
+        "\(ModeleApercu.jourCourt(jour)) \(ModeleApercu.quantieme(jour))"
+    }
+
+    static func etiquetteSemaine(_ lundi: DateCivile) -> String {
+        formatDate(lundi)
+    }
 
     // MARK: - Aides
 

@@ -23,6 +23,7 @@
 		00000000000000000000A088 /* NavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A089 /* NavigationTests.swift */; };
 		00000000000000000000A08A /* RecuperationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A08B /* RecuperationTests.swift */; };
 		00000000000000000000A08C /* RecuperationLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A08D /* RecuperationLayoutTests.swift */; };
+		00000000000000000000A08E /* RecuperationGrapheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A08F /* RecuperationGrapheTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +53,7 @@
 		00000000000000000000A089 /* NavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A08B /* RecuperationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecuperationTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A08D /* RecuperationLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecuperationLayoutTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A08F /* RecuperationGrapheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecuperationGrapheTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -130,6 +132,7 @@
 				00000000000000000000A089 /* NavigationTests.swift */,
 				00000000000000000000A08B /* RecuperationTests.swift */,
 				00000000000000000000A08D /* RecuperationLayoutTests.swift */,
+				00000000000000000000A08F /* RecuperationGrapheTests.swift */,
 			);
 			path = JogTests;
 			sourceTree = "<group>";
@@ -256,6 +259,7 @@
 				00000000000000000000A088 /* NavigationTests.swift in Sources */,
 				00000000000000000000A08A /* RecuperationTests.swift in Sources */,
 				00000000000000000000A08C /* RecuperationLayoutTests.swift in Sources */,
+				00000000000000000000A08E /* RecuperationGrapheTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

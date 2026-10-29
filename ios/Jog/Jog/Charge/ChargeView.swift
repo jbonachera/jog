@@ -31,7 +31,7 @@ struct ChargeView: View {
                     MinutesSousSeuilView(vue: vue)
                     DisciplineView(vue: vue)
                 case .recuperation:
-                    RecuperationView(recuperation: vue.recuperation, besoin_min: besoinSommeil_min)
+                    RecuperationView(recuperation: vue.recuperation, besoin_min: besoinSommeil_min, semaines: ModeleRecuperation.chargeEtRecuperation(vue))
                 }
             }
             .padding(.horizontal, 16)

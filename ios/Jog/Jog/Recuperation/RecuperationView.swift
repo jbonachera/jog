@@ -1,12 +1,15 @@
 import SwiftUI
 import JogCore
 
-/// Charge › Récupération (03 R1, R2, R7 ; maquette recuperation.html, onglet Récupération). L'ordre des sections vient de
-/// `ModeleRecuperation.sections`. R3 à R6 (graphiques) arrivent au lot 13 : leurs emplacements restent vides. Sans nuit
-/// mesurée, la section unique est le message de A5.
+/// Charge › Récupération (03 R1 à R7 ; maquette recuperation.html, onglet Récupération). L'ordre des sections vient de
+/// `ModeleRecuperation.sections`. Sans nuit mesurée, la section unique est le message de A5.
 struct RecuperationView: View {
     let recuperation: VueRecuperation?
     let besoin_min: Double
+    /// Les 16 semaines de R6 (volume de la Charge et écart de la récupération).
+    let semaines: [ModeleRecuperation.SemaineChargeRecup]
+    /// Fenêtre de R3 et R4 : 8 semaines ou 6 mois, partagée par les deux graphiques.
+    @State private var fenetre: ModeleRecuperation.FenetreTendance = .huitSemaines
 
     var body: some View {
         VStack(alignment: .leading, spacing: 36) {
@@ -27,9 +30,20 @@ struct RecuperationView: View {
             if let recuperation {
                 ListeSignauxRecuperation(indicateurs: (try? ModeleRecuperation.indicateurs(recuperation, besoin_min: besoin_min)) ?? [])
             }
-        case .vfc, .fcRepos, .sommeil, .chargeRecuperation:
-            // Lot 13 : graphiques R3 à R6.
-            EmptyView()
+        case .vfc:
+            if let recuperation {
+                TendanceNocturneView(recuperation: recuperation, mesure: .vfc, fenetre: $fenetre, montrerSelecteur: true)
+            }
+        case .fcRepos:
+            if let recuperation {
+                TendanceNocturneView(recuperation: recuperation, mesure: .fcRepos, fenetre: $fenetre, montrerSelecteur: false)
+            }
+        case .sommeil:
+            if let recuperation {
+                SommeilNuitsView(recuperation: recuperation)
+            }
+        case .chargeRecuperation:
+            RecuperationChargeView(semaines: semaines)
         case .methode:
             VStack(alignment: .leading, spacing: 12) {
                 CommentCestCalculeView()
