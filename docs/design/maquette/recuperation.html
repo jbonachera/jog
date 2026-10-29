@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b141c" media="(prefers-color-scheme: dark)">
+<title>Jog Récupération</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Maquette iPhone · thème Fjord habillé en Liquid Glass (iOS 26).
+   Règle de composition : le verre est réservé à la couche de navigation et de contrôle
+   (barre d'onglets, boutons de barre, feuilles, menus, curseurs).
+   Le contenu (cartes, graphiques, listes) reste en surfaces Fjord pleines, sans ombre. */
+:root {
+  --bg: #f4f7f9; --surface: #ffffff; --ink: #0f1e2b; --ink-2: #4b5d6c; --ink-3: #7c8b97;
+  --line: #dde5eb; --grid: #e9eef2; --accent: #2a6390; --band: rgba(42, 99, 144, .10);
+  --z-easy: #93b3c9; --z-mp: #5f8db0; --z-subt: #2a6390; --z-hard: #0f3150;
+  --good: #2f7d4f; --warn: #a66a00; --bad: #b3372f;
+  /* verre */
+  --glass: rgba(250, 252, 253, .56); --glass-strong: rgba(250, 252, 253, .80);
+  --glass-hi: rgba(255, 255, 255, .95); --glass-edge: rgba(255, 255, 255, .60); --glass-rim: rgba(15, 30, 43, .06);
+  --glass-shadow: 0 12px 32px rgba(15, 30, 43, .14), 0 2px 6px rgba(15, 30, 43, .06);
+  --sheen: rgba(255, 255, 255, .55); --scrim: rgba(15, 30, 43, .18); --fill: rgba(15, 30, 43, .06);
+  --amb-1: #c9dcea; --amb-2: #dfeaf1; --amb-3: #e9f0f4;
+  --bezel: #1b1f24;
+  --f-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --st: 54px; --sb: 21px; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b141c; --surface: #0f1a24; --ink: #e6eef4; --ink-2: #a4b4c1; --ink-3: #6f8293;
+  --line: #1f2f3d; --grid: #172532; --accent: #8bb8d9; --band: rgba(139, 184, 217, .12);
+  --z-easy: #3b5f7a; --z-mp: #5c8bb0; --z-subt: #8bb8d9; --z-hard: #cfe5f4;
+  --good: #5cbf85; --warn: #e0a440; --bad: #ec7a70;
+  --glass: rgba(24, 38, 51, .50); --glass-strong: rgba(20, 33, 45, .82);
+  --glass-hi: rgba(255, 255, 255, .26); --glass-edge: rgba(255, 255, 255, .10); --glass-rim: rgba(0, 0, 0, .35);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .3);
+  --sheen: rgba(255, 255, 255, .16); --scrim: rgba(0, 0, 0, .42); --fill: rgba(230, 238, 244, .08);
+  --amb-1: #16334b; --amb-2: #10263a; --amb-3: #0d1c29; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0b141c; --surface: #0f1a24; --ink: #e6eef4; --ink-2: #a4b4c1; --ink-3: #6f8293;
+  --line: #1f2f3d; --grid: #172532; --accent: #8bb8d9; --band: rgba(139, 184, 217, .12);
+  --z-easy: #3b5f7a; --z-mp: #5c8bb0; --z-subt: #8bb8d9; --z-hard: #cfe5f4;
+  --good: #5cbf85; --warn: #e0a440; --bad: #ec7a70;
+  --glass: rgba(24, 38, 51, .50); --glass-strong: rgba(20, 33, 45, .82);
+  --glass-hi: rgba(255, 255, 255, .26); --glass-edge: rgba(255, 255, 255, .10); --glass-rim: rgba(0, 0, 0, .35);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .3);
+  --sheen: rgba(255, 255, 255, .16); --scrim: rgba(0, 0, 0, .42); --fill: rgba(230, 238, 244, .08);
+  --amb-1: #16334b; --amb-2: #10263a; --amb-3: #0d1c29; color-scheme: dark; }
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--f-display); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-3); }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+
+/* ---------- Scène (bureau) */
+body { background: radial-gradient(70% 60% at 70% 30%, color-mix(in srgb, var(--accent) 10%, var(--bg)), var(--bg)); min-height: 100vh; }
+.stage { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 360px) auto; gap: 72px; align-items: center; justify-content: center; padding: 32px; }
+.stage-info { display: grid; gap: 18px; align-content: center; }
+.stage-info .brand { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.stage-info h1 { font-size: 38px; line-height: 1.02; font-weight: 800; letter-spacing: -.035em; }
+.stage-info p { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+.stage-info ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 13.5px; display: grid; gap: 6px; }
+.stage-info a { color: var(--accent); }
+.stage-info .note { font-size: 12.5px; color: var(--ink-3); border-left: 2px solid var(--accent); padding-left: 12px; }
+.device-wrap { width: 426px; height: 898px; }
+.device { position: relative; width: 426px; height: 898px; padding: 12px; border-radius: 70px; background: var(--bezel);
+  box-shadow: 0 0 0 1.5px #3a4048, 0 0 0 3px #0d0f12, 0 40px 80px rgba(15, 30, 43, .28), 0 12px 24px rgba(15, 30, 43, .18); transform-origin: top left; }
+.screen { position: relative; width: 402px; height: 874px; border-radius: 58px; overflow: hidden; background: var(--bg); isolation: isolate; }
+.island { position: absolute; z-index: 50; top: 11px; left: 50%; width: 124px; height: 36px; margin-left: -62px; border-radius: 20px; background: #000; }
+.statusbar { position: absolute; z-index: 40; inset: 0 0 auto; height: var(--st); display: flex; justify-content: space-between; align-items: center; padding: 6px 34px 0 46px; font: 600 16.5px var(--f-display); letter-spacing: -.01em; pointer-events: none; }
+.statusbar .icons { display: flex; gap: 6px; align-items: center; }
+.statusbar svg { fill: var(--ink); }
+.home-ind { position: absolute; z-index: 60; bottom: 8px; left: 50%; width: 140px; height: 5px; margin-left: -70px; border-radius: 3px; background: var(--ink); opacity: .9; pointer-events: none; }
+
+/* ---------- Verre */
+.glass { position: relative; background: var(--glass); -webkit-backdrop-filter: blur(14px) saturate(180%); backdrop-filter: blur(14px) saturate(180%);
+  box-shadow: inset 0 1px 1px var(--glass-hi), inset 0 -1px 1px var(--glass-edge), inset 0 0 0 .5px var(--glass-edge), 0 0 0 .5px var(--glass-rim), var(--glass-shadow); }
+.glass::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(165deg, var(--sheen) 0%, transparent 32%, transparent 68%, color-mix(in srgb, var(--sheen) 50%, transparent) 100%); mix-blend-mode: soft-light; }
+.glass.strong { background: var(--glass-strong); }
+.gbtn { width: 44px; height: 44px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; padding: 0; color: var(--ink); transition: transform .25s cubic-bezier(.3, 1.5, .5, 1); }
+.gbtn:active, .gpill:active { transform: scale(1.08); }
+.gbtn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; position: relative; }
+.gbtn.prominent { background: color-mix(in srgb, var(--accent) 88%, transparent); color: var(--bg); }
+.gpill { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 999px; padding: 0 18px; height: 44px; font-weight: 600; font-size: 15px; cursor: pointer; transition: transform .25s cubic-bezier(.3, 1.5, .5, 1); }
+.gpill.prominent { background: color-mix(in srgb, var(--accent) 90%, transparent); color: var(--bg); }
+.gpill svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; position: relative; }
+.gpill span { position: relative; }
+
+/* ---------- Défilement, grand titre, effet de bord */
+.scroller { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: calc(var(--st) + 52px) 16px calc(var(--sb) + 96px); }
+.scroller::-webkit-scrollbar { display: none; }
+.ambient { position: absolute; z-index: -1; inset: 0 0 auto; height: 520px; pointer-events: none;
+  background: radial-gradient(90% 70% at 15% 0%, var(--amb-1), transparent 70%), radial-gradient(70% 60% at 95% 8%, var(--amb-2), transparent 70%), linear-gradient(var(--amb-3), var(--bg)); }
+.edge-top, .edge-bot { position: absolute; z-index: 20; left: 0; right: 0; pointer-events: none; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.edge-top { top: 0; height: calc(var(--st) + 64px); background: linear-gradient(color-mix(in srgb, var(--bg) 94%, transparent) 40%, color-mix(in srgb, var(--bg) 50%, transparent)); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); -webkit-mask-image: linear-gradient(#000 62%, transparent); mask-image: linear-gradient(#000 62%, transparent); opacity: 0; transition: opacity .2s; }
+.edge-top.on { opacity: 1; }
+.edge-bot { bottom: 0; height: calc(var(--sb) + 110px); background: linear-gradient(transparent, color-mix(in srgb, var(--bg) 70%, transparent)); -webkit-mask-image: linear-gradient(transparent, #000 50%); mask-image: linear-gradient(transparent, #000 50%); }
+.navbar { position: absolute; z-index: 30; top: var(--st); left: 0; right: 0; height: 52px; display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px; padding: 0 16px; }
+.navbar .ctitle { text-align: center; font-weight: 700; font-size: 17px; opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.navbar .ctitle.on { opacity: 1; transform: none; }
+.ltitle { display: grid; gap: 2px; padding: 4px 4px 14px; }
+.ltitle h1 { font-size: 34px; line-height: 1.1; font-weight: 800; letter-spacing: -.03em; }
+.ltitle p { margin: 0; font-size: 13.5px; color: var(--ink-2); }
+.view { display: grid; gap: 26px; }
+.view > section { display: grid; gap: 8px; min-width: 0; }
+.sh { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 0 4px; }
+.sh h2 { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.sh p { margin: 0; font-size: 12.5px; color: var(--ink-3); text-align: right; }
+.foot { font-size: 12px; color: var(--ink-3); padding: 0 4px; margin: 0; }
+
+/* ---------- Contenu Fjord (surfaces pleines) */
+.card { background: var(--surface); border: .5px solid var(--line); border-radius: 26px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.card.tight { padding: 0; gap: 0; overflow: hidden; }
+.card h3 { font-size: 15px; font-weight: 600; }
+.card .ch { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font: 600 12px var(--f-display); padding: 2px 8px; border-radius: 999px; width: fit-content; white-space: nowrap; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+.pill.good { color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); }
+.pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.pill.bad { color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
+.pill.neutral { color: var(--ink-2); background: var(--grid); }
+.pill.num { font-family: var(--f-mono); font-weight: 500; }
+.note { border-left: 2px solid var(--accent); padding: 2px 0 2px 12px; color: var(--ink-2); font-size: 13.5px; }
+.note p { margin: 0 0 8px; } .note p:last-child { margin: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.legend i.line { height: 2px; border-radius: 0; vertical-align: 3px; width: 14px; }
+details.more summary { list-style: none; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+details.more summary::-webkit-details-marker { display: none; }
+details.more summary::after { content: ""; width: 7px; height: 7px; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg) translateY(-2px); transition: transform .2s; }
+details.more[open] summary::after { transform: rotate(-135deg) translate(-2px, 0); }
+details.more[open] summary { margin-bottom: 10px; }
+
+/* Décision */
+.hero { background: var(--surface); border: .5px solid var(--line); border-radius: 30px; padding: 20px 18px 18px; display: grid; gap: 10px; }
+.hero .eyebrow { font-size: 12.5px; color: var(--ink-3); }
+.hero .verdict { font-size: 40px; line-height: .98; font-weight: 800; letter-spacing: -.04em; }
+.verdict[data-st="good"] { color: var(--good); } .verdict[data-st="warn"] { color: var(--warn); } .verdict[data-st="bad"] { color: var(--bad); } .verdict[data-st="neutral"] { color: var(--ink-2); }
+.hero .why { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+.range { display: grid; gap: 2px; border-top: 2px solid var(--ink); padding-top: 10px; margin-top: 4px; }
+.range .l { font-size: 12.5px; color: var(--ink-2); }
+.range .v { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+.range .s { font-size: 12px; color: var(--ink-3); }
+.hero .gpill { justify-self: start; margin-top: 4px; }
+
+/* Listes groupées */
+.list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: .5px solid var(--line); border-radius: 26px; overflow: hidden; }
+.row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: 11px 16px; min-height: 52px; width: 100%; text-align: left; background: none; border: 0; cursor: default; }
+button.row, .row[role="button"] { cursor: pointer; }
+button.row:active { background: var(--fill); }
+.row + .row::before, li + li > .row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: .5px solid var(--line); }
+.row .t { font-weight: 600; font-size: 15px; min-width: 0; }
+.row .d { font-size: 12.5px; color: var(--ink-2); grid-column: 1; min-width: 0; }
+.row .r { grid-row: 1 / span 2; grid-column: 2; display: flex; align-items: center; gap: 8px; justify-self: end; }
+.chev { width: 8px; height: 13px; stroke: var(--ink-3); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.row[data-st="warn"] .t::after, .row[data-st="bad"] .t::after { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-left: 6px; vertical-align: 2px; }
+.row[data-st="warn"] .t::after { background: var(--warn); } .row[data-st="bad"] .t::after { background: var(--bad); }
+
+/* Compteurs */
+.counters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.counter { background: var(--surface); border: .5px solid var(--line); border-radius: 24px; padding: 14px 14px 10px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.counter.wide { grid-column: 1 / -1; }
+.counter .l { font-size: 12.5px; color: var(--ink-2); display: flex; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+.counter .v { font-size: 32px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+.counter.wide .v { font-size: 44px; }
+.counter .v small { font-size: 15px; font-weight: 500; color: var(--ink-3); letter-spacing: 0; margin-left: 3px; }
+.counter .s { font-size: 12.5px; color: var(--ink-2); min-height: 18px; }
+.counter .dl { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; font-size: 11.5px; color: var(--ink-3); }
+
+/* Jours, journal */
+.day { grid-template-columns: 48px minmax(0, 1fr) auto; align-items: start; }
+.day .dn { grid-row: 1 / span 3; font-size: 12px; color: var(--ink-3); line-height: 1.25; padding-top: 2px; }
+.day .dn b { display: block; font: 600 17px var(--f-mono); color: var(--ink); }
+.day .t, .day .d, .day .zb { grid-column: 2 / 4; }
+.day.rest .t { color: var(--ink-3); font-weight: 500; }
+.zb { display: flex; gap: 1px; height: 5px; border-radius: 3px; overflow: hidden; background: var(--grid); margin-top: 6px; }
+.zb span { display: block; height: 100%; }
+.wk { grid-template-columns: minmax(0, 1fr) auto auto; }
+.wk .r { grid-column: 2 / 4; }
+.wk .km { font: 600 16px var(--f-mono); }
+.wk.cur { background: var(--band); }
+.wk .zb { grid-column: 1; }
+
+/* Segmenté iOS 26 : pastille glissante */
+.seg { position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); padding: 3px; border-radius: 999px; background: var(--fill); }
+.seg .thumb { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / var(--n)); border-radius: 999px; background: var(--surface);
+  box-shadow: 0 2px 8px rgba(15, 30, 43, .12), 0 0 0 .5px var(--line); transform: translateX(calc(var(--i) * 100%)); transition: transform .38s cubic-bezier(.3, 1.3, .5, 1); }
+.seg button { position: relative; z-index: 1; border: 0; background: none; padding: 7px 6px; border-radius: 999px; font-size: 13.5px; font-weight: 500; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.seg button[aria-pressed="true"] { color: var(--ink); font-weight: 600; }
+.seg:active .thumb { transform: translateX(calc(var(--i) * 100%)) scale(1.04, 1.12); }
+
+/* Graphiques */
+.chart { width: 100%; height: auto; display: block; overflow: visible; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.chart text { fill: var(--ink-3); font: 10px var(--f-mono); }
+.chart .grid line { stroke: var(--grid); }
+.chart .cross { stroke: var(--ink-2); stroke-width: 1; }
+.readout { min-height: 38px; display: grid; align-content: center; gap: 1px; font: 12px/1.4 var(--f-mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.readout b { font: 600 12px var(--f-display); color: var(--ink); letter-spacing: .01em; }
+.readout.live { color: var(--ink); }
+.readout.live b { color: var(--accent); }
+.big { font-size: 28px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+
+/* Comparateur */
+.menu-btn { justify-self: start; height: 36px; padding: 0 14px; border-radius: 999px; border: 0; background: var(--fill); display: inline-flex; gap: 8px; align-items: center; font-size: 13.5px; font-weight: 600; cursor: pointer; max-width: 100%; }
+.menu-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-btn svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.periods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.period { display: grid; gap: 4px; font-size: 12px; color: var(--ink-2); }
+.period b { font-size: 12px; color: var(--ink); }
+.period input { font: 13px var(--f-mono); padding: 6px 10px; border: 0; border-radius: 10px; background: var(--fill); color: var(--ink); width: 100%; min-width: 0; }
+.cmp { display: grid; }
+.cmp .cr { display: grid; grid-template-columns: minmax(0, 1fr) 58px 58px 74px; gap: 6px; align-items: center; padding: 8px 0; border-top: .5px solid var(--grid); font-size: 13px; }
+.cmp .cr.grp { border-top: .5px solid var(--line); }
+.cmp .cr.hd { border: 0; font-size: 11.5px; color: var(--ink-3); padding-top: 0; }
+.cmp .g { grid-column: 1 / -1; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); padding: 12px 0 0; }
+.cmp .v { text-align: right; font: 12.5px var(--f-mono); font-variant-numeric: tabular-nums; }
+.cmp .e { justify-self: end; font-size: 12px; }
+.cmp .e .pill { font: 500 11.5px var(--f-mono); padding: 2px 6px; gap: 4px; }
+.cmp .e .pill::before { width: 5px; height: 5px; }
+
+/* Barre d'onglets flottante */
+.tabbar { position: absolute; z-index: 35; left: 20px; bottom: calc(var(--sb) + 4px); height: 62px; border-radius: 999px; display: flex; padding: 4px; transition: width .45s cubic-bezier(.3, 1.2, .4, 1); width: calc(100% - 40px); }
+.tab { position: relative; z-index: 1; flex: 1 1 0; min-width: 0; border: 0; background: none; border-radius: 999px; display: grid; justify-items: center; align-content: center; gap: 1px; padding: 0; color: var(--ink); cursor: pointer; transition: flex .45s cubic-bezier(.3, 1.2, .4, 1), opacity .25s; overflow: hidden; }
+.tab svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tab span { font-size: 10.5px; font-weight: 600; letter-spacing: .01em; white-space: nowrap; transition: opacity .2s; }
+.tab[aria-selected="true"] { color: var(--accent); }
+.tabbar .lens { position: absolute; z-index: 0; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 4); border-radius: 999px; background: var(--fill);
+  transform: translateX(calc(var(--i) * 100%)); transition: transform .45s cubic-bezier(.3, 1.3, .5, 1), width .45s cubic-bezier(.3, 1.2, .4, 1); }
+.tabbar.min { width: 62px; }
+.tabbar.min .tab:not([aria-selected="true"]) { flex: 0 0 0; opacity: 0; pointer-events: none; }
+.tabbar.min .tab span { opacity: 0; height: 0; }
+.tabbar.min .lens { opacity: 0; }
+
+/* Feuilles */
+.scrim { position: absolute; z-index: 70; inset: 0; background: var(--scrim); opacity: 0; transition: opacity .3s; }
+.scrim.on { opacity: 1; }
+.sheet { position: absolute; z-index: 80; left: 8px; right: 8px; bottom: 8px; max-height: 72%; border-radius: 42px; display: grid; grid-template-rows: auto auto minmax(0, 1fr);
+  transform: translateY(110%); transition: transform .45s cubic-bezier(.25, 1, .35, 1); }
+.sheet.open { transform: none; }
+.sheet.large { left: 0; right: 0; bottom: 0; top: calc(var(--st) + 10px); max-height: none; border-radius: 38px 38px 0 0; background: var(--glass-strong); }
+.grabber { width: 36px; height: 5px; border-radius: 3px; background: var(--ink-3); opacity: .45; margin: 7px auto 0; position: relative; }
+.sheet-h { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px; padding: 6px 14px 4px; position: relative; touch-action: none; }
+.sheet-h h2 { text-align: center; font-size: 17px; font-weight: 700; }
+.sheet-b { overflow-y: auto; padding: 8px 16px calc(var(--sb) + 18px); display: flex; flex-direction: column; gap: 14px; position: relative; scrollbar-width: none; }
+.sheet-b > * { flex: none; }
+.sheet:not(.large) .sheet-b { padding-bottom: 22px; }
+.sheet .card, .sheet .list { background: color-mix(in srgb, var(--surface) 82%, transparent); }
+.screen.receded .scroller, .screen.receded .navbar, .screen.receded .tabbar { transform: scale(.94) translateY(6px); }
+.scroller, .navbar { transition: transform .45s cubic-bezier(.25, 1, .35, 1); transform-origin: 50% 0; }
+.kv { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.sig-v { font: 600 26px var(--f-mono); letter-spacing: -.02em; }
+.thr { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; font-size: 13.5px; align-items: center; }
+.thr .num { font-size: 13px; }
+
+/* Curseur iOS 26 : pouce en lentille */
+.slider { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: none; margin: 0; cursor: pointer; }
+.slider::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--accent) var(--p), var(--fill) var(--p)); }
+.slider::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--accent) var(--p), var(--fill) var(--p)); }
+.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 38px; height: 24px; margin-top: -9px; border-radius: 999px; background: #fff; border: 0;
+  box-shadow: 0 3px 10px rgba(15, 30, 43, .22), 0 0 0 .5px rgba(15, 30, 43, .08); transition: transform .25s cubic-bezier(.3, 1.5, .5, 1), background .2s; }
+.slider::-moz-range-thumb { width: 38px; height: 24px; border-radius: 999px; background: #fff; border: 0; box-shadow: 0 3px 10px rgba(15, 30, 43, .22); }
+.slider:active::-webkit-slider-thumb { transform: scale(1.35, 1.5); background: rgba(255, 255, 255, .35); box-shadow: inset 0 1px 1px rgba(255, 255, 255, .9), inset 0 0 0 .5px rgba(255, 255, 255, .6), 0 6px 16px rgba(15, 30, 43, .2); }
+.sim-v { font: 700 44px var(--f-mono); letter-spacing: -.04em; line-height: 1; }
+.sim-v small { font: 500 16px var(--f-display); color: var(--ink-3); margin-left: 4px; }
+.sim-ticks { display: flex; justify-content: space-between; font: 11px var(--f-mono); color: var(--ink-3); }
+.sim-out { display: grid; gap: 8px; }
+
+/* Menu déroulant en verre */
+.menu { position: absolute; z-index: 90; min-width: 250px; max-width: calc(100% - 32px); border-radius: 26px; padding: 6px; display: grid; transform-origin: top left; transform: scale(.6); opacity: 0; transition: transform .35s cubic-bezier(.3, 1.3, .5, 1), opacity .2s; }
+.menu.open { transform: none; opacity: 1; }
+.menu button { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; gap: 6px; border: 0; background: none; padding: 11px 12px 11px 8px; border-radius: 18px; font-size: 15px; text-align: left; cursor: pointer; }
+.menu button:active, .menu button:hover { background: var(--fill); }
+.menu svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Paramètres */
+.fgrp { display: grid; gap: 6px; }
+.fgrp h3 { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); padding: 0 16px; }
+.fgrp .help { font-size: 12.5px; color: var(--ink-3); padding: 0 16px; margin: 0; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 10px 16px; min-height: 48px; position: relative; }
+.field + .field::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; border-top: .5px solid var(--line); }
+.field .in { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--ink-3); }
+.field input { font: 500 15px var(--f-mono); width: 64px; padding: 4px 0; border: 0; background: none; color: var(--accent); text-align: right; }
+.field input:focus { outline: none; color: var(--ink); }
+.field small { grid-column: 1 / -1; font-size: 12px; color: var(--ink-3); }
+.zt { width: 100%; border-collapse: collapse; font-size: 13px; }
+.zt td, .zt th { padding: 6px 16px; text-align: left; } .zt th { font-weight: 500; color: var(--ink-3); font-size: 12px; } .zt .r { text-align: right; }
+.txtbtn { border: 0; background: none; color: var(--bad); font-size: 15px; font-weight: 600; padding: 14px 16px; width: 100%; text-align: center; cursor: pointer; }
+.msg { font-size: 13px; color: var(--bad); padding: 0 16px; min-height: 18px; }
+
+/* ---------- Plein écran sur un vrai téléphone */
+@media (max-width: 520px) {
+  body { background: var(--bg); }
+  .stage { display: block; padding: 0; min-height: 0; }
+  .stage-info, .island, .statusbar, .home-ind { display: none; }
+  .device-wrap, .device { width: 100%; height: 100dvh; }
+  .device { padding: 0; border-radius: 0; background: none; box-shadow: none; transform: none !important; }
+  .screen { width: 100%; height: 100%; border-radius: 0; }
+  :root { --st: env(safe-area-inset-top, 20px); --sb: max(env(safe-area-inset-bottom, 0px), 8px); }
+}
+@media (max-width: 900px) and (min-width: 521px) { .stage { grid-template-columns: auto; } .stage-info { display: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before { transition: none !important; } }
+/* ---------- Ajouts maquette Récupération */
+.sh .lnk { border: 0; background: none; padding: 0; color: var(--accent); font: 600 13px var(--f-display); cursor: pointer; }
+.pane-seg { margin: -4px 0 0; }
+.stage { grid-template-columns: minmax(0, 400px) auto; }
+.bench { display: grid; gap: 10px; font-size: 13px; color: var(--ink-2); }
+.bench div { display: grid; gap: 2px; padding-left: 12px; border-left: 2px solid var(--line); }
+.bench b { color: var(--ink); font-size: 13.5px; }
+.bench .keep { color: var(--good); } .bench .drop { color: var(--bad); }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tile { display: grid; gap: 2px; align-content: start; min-width: 0; padding: 10px 10px 8px; border-radius: 18px; background: var(--fill); }
+.tile .l { font-size: 11.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile .v { font: 600 21px var(--f-mono); letter-spacing: -.03em; line-height: 1.15; white-space: nowrap; }
+.tile .v small { font: 500 11.5px var(--f-display); color: var(--ink-3); margin-left: 2px; letter-spacing: 0; }
+.tile .n { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+.tile svg { width: 100%; height: 22px; display: block; margin-top: 2px; }
+.card.link { cursor: pointer; text-align: left; font: inherit; color: inherit; width: 100%; }
+.card.link:active { background: var(--fill); }
+.hyp-k { display: flex; justify-content: space-between; font: 11px var(--f-mono); color: var(--ink-3); }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; border-top: .5px solid var(--line); padding-top: 12px; }
+.stats div { display: grid; gap: 0; }
+.stats span { font-size: 12px; color: var(--ink-2); }
+.stats b { font: 600 17px var(--f-mono); letter-spacing: -.02em; }
+.stats b small { font: 500 12px var(--f-display); color: var(--ink-3); margin-left: 3px; }
+.tag { font: 600 10.5px var(--f-display); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); border: 1px dashed var(--accent); border-radius: 6px; padding: 1px 6px; }
+.placeholder { text-align: center; color: var(--ink-2); font-size: 14px; padding: 28px 20px; }
+.placeholder a { color: var(--accent); }
+.method p { margin: 0 0 8px; } .method ul { margin: 0 0 8px; padding-left: 18px; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="stage-info">
+    <span class="brand">Jog · maquette iPhone · proposition</span>
+    <h1>Récupération : la tendance, pas une note</h1>
+    <p>Ajout à la <a href="mobile.html">maquette iPhone</a>, toujours sur 4 onglets : la récupération rejoint la charge, la nuit se lit dans Aujourd'hui. Données HealthKit de l'Apple Watch : VFC nocturne, FC de repos, sommeil par phases, fréquence respiratoire.</p>
+    <div class="bench">
+      <div><b>Athlytic</b>Score de récupération de 0 à 100 %, fondé sur la VFC (pondérée plus fort) et la FC de repos, mesurées pendant le sommeil et comparées à une base glissante de 60 jours. Calculé une fois par jour, au réveil.<span class="keep">On garde la base de 60 jours, la mesure nocturne et le calcul figé du matin.</span> <span class="drop">On écarte le pourcentage, opaque.</span></div>
+      <div><b>Bevel</b>Trois anneaux (Effort, Récupération, Sommeil) et une « Energy Bank » qui fusionne le tout.<span class="keep">On garde un sommeil résumé en une ligne lisible.</span> <span class="drop">On écarte le score composite et la gamification.</span></div>
+      <div><b>Whoop</b>Récupération en vert, jaune ou rouge, avec la VFC, la FC de repos, la fréquence respiratoire et un sommeil mesuré face au besoin de sommeil.<span class="keep">On garde le besoin de sommeil comme repère réglable.</span></div>
+      <div><b>Garmin, statut VFC</b>Moyenne des 7 dernières nuits tracée dans une bande de référence personnelle. États : Équilibré, Déséquilibré, Bas.<span class="keep">On reprend ce graphique à l'identique.</span></div>
+      <div><b>HRV4Training, Oura</b>Plage normale tirée de 60 jours, interprétée avec la charge d'entraînement. Oura liste chaque contributeur avec son état.<span class="keep">On reprend le lien avec la charge et la liste de signaux, comme dans l'Aperçu.</span></div>
+    </div>
+    <div class="seg" role="group" aria-label="Scénario de données" id="scn-seg" style="--n:3;--i:0">
+      <span class="thumb"></span>
+      <button data-v="norme" aria-pressed="true">Normal</button><button data-v="fatigue" aria-pressed="false">Fatigue</button><button data-v="nuit" aria-pressed="false">1 mauvaise nuit</button>
+    </div>
+    <div class="seg" role="group" aria-label="Thème" id="theme-seg" style="--n:3;--i:0">
+      <span class="thumb"></span>
+      <button data-theme="auto" aria-pressed="true">Système</button><button data-theme="light" aria-pressed="false">Clair</button><button data-theme="dark" aria-pressed="false">Sombre</button>
+    </div>
+    <p class="note">Change le principe 2 de la vision, « pas de sommeil » : décision proposée D-023, à valider. Les seuils affichés sont des propositions. Toutes les valeurs sont des données d'exemple.</p>
+  </aside>
+
+  <div class="device-wrap" id="device-wrap"><div class="device" id="device">
+  <div class="screen" id="screen">
+    <div class="island" aria-hidden="true"></div>
+    <div class="statusbar" aria-hidden="true"><span>7:12</span>
+      <span class="icons">
+        <svg width="19" height="12" viewBox="0 0 19 12"><rect x="0" y="8" width="3.2" height="4" rx="1"/><rect x="5" y="5.5" width="3.2" height="6.5" rx="1"/><rect x="10" y="3" width="3.2" height="9" rx="1"/><rect x="15" y="0" width="3.2" height="12" rx="1"/></svg>
+        <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" style="stroke:var(--ink);opacity:.4"/><rect x="2" y="2" width="18" height="9" rx="2.4"/><path d="M25 4.5v4c.8-.3 1.4-1.1 1.4-2s-.6-1.7-1.4-2Z" style="opacity:.45"/></svg>
+      </span></div>
+
+    <div class="scroller" id="scroller">
+      <div class="ambient" aria-hidden="true"></div>
+
+      <!-- ======================= APERÇU (extrait) -->
+      <main class="view" id="v-apercu" role="tabpanel" aria-labelledby="t-apercu" data-title="Aujourd'hui">
+        <div class="ltitle"><h1>Aujourd'hui</h1><p>Ex-Aperçu · extrait : seuls les changements sont détaillés</p></div>
+        <section class="hero">
+          <div class="eyebrow">Décision volume · données arrêtées au mardi 28 octobre au soir</div>
+          <h2 class="verdict" id="ap-verdict"></h2>
+          <p class="why" id="ap-why"></p>
+        </section>
+        <section>
+          <div class="sh"><h2>Récupération <span class="tag">nouveau</span></h2><button class="lnk" id="ap-trend">Tendances</button></div>
+          <button class="card link" id="ap-recup"></button>
+        </section>
+        <section>
+          <div class="sh"><h2>Signaux</h2><p>7 existants + 1</p></div>
+          <ul class="list" id="ap-signals"></ul>
+          <p class="foot">Les 7 signaux existants sont inchangés. La récupération entre comme 8ᵉ signal, secondaire : elle peut faire passer Augmenter à Maintenir, mais jamais déclencher Alléger à elle seule.</p>
+        </section>
+        <section>
+          <div class="sh"><h2>Volume réalisé · 7 derniers jours</h2></div>
+          <div class="card placeholder">Inchangés.</div>
+          <p class="foot">« Forme et fatigue » quitte cet écran pour Charge › Entraînement : l'écran du matin raccourcit.</p>
+        </section>
+      </main>
+
+
+      <!-- ======================= CHARGE : entraînement + récupération -->
+      <main class="view" id="v-charge" role="tabpanel" aria-labelledby="t-charge" data-title="Charge" hidden>
+        <div class="ltitle"><h1>Charge</h1><p>Ce que tu fais, et comment ton corps l'encaisse</p></div>
+        <div class="seg pane-seg" role="group" aria-label="Partie affichée" id="pane-seg" style="--n:2;--i:0"><span class="thumb"></span>
+          <button data-v="train" aria-pressed="true">Entraînement</button><button data-v="recup" aria-pressed="false">Récupération</button></div>
+        <div class="view" id="cp-train">
+          <section>
+            <div class="sh"><h2>Forme et fatigue <span class="tag">déplacé ici</span></h2></div>
+            <div class="card placeholder">Courbes CTL, ATL et fraîcheur, identiques à l'Aperçu actuel.</div>
+          </section>
+          <section>
+            <div class="sh"><h2>Progressivité · sous-seuil · discipline NSA</h2></div>
+            <div class="card placeholder">Inchangés. Voir la <a href="mobile.html">maquette iPhone</a>.</div>
+          </section>
+        </div>
+        <div class="view" id="cp-recup" hidden>
+          <section class="hero">
+            <div class="eyebrow">Ce matin · moyenne des 7 dernières nuits face à ta norme de 60 jours</div>
+            <h2 class="verdict" id="rc-verdict"></h2>
+            <p class="why" id="rc-why"></p>
+          </section>
+          <section>
+            <div class="sh"><h2>Signaux</h2><p id="rc-sigsum"></p></div>
+            <ul class="list" id="rc-signals"></ul>
+          </section>
+          <section>
+            <div class="sh"><h2>Variabilité cardiaque</h2><p>VFC nocturne</p></div>
+            <div class="card">
+              <div class="seg" role="group" aria-label="Fenêtre affichée" id="win-seg" style="--n:2;--i:0"><span class="thumb"></span>
+                <button data-v="56" aria-pressed="true">8 semaines</button><button data-v="182" aria-pressed="false">6 mois</button></div>
+              <div class="readout" id="ro-hrv"></div>
+              <svg class="chart" id="hrv" role="img" aria-label="VFC de chaque nuit, moyenne sur 7 nuits et norme personnelle"></svg>
+              <div class="legend"><span><i style="background:var(--z-easy);border-radius:50%"></i>Nuit</span><span><i class="line" style="background:var(--accent)"></i>Moyenne 7 nuits</span><span><i style="background:var(--band)"></i>Ta norme</span></div>
+            </div>
+          </section>
+          <section>
+            <div class="sh"><h2>FC de repos</h2><p>pendant le sommeil</p></div>
+            <div class="card">
+              <div class="readout" id="ro-rhr"></div>
+              <svg class="chart" id="rhr" role="img" aria-label="FC de repos de chaque nuit, moyenne sur 7 nuits et norme personnelle"></svg>
+            </div>
+          </section>
+          <section>
+            <div class="sh"><h2>Sommeil</h2><p>14 dernières nuits</p></div>
+            <div class="card">
+              <div class="readout" id="ro-slp"></div>
+              <svg class="chart" id="slp" role="img" aria-label="Durée de sommeil par nuit, répartie par phase, avec le besoin de sommeil"></svg>
+              <div class="legend"><span><i style="background:var(--z-hard)"></i>Profond</span><span><i style="background:var(--z-subt)"></i>Paradoxal</span><span><i style="background:var(--z-easy)"></i>Léger</span><span><i style="background:var(--warn)"></i>Éveillé</span><span><i class="line" style="background:var(--ink)"></i>Besoin</span></div>
+            </div>
+          </section>
+          <section>
+            <div class="sh"><h2>Récupération et charge</h2><p>16 semaines</p></div>
+            <div class="card">
+              <div class="readout" id="ro-ld"></div>
+              <svg class="chart" id="ld" role="img" aria-label="Kilomètres par semaine et écart de la VFC à la norme, alignés"></svg>
+              <div class="note">Quand le volume monte et que la VFC passe sous sa norme plusieurs semaines de suite, la charge n'est plus absorbée. Une baisse isolée d'une nuit ne veut rien dire.</div>
+            </div>
+          </section>
+          <section>
+            <div class="card">
+              <details class="more"><summary>Comment c'est calculé</summary><div class="note method">
+                <p><b>Mesure.</b> L'Apple Watch relève la VFC (SDNN, pas RMSSD) plusieurs fois pendant le sommeil. On fait la moyenne de la nuit, en logarithme. La FC de repos est la FC moyenne pendant le sommeil, pas la valeur du jour donnée par Santé.</p>
+                <p><b>Norme.</b> Moyenne des 60 nuits précédentes, plus ou moins un écart-type environ, recalculée chaque matin. Il faut au moins 21 nuits mesurées. Avant cela, l'écran affiche « Norme en cours de calcul ».</p>
+                <p><b>État</b>, figé au réveil :</p>
+                <ul><li>Dans ta norme : VFC sur 7 nuits dans la bande.</li><li>Sous ta norme : VFC sur 7 nuits sous la bande.</li><li>Basse : VFC sous la bande <i>et</i> FC de repos au-dessus de la sienne.</li></ul>
+                <p><b>Sommeil.</b> C'est un contexte, pas une entrée de l'état. Repère : besoin réglable, 7 h 30 par défaut. Une nuit sans montre est ignorée, jamais comptée à zéro.</p>
+              </div></details>
+            </div>
+          </section>
+          <p class="foot">Source : Apple Santé (HealthKit). Pas de score sur 100 : chaque valeur est affichée face à sa propre norme.</p>
+        </div>
+      </main>
+      <main class="view" id="v-progression" role="tabpanel" aria-labelledby="t-progression" data-title="Progression" hidden><div class="ltitle"><h1>Progression</h1></div><div class="card placeholder">Inchangé. Voir la <a href="mobile.html">maquette iPhone</a>.</div></main>
+      <main class="view" id="v-historique" role="tabpanel" aria-labelledby="t-historique" data-title="Historique" hidden><div class="ltitle"><h1>Historique</h1></div><div class="card placeholder">Inchangé. Voir la <a href="mobile.html">maquette iPhone</a>.</div></main>
+    </div>
+
+    <div class="edge-top" id="edge-top" aria-hidden="true"></div>
+    <div class="edge-bot" aria-hidden="true"></div>
+    <header class="navbar"><span></span><div class="ctitle" id="ctitle" aria-hidden="true">Aperçu</div><span></span></header>
+
+    <nav class="tabbar glass" id="tabbar" role="tablist" aria-label="Vues" style="--i:0">
+      <span class="lens" aria-hidden="true"></span>
+      <button class="tab" role="tab" id="t-apercu" data-view="apercu" aria-controls="v-apercu"><svg viewBox="0 0 24 24"><path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4.5-5"/><circle cx="12" cy="16" r="1.4"/></svg><span>Aujourd'hui</span></button>
+            <button class="tab" role="tab" id="t-charge" data-view="charge" aria-controls="v-charge"><svg viewBox="0 0 24 24"><path d="M5 20v-7M10 20V8M15 20v-5M20 20V4"/></svg><span>Charge</span></button>
+      <button class="tab" role="tab" id="t-progression" data-view="progression" aria-controls="v-progression"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg><span>Progression</span></button>
+      <button class="tab" role="tab" id="t-historique" data-view="historique" aria-controls="v-historique"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>Historique</span></button>
+    </nav>
+
+    <div class="scrim" id="scrim" hidden></div>
+    <template id="night-tpl">
+      <div class="card">
+        <div class="kv"><span class="big num" id="ln-dur"></span><span id="ln-pill"></span></div>
+        <span class="muted" id="ln-date" style="font-size:12.5px"></span>
+        <svg class="chart" id="hyp" role="img" aria-label="Phases de sommeil de la nuit dernière"></svg>
+        <div class="hyp-k" id="hyp-k"></div>
+        <div class="stats" id="ln-stats"></div>
+      </div>
+      <button class="gpill prominent glass" id="ln-trend" style="align-self:flex-start"><span>Tendances de récupération</span></button>
+    </template>
+    <section class="sheet glass strong" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+      <div class="grabber" aria-hidden="true"></div>
+      <header class="sheet-h" id="sheet-h">
+        <button class="gbtn glass" id="sheet-close" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <h2 id="sheet-title"></h2><span></span>
+      </header>
+      <div class="sheet-b" id="sheet-body"></div>
+    </section>
+    <div class="home-ind" aria-hidden="true"></div>
+  </div>
+  </div></div>
+</div>
+
+<script>
+(() => {
+const NS = 'http://www.w3.org/2000/svg';
+const $ = (id) => document.getElementById(id);
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const vt = (p, x, y, s, a = {}) => { const t = el('text', { x, y, ...a }, p); t.textContent = s; return t; };
+const lin = (d0, d1, r0, r1) => (v) => r0 + (v - d0) / (d1 - d0) * (r1 - r0);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const mean = (a) => a.length ? a.reduce((x, y) => x + y, 0) / a.length : NaN;
+const sd = (a) => { const m = mean(a); return Math.sqrt(mean(a.map(v => (v - m) ** 2))); };
+const nf = (v, d = 0) => v.toFixed(d).replace('.', ',').replace('-', '−');
+const sg = (v, d = 0) => (v > 0 ? '+' : '') + nf(v, d);
+const hm = (min) => `${Math.floor(min / 60)} h ${String(Math.round(min % 60)).padStart(2, '0')}`;
+const store = { get: (k, d) => { try { return localStorage.getItem(k) ?? d; } catch (e) { return d; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+const CHEV = '<svg class="chev" viewBox="0 0 8 13" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5"/></svg>';
+const ST_TXT = { good: 'OK', warn: 'À surveiller', bad: 'Alerte', neutral: 'Contexte' };
+const TODAY = new Date(2026, 9, 29);
+const dayOf = (k) => { const d = new Date(TODAY); d.setDate(d.getDate() - k); return d; };
+const dLong = (d) => d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+const NEED = 450; // besoin de sommeil, min (réglable)
+
+// ---------- Données d'exemple : N nuits, la dernière = nuit du 28 au 29
+const N = 250;
+function gen(scn) {
+  let s = 7; const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+  const g = () => { let u = 0; for (let i = 0; i < 6; i++) u += rnd(); return (u - 3) / Math.sqrt(.5); };
+  const nights = [];
+  for (let i = 0; i < N; i++) {
+    const back = N - 1 - i, date = dayOf(back), wd = date.getDay();
+    const missing = back > 0 && rnd() < .04;
+    let ln = Math.log(54) + .05 * Math.sin(i / 23) + .11 * g(), rhr = 46 - .5 * Math.sin(i / 23 + 2) + 1.1 * g();
+    let sleep = 428 + 34 * g() + (wd === 0 || wd === 6 ? 22 : 0);
+    if (scn === 'fatigue' && back < 10) { const r = (10 - back) / 10; ln -= .24 * r; rhr += 4.2 * r; sleep -= 28 * r; }
+    if (scn === 'nuit' && back === 0) { ln -= .38; rhr += 5; sleep = 312; }
+    if (back === 0 && scn !== 'nuit') sleep = Math.min(sleep, 401);
+    const deep = sleep * (.13 + .03 * g() / 2), rem = sleep * (.22 + .03 * g() / 2), awake = 14 + 8 * Math.abs(g()) + (scn === 'nuit' && back === 0 ? 30 : 0);
+    nights.push(missing ? { date, missing: true } : { date, hrv: Math.exp(ln), ln, rhr, sleep, deep, rem, awake, core: sleep - deep - rem, resp: 14.1 + .3 * g() + (scn === 'fatigue' && back < 6 ? .6 : 0), bed: 23 * 60 + 4 + 22 * g() });
+  }
+  // fenêtres : moyenne 7 nuits, norme 60 nuits précédentes
+  nights.forEach((n, i) => {
+    const w7 = nights.slice(Math.max(0, i - 6), i + 1).filter(x => !x.missing);
+    const base = nights.slice(Math.max(0, i - 66), i - 6).filter(x => !x.missing);
+    if (w7.length >= 4) { n.ln7 = mean(w7.map(x => x.ln)); n.hrv7 = Math.exp(n.ln7); n.rhr7 = mean(w7.map(x => x.rhr)); n.slp7 = mean(w7.map(x => x.sleep)); }
+    if (base.length >= 21) { const lm = mean(base.map(x => x.ln)), ls = sd(base.map(x => x.ln)), rm = mean(base.map(x => x.rhr)), rs = sd(base.map(x => x.rhr));
+      Object.assign(n, { hLo: Math.exp(lm - .95 * ls), hHi: Math.exp(lm + .95 * ls), hMid: Math.exp(lm), rLo: rm - .95 * rs, rHi: rm + .95 * rs, rMid: rm }); }
+  });
+  return nights;
+}
+
+const Q = new URLSearchParams(location.search);
+let scn = Q.get('scn') || store.get('jog-recup-scn', 'norme'), win = 56, D, L;
+
+function state(n) {
+  // D-015 : on compare les valeurs arrondies, telles qu'affichées
+  const lowH = Math.round(n.hrv7) < Math.round(n.hLo), highR = +n.rhr7.toFixed(0) > +n.rHi.toFixed(0);
+  return lowH && highR ? 'bad' : lowH ? 'warn' : 'good';
+}
+const VERD = { good: 'Dans ta norme', warn: 'Sous ta norme', bad: 'Récupération basse' };
+
+function compute() {
+  D = gen(scn); L = D[D.length - 1];
+  const st = state(L), lastN = D.slice(-7).filter(x => !x.missing);
+  const sl7 = L.slp7, slDebt = mean(lastN.map(x => x.sleep - NEED));
+  const bedSd = sd(lastN.map(x => x.bed));
+  const nightLow = L.hrv < L.hLo * .9;
+  const S = [
+    { k: 'hrv', l: 'VFC', v: `${Math.round(L.hrv7)} ms`, vl: `7 nuits · norme ${Math.round(L.hLo)}–${Math.round(L.hHi)}`, st: Math.round(L.hrv7) < Math.round(L.hLo) ? 'warn' : 'good',
+      h: Math.round(L.hrv7) < Math.round(L.hLo) ? 'Sous ta plage habituelle : le système nerveux récupère moins bien que d\'ordinaire.' : 'Dans ta plage habituelle.', thr: ['dans la norme ou au-dessus', 'sous la norme', 'sous la norme et FC de repos haute'] },
+    { k: 'rhr', l: 'FC de repos', v: `${nf(L.rhr7)} bpm`, vl: `7 nuits · norme ${nf(L.rLo)}–${nf(L.rHi)}`, st: Math.round(L.rhr7) > Math.round(L.rHi) ? 'warn' : 'good',
+      h: Math.round(L.rhr7) > Math.round(L.rHi) ? 'Plus haute que d\'habitude : fatigue, chaleur, alcool ou début de maladie.' : 'Dans ta plage habituelle.', thr: ['dans la norme ou en dessous', 'au-dessus de la norme', '—'] },
+    { k: 'slp', l: 'Sommeil', v: hm(sl7), vl: `moy. 7 nuits · besoin ${hm(NEED)}`, st: slDebt < -45 ? 'warn' : 'good',
+      h: slDebt < -45 ? `En moyenne ${Math.round(-slDebt)} min de moins que ton besoin, chaque nuit.` : 'Proche de ton besoin de sommeil.', thr: ['moins de 45 min sous le besoin', '45 min ou plus sous le besoin', '—'] },
+    { k: 'reg', l: 'Régularité', v: `± ${Math.round(bedSd)} min`, vl: 'heure de coucher, 7 nuits', st: bedSd > 45 ? 'warn' : 'good',
+      h: 'Écart type de l\'heure d\'endormissement. Un horaire régulier aide la récupération.', thr: ['≤ 45 min', '> 45 min', '—'] },
+    { k: 'resp', l: 'Fréquence respiratoire', v: `${nf(mean(lastN.map(x => x.resp)), 1)} /min`, vl: 'pendant le sommeil', st: 'neutral',
+      h: 'Très stable d\'une nuit à l\'autre. Une hausse durable de plus de 1 /min accompagne souvent une maladie.', thr: ['—', '—', '—'] },
+  ];
+  const why = st === 'good'
+    ? (nightLow ? `Nuit dernière basse (VFC ${Math.round(L.hrv)} ms), mais une nuit isolée ne change pas la tendance des 7 nuits.` : 'VFC et FC de repos des 7 dernières nuits restent dans ta plage habituelle.')
+    : st === 'warn' ? 'La VFC des 7 dernières nuits est passée sous ta plage habituelle. La FC de repos tient encore.'
+    : `VFC sous ta norme (${Math.round(L.hrv7)} ms contre ${Math.round(L.hLo)}–${Math.round(L.hHi)}) et FC de repos au-dessus (${nf(L.rhr7)} bpm). Le corps n'absorbe pas la charge actuelle.`;
+  return { st, S, why };
+}
+
+// ---------- Outils de graphique (même conventions que mobile.html)
+function dom(vals, step, pad = .08) { let lo = Math.min(...vals), hi = Math.max(...vals); const p = (hi - lo) * pad; return [Math.floor((lo - p) / step) * step, Math.ceil((hi + p) / step) * step]; }
+function ticks(lo, hi, step, maxN = 4) { let s = step; while ((hi - lo) / s > maxN) s *= 2; const o = []; for (let v = Math.ceil(lo / s) * s; v <= hi + 1e-9; v += s) o.push(+v.toFixed(6)); return o; }
+function yAxis(svg, y, tk, Lx, R, W, fmt = (v) => v) { const g = el('g', { class: 'grid' }, svg); tk.forEach(v => { el('line', { x1: Lx, x2: W - R, y1: y(v), y2: y(v) }, g); vt(svg, Lx - 5, y(v) + 3.5, fmt(v), { 'text-anchor': 'end' }); }); }
+function frame(id, W, H) { const s = $(id); s.innerHTML = ''; s.setAttribute('viewBox', `0 0 ${W} ${H}`); return s; }
+function readout(id, html) { const r = $(id); r.innerHTML = html; r.classList.remove('live');
+  return { set: (h) => { r.innerHTML = h; r.classList.add('live'); }, reset: () => { r.innerHTML = html; r.classList.remove('live'); } }; }
+function scrub(svg, o) {
+  const cross = el('line', { class: 'cross', y1: o.cross[0], y2: o.cross[1], visibility: 'hidden' }, svg);
+  const hit = el('rect', { x: 0, y: 0, width: o.W, height: o.H, fill: 'transparent' }, svg); let on = false;
+  const move = (e) => { const r = svg.getBoundingClientRect(), i = o.pick((e.clientX - r.left) / r.width * o.W); if (i == null) return; const cx = o.x(i); cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.setAttribute('visibility', 'visible'); o.show(i); };
+  const end = () => { on = false; cross.setAttribute('visibility', 'hidden'); o.hide(); };
+  hit.addEventListener('pointerdown', (e) => { on = true; try { hit.setPointerCapture(e.pointerId); } catch (_) {} move(e); });
+  hit.addEventListener('pointermove', (e) => { if (on || e.pointerType === 'mouse') move(e); });
+  hit.addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse') end(); else on = false; });
+  hit.addEventListener('pointercancel', end); hit.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') end(); });
+}
+const idx = (Lx, R, W, n, band) => (px) => clamp(band ? Math.floor((px - Lx) / ((W - Lx - R) / n)) : Math.round((px - Lx) / (W - Lx - R) * (n - 1)), 0, n - 1);
+function monthTicks(svg, data, x, yPos) { let lm = -1; data.forEach((n, i) => { const m = n.date.getMonth(); if (m === lm) return; const first = lm === -1; lm = m; if (!first && i > 2) vt(svg, x(i), yPos, n.date.toLocaleDateString('fr-FR', { month: 'short' }), { 'text-anchor': 'middle' }); }); }
+function weekTicks(svg, data, x, yPos) { data.forEach((n, i) => { if (n.date.getDay() === 1 && i > 3 && i < data.length - 3 && (data.length < 90 || n.date.getDate() <= 7)) vt(svg, x(i), yPos, n.date.toLocaleDateString('fr-FR', data.length < 90 ? { day: 'numeric', month: 'numeric' } : { month: 'short' }), { 'text-anchor': 'middle' }); }); }
+
+// Courbe nuit / moyenne 7 nuits / bande de norme
+function trend(id, roId, o) {
+  const data = D.slice(-win), W = 370, H = 170, Lx = 32, R = 6, T = 8, B = 20;
+  const svg = frame(id, W, H), x = lin(0, data.length - 1, Lx, W - R);
+  const vals = data.flatMap(n => n.missing ? [n[o.lo], n[o.hi]] : [n[o.k], n[o.k7], n[o.lo], n[o.hi]]).filter(v => v != null);
+  const [y0, y1] = dom(vals, o.step), y = lin(y0, y1, H - B, T);
+  yAxis(svg, y, ticks(y0, y1, o.step), Lx, R, W);
+  const band = data.filter(n => n[o.lo] != null);
+  el('path', { d: band.map((n, i) => `${i ? 'L' : 'M'}${x(data.indexOf(n)).toFixed(1)},${y(n[o.hi]).toFixed(1)}`).join('') + band.slice().reverse().map(n => `L${x(data.indexOf(n)).toFixed(1)},${y(n[o.lo]).toFixed(1)}`).join('') + 'Z', fill: 'var(--band)' }, svg);
+  const r = win > 90 ? 1.6 : 2.4;
+  data.forEach((n, i) => { if (!n.missing) el('circle', { cx: x(i), cy: y(n[o.k]), r, fill: 'var(--z-easy)' }, svg); });
+  el('path', { d: data.map((n, i) => n[o.k7] == null ? '' : `${i && data[i - 1][o.k7] != null ? 'L' : 'M'}${x(i).toFixed(1)},${y(n[o.k7]).toFixed(1)}`).join(''), fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2.2, 'stroke-linejoin': 'round' }, svg);
+  const last = data[data.length - 1];
+  el('circle', { cx: x(data.length - 1), cy: y(last[o.k7]), r: 4, fill: 'var(--accent)', stroke: 'var(--surface)', 'stroke-width': 2 }, svg);
+  (win > 90 ? monthTicks : weekTicks)(svg, data, x, H - 5);
+  const ro = readout(roId, `<b>Ce matin</b><span>moy. 7 nuits ${o.f(last[o.k7])} ${o.u} · norme ${o.f(last[o.lo])}–${o.f(last[o.hi])}</span>`);
+  scrub(svg, { W, H, cross: [T, H - B], x, pick: idx(Lx, R, W, data.length), hide: ro.reset,
+    show: (i) => { const n = data[i]; ro.set(`<b>Nuit du ${dLong(n.date)}</b><span>${n.missing ? 'pas de mesure (montre non portée)' : `nuit ${o.f(n[o.k])} ${o.u}`} · moy. 7 n. ${n[o.k7] != null ? o.f(n[o.k7]) : '–'} · norme ${o.f(n[o.lo])}–${o.f(n[o.hi])}</span>`); } });
+}
+
+function drawSleep() {
+  const data = D.slice(-14), W = 370, H = 160, Lx = 32, R = 6, T = 8, B = 20, n = data.length;
+  const svg = frame('slp', W, H), bw = (W - Lx - R) / n, y = lin(0, 600, H - B, T);
+  yAxis(svg, y, [0, 120, 240, 360, 480, 600], Lx, R, W, (v) => v / 60 + ' h');
+  data.forEach((d, i) => {
+    const x0 = Lx + i * bw + bw * .18, w = bw * .64;
+    if (d.missing) { vt(svg, x0 + w / 2, y(30), '–', { 'text-anchor': 'middle' }); return; }
+    let acc = 0; [['deep', 'var(--z-hard)'], ['rem', 'var(--z-subt)'], ['core', 'var(--z-easy)'], ['awake', 'var(--warn)']].forEach(([k, c]) => {
+      el('rect', { x: x0, y: y(acc + d[k]), width: w, height: Math.max(0, y(acc) - y(acc + d[k]) - 1), fill: c, rx: 1.5 }, svg); acc += d[k]; });
+    if (i % 2 === (n - 1) % 2) vt(svg, x0 + w / 2, H - 5, d.date.toLocaleDateString('fr-FR', { weekday: 'short' }) + ' ' + d.date.getDate(), { 'text-anchor': 'middle' });
+  });
+  el('line', { x1: Lx, x2: W - R, y1: y(NEED), y2: y(NEED), stroke: 'var(--ink)', 'stroke-width': 1.4, 'stroke-dasharray': '4 3' }, svg);
+  const v = data.filter(d => !d.missing);
+  const ro = readout('ro-slp', `<b>Moyenne 14 nuits</b><span>${hm(mean(v.map(d => d.sleep)))} · profond ${hm(mean(v.map(d => d.deep)))} · paradoxal ${hm(mean(v.map(d => d.rem)))}</span>`);
+  scrub(svg, { W, H, cross: [T, H - B], x: (i) => Lx + (i + .5) * bw, pick: idx(Lx, R, W, n, true), hide: ro.reset,
+    show: (i) => { const d = data[i]; ro.set(`<b>Nuit du ${dLong(d.date)}</b><span>${d.missing ? 'pas de mesure' : `${hm(d.sleep)} · profond ${hm(d.deep)} · parad. ${hm(d.rem)} · éveillé ${Math.round(d.awake)} min`}</span>`); } });
+}
+
+// Hypnogramme de la nuit dernière : 4 couloirs
+function drawHyp() {
+  const W = 370, H = 112, Lx = 66, R = 6, lanes = ['Éveillé', 'Paradoxal', 'Léger', 'Profond'], col = ['var(--warn)', 'var(--z-subt)', 'var(--z-easy)', 'var(--z-hard)'];
+  const svg = frame('hyp', W, H), lh = H / 4, tot = L.sleep + L.awake, x = lin(0, tot, Lx, W - R);
+  lanes.forEach((l, k) => { vt(svg, 0, k * lh + lh / 2 + 3.5, l); el('line', { x1: Lx, x2: W - R, y1: k * lh + lh / 2, y2: k * lh + lh / 2, stroke: 'var(--grid)' }, svg); });
+  // cycles de ~90 min : profond en début de nuit, paradoxal en fin de nuit
+  let s = 3; const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+  const segs = []; let t = 0, c = 0;
+  while (t < tot - 5) { const late = t / tot;
+    const seq = [[2, 12 + 8 * rnd()], [3, Math.max(4, (1 - late) * 38 * rnd() + 6)], [2, 14 + 10 * rnd()], [1, 8 + late * 30 * rnd() + 6]];
+    if (rnd() < .45 || (scn === 'nuit' && rnd() < .7)) seq.push([0, 2 + 6 * rnd()]);
+    for (const [k, d] of seq) { const e = Math.min(tot, t + d); segs.push([k, t, e]); t = e; if (t >= tot) break; } c++; }
+  segs.forEach(([k, a, b]) => el('rect', { x: x(a), y: k * lh + lh * .2, width: Math.max(1, x(b) - x(a)), height: lh * .6, rx: 2, fill: col[k] }, svg));
+  const bed = L.bed, fmt = (m) => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(Math.round(m % 60)).padStart(2, '0')}`;
+  $('hyp-k').innerHTML = `<span>${fmt(bed)}</span><span>${fmt(bed + tot / 2)}</span><span>${fmt(bed + tot)}</span>`;
+  $('hyp-k').style.paddingLeft = (Lx / W * 100) + '%';
+}
+
+function drawLoad() {
+  // 16 semaines : km et écart moyen de la VFC (7 nuits) à la norme
+  const W = 370, H = 200, Lx = 32, R = 6, n = 16, gap = 14, h1 = 80, T2 = h1 + gap + 6, B = 18;
+  let s = 11; const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+  const wk = [];
+  for (let w = n - 1; w >= 0; w--) {
+    const ns = D.slice(D.length - 7 * w - 7, D.length - 7 * w).filter(x => !x.missing && x.hMid);
+    const dev = mean(ns.map(x => (x.hrv / x.hMid - 1) * 100));
+    const km = (w === 0 ? 62 : 70 + 22 * (1 - w / n)) + 8 * (rnd() - .5) + (scn === 'fatigue' && w <= 1 ? 22 : 0) - (w % 4 === 3 ? 0 : 0);
+    wk.push({ date: dayOf(7 * w + 6), km, dev, cur: w === 0 });
+  }
+  const svg = frame('ld', W, H), bw = (W - Lx - R) / n;
+  const yk = lin(0, 120, h1, 6); yAxis(svg, yk, [0, 50, 100], Lx, R, W);
+  vt(svg, Lx, 4, 'km / semaine', { x: Lx + 2 });
+  const [d0, d1] = dom([...wk.map(w => w.dev), -8, 8], 5), yd = lin(d0, d1, H - B, T2);
+  yAxis(svg, yd, ticks(d0, d1, 5), Lx, R, W, (v) => (v > 0 ? '+' : '') + v + ' %');
+  vt(svg, Lx + 2, T2 - 2, 'VFC face à la norme');
+  wk.forEach((w, i) => el('rect', { x: Lx + i * bw + bw * .18, y: yk(w.km), width: bw * .64, height: yk(0) - yk(w.km), rx: 2, fill: w.cur ? 'var(--grid)' : 'var(--z-easy)', stroke: w.cur ? 'var(--z-easy)' : 'none' }, svg));
+  el('line', { x1: Lx, x2: W - R, y1: yd(0), y2: yd(0), stroke: 'var(--ink-3)', 'stroke-width': 1 }, svg);
+  const xm = (i) => Lx + (i + .5) * bw;
+  el('path', { d: wk.map((w, i) => `${i ? 'L' : 'M'}${xm(i).toFixed(1)},${yd(w.dev).toFixed(1)}`).join(''), fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2 }, svg);
+  wk.forEach((w, i) => el('circle', { cx: xm(i), cy: yd(w.dev), r: 3, fill: w.dev < -8 ? 'var(--warn)' : 'var(--accent)', stroke: 'var(--surface)', 'stroke-width': 1.5 }, svg));
+  wk.forEach((w, i) => { if (i % 4 === 3) vt(svg, xm(i), H - 4, w.date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }), { 'text-anchor': 'middle' }); });
+  const lw = wk[n - 1];
+  const ro = readout('ro-ld', `<b>Semaine en cours</b><span>${Math.round(lw.km)} km · VFC ${sg(lw.dev)} % face à la norme</span>`);
+  scrub(svg, { W, H, cross: [6, H - B], x: xm, pick: idx(Lx, R, W, n, true), hide: ro.reset,
+    show: (i) => { const w = wk[i]; ro.set(`<b>Semaine au ${dLong(w.date)}</b><span>${Math.round(w.km)} km${w.cur ? ' (en cours)' : ''} · VFC ${sg(w.dev)} % face à la norme</span>`); } });
+}
+
+function spark(arr, lo, hi) {
+  const v = arr.filter(a => a != null), w = 100, h = 22, x = lin(0, arr.length - 1, 2, w - 2), [a, b] = [Math.min(...v, lo), Math.max(...v, hi)], y = lin(a, b, h - 3, 3);
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="${y(hi)}" width="${w}" height="${y(lo) - y(hi)}" fill="var(--band)"/><path d="${arr.map((p, i) => p == null ? '' : `${i && arr[i - 1] != null ? 'L' : 'M'}${x(i).toFixed(1)},${y(p).toFixed(1)}`).join('')}" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function renderAll() {
+  const R = compute();
+  // Récup
+  $('rc-verdict').textContent = VERD[R.st]; $('rc-verdict').dataset.st = R.st; $('rc-why').textContent = R.why;
+  $('rc-sigsum').textContent = `${R.S.filter(s => s.st === 'good').length} sur ${R.S.filter(s => s.st !== 'neutral').length} au vert`;
+  $('rc-signals').innerHTML = R.S.map((s, i) => `<li><button class="row" data-sig="${i}" data-st="${s.st}"><span class="t">${s.l}</span><span class="d"><span class="num">${s.v}</span> · ${s.vl}</span><span class="r"><span class="pill ${s.st}">${ST_TXT[s.st]}</span>${CHEV}</span></button></li>`).join('');
+  $('rc-signals').onclick = (e) => { const b = e.target.closest('[data-sig]'); if (b) openSignal(R.S[+b.dataset.sig]); };
+  trend('hrv', 'ro-hrv', { k: 'hrv', k7: 'hrv7', lo: 'hLo', hi: 'hHi', step: 5, u: 'ms', f: (v) => Math.round(v) });
+  const w0 = win; win = Math.min(win, 182); trend('rhr', 'ro-rhr', { k: 'rhr', k7: 'rhr7', lo: 'rLo', hi: 'rHi', step: 2, u: 'bpm', f: (v) => nf(v) }); win = w0;
+  drawSleep(); drawLoad();
+  // Aperçu
+  const verd = R.st === 'good' ? ['Augmenter le volume', 'good', 'Tous les signaux sont au vert : la charge actuelle est absorbée.'] : ['Maintenir le volume', 'warn', `Rien d'alarmant côté entraînement, mais la récupération est ${R.st === 'bad' ? 'basse' : 'sous ta norme'} : mieux vaut consolider avant de monter.`];
+  $('ap-verdict').textContent = verd[0]; $('ap-verdict').dataset.st = verd[1]; $('ap-why').textContent = verd[2];
+  const l14 = D.slice(-14);
+  $('ap-recup').innerHTML = `<div class="ch"><h3>${VERD[R.st]}</h3><span class="r" style="display:flex;gap:8px;align-items:center"><span class="pill ${R.st}">${ST_TXT[R.st]}</span>${CHEV}</span></div>
+    <div class="tiles">
+      <div class="tile"><span class="l">VFC</span><span class="v">${Math.round(L.hrv7)}<small>ms</small></span><span class="n">norme ${Math.round(L.hLo)}–${Math.round(L.hHi)}</span>${spark(l14.map(n => n.hrv7 ?? null), L.hLo, L.hHi)}</div>
+      <div class="tile"><span class="l">FC repos</span><span class="v">${nf(L.rhr7)}<small>bpm</small></span><span class="n">norme ${nf(L.rLo)}–${nf(L.rHi)}</span>${spark(l14.map(n => n.rhr7 ?? null), L.rLo, L.rHi)}</div>
+      <div class="tile"><span class="l">Sommeil</span><span class="v">${hm(L.slp7).replace(' h ', 'h')}</span><span class="n">besoin ${hm(NEED).replace(' h ', 'h')}</span>${spark(l14.map(n => n.slp7 ?? null), NEED - 45, NEED)}</div>
+    </div>
+    <span class="muted" style="font-size:12.5px">${R.why}</span>`;
+  const rs = R.st;
+  $('ap-signals').innerHTML = `<li><div class="row" data-st="good"><span class="t">Progressivité, fraîcheur, réponse…</span><span class="d">7 signaux d'entraînement inchangés</span><span class="r"><span class="pill good">7 sur 7</span></span></div></li>
+    <li><button class="row" id="ap-sig-rec" data-st="${rs}"><span class="t">Récupération <span class="tag">D-023</span></span><span class="d"><span class="num">VFC ${Math.round(L.hrv7)} ms</span> · 7 nuits face à la norme</span><span class="r"><span class="pill ${rs}">${ST_TXT[rs]}</span>${CHEV}</span></button></li>`;
+}
+
+function openNight() {
+  openSheet({ title: 'Cette nuit', html: $('night-tpl').innerHTML });
+  $('ln-date').textContent = `Nuit du ${dLong(dayOf(1))} au ${dLong(TODAY)}`;
+  $('ln-dur').textContent = hm(L.sleep);
+  const dn = L.sleep - NEED; $('ln-pill').innerHTML = `<span class="pill ${dn < -45 ? 'warn' : 'neutral'} num">${sg(Math.round(dn))} min / besoin</span>`;
+  $('ln-stats').innerHTML = [['VFC', Math.round(L.hrv), 'ms'], ['FC de repos', nf(L.rhr), 'bpm'], ['Profond', Math.round(L.deep), 'min'], ['Paradoxal', Math.round(L.rem), 'min']]
+    .map(([l, v, u]) => `<div><span>${l}</span><b>${v}<small>${u}</small></b></div>`).join('');
+  drawHyp();
+  $('ln-trend').addEventListener('click', () => { closeSheet(); goRecup(); });
+}
+
+function openSignal(s) {
+  openSheet({ title: s.l, html: `<div class="card"><div class="kv"><span class="sig-v">${s.v}</span><span class="pill ${s.st}">${ST_TXT[s.st]}</span></div><span class="muted" style="font-size:13px">${s.vl}</span><p style="margin:0">${s.h}</p></div>
+    ${s.thr[0] !== '—' ? `<div class="card"><h3>Repères</h3><div class="thr"><span class="pill good">OK</span><span>${s.thr[0]}</span><span class="pill warn">À surveiller</span><span>${s.thr[1]}</span>${s.thr[2] !== '—' ? `<span class="pill bad">Alerte</span><span>${s.thr[2]}</span>` : ''}</div></div>` : ''}
+    <p class="foot">Norme : 60 nuits précédentes, plus ou moins un écart-type environ. Seuils proposés, à valider (D-023).</p>` });
+}
+
+// ---------- Segmentés, thème, scénario
+function seg(id, value, onPick) {
+  const s = $(id), bs = [...s.querySelectorAll('button')];
+  const set = s.set = (v) => { const i = Math.max(0, bs.findIndex(b => (b.dataset.v ?? b.dataset.theme) === String(v))); s.style.setProperty('--i', i); bs.forEach((b, k) => b.setAttribute('aria-pressed', k === i)); };
+  set(value); bs.forEach(b => b.addEventListener('click', () => { const v = b.dataset.v ?? b.dataset.theme; set(v); onPick(v); }));
+}
+const applyTheme = (t) => { if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t; };
+const theme0 = store.get('jog-theme', 'auto'); applyTheme(theme0);
+seg('theme-seg', theme0, (v) => { applyTheme(v); store.set('jog-theme', v); });
+seg('scn-seg', scn, (v) => { scn = v; store.set('jog-recup-scn', v); renderAll(); });
+seg('win-seg', win, (v) => { win = +v; trend('hrv', 'ro-hrv', { k: 'hrv', k7: 'hrv7', lo: 'hLo', hi: 'hHi', step: 5, u: 'ms', f: (x) => Math.round(x) }); trend('rhr', 'ro-rhr', { k: 'rhr', k7: 'rhr7', lo: 'rLo', hi: 'rHi', step: 2, u: 'bpm', f: (x) => nf(x) }); });
+
+// ---------- Navigation
+const screen = $('screen'), scroller = $('scroller'), tabbar = $('tabbar');
+const VIEWS = ['apercu', 'charge', 'progression', 'historique'];
+const tabs = [...tabbar.querySelectorAll('[role="tab"]')];
+const scrollPos = {}; let view = null, lastY = 0;
+function showView(v) {
+  if (!VIEWS.includes(v)) v = 'apercu';
+  if (view) scrollPos[view] = scroller.scrollTop; view = v;
+  document.querySelectorAll('main.view').forEach(m => m.hidden = m.id !== 'v-' + v);
+  tabs.forEach((t, i) => { const on = t.dataset.view === v; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; if (on) tabbar.style.setProperty('--i', i); });
+  $('ctitle').textContent = $('v-' + v).dataset.title;
+  scroller.scrollTop = scrollPos[v] || 0; lastY = scroller.scrollTop; tabbar.classList.remove('min'); syncChrome(); store.set('jog-recup-view', v);
+}
+tabs.forEach(t => t.addEventListener('click', () => showView(t.dataset.view)));
+tabbar.addEventListener('click', (e) => { if (tabbar.classList.contains('min')) { e.stopPropagation(); tabbar.classList.remove('min'); syncChrome(); } }, true);
+let pane = Q.get('pane') || store.get('jog-recup-pane', 'train');
+function showPane(p) { pane = p; $('cp-train').hidden = p !== 'train'; $('cp-recup').hidden = p !== 'recup'; store.set('jog-recup-pane', p); }
+function goRecup() { showView('charge'); $('pane-seg').set('recup'); showPane('recup'); scroller.scrollTop = 0; }
+$('ap-recup').addEventListener('click', openNight);
+$('ap-trend').addEventListener('click', goRecup);
+document.addEventListener('click', (e) => { if (e.target.closest('#ap-sig-rec')) goRecup(); });
+function syncChrome() { const st = scroller.scrollTop; $('ctitle').classList.toggle('on', st > 46); $('edge-top').classList.toggle('on', st > 4); }
+scroller.addEventListener('scroll', () => { const st = scroller.scrollTop, dy = st - lastY; lastY = st;
+  if (dy > 6 && st > 120) tabbar.classList.add('min'); else if (dy < -8 || st < 40) tabbar.classList.remove('min'); syncChrome(); }, { passive: true });
+
+// ---------- Feuilles
+const sheet = $('sheet'), scrim = $('scrim'), body = $('sheet-body');
+function openSheet({ title, html }) {
+  $('sheet-title').textContent = title; body.innerHTML = html; scrim.hidden = false; sheet.hidden = false;
+  requestAnimationFrame(() => requestAnimationFrame(() => { scrim.classList.add('on'); sheet.classList.add('open'); }));
+}
+function closeSheet() { if (sheet.hidden) return; sheet.classList.remove('open'); scrim.classList.remove('on'); setTimeout(() => { sheet.hidden = true; scrim.hidden = true; }, 420); }
+$('sheet-close').addEventListener('click', closeSheet); scrim.addEventListener('click', closeSheet);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
+
+// ---------- Mise à l'échelle du cadre sur bureau
+function fitDevice() {
+  const d = $('device'), w = $('device-wrap');
+  if (innerWidth <= 520) { d.style.transform = ''; w.style.width = w.style.height = ''; return; }
+  const k = Math.min(1, (innerHeight - 48) / 898);
+  d.style.transform = `scale(${k})`; w.style.width = 426 * k + 'px'; w.style.height = 898 * k + 'px';
+}
+addEventListener('resize', fitDevice); fitDevice();
+
+seg('pane-seg', pane, showPane); showPane(pane);
+renderAll();
+showView(Q.get('view') || store.get('jog-recup-view', 'apercu'));
+})();
+</script>
+</body>
+</html>
