@@ -789,7 +789,7 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 | 0 | fait | grep D-023 : 7 fichiers, ancres résolues, relu |
 | 1 | fait | swift test 308 verts, relu |
 | 2 | fait | swift test 320 verts, relu |
-| 3 | à faire | — |
+| 3 | fait | swift test 337 verts, perf serie 0,24 ms, relu |
 | 4 | à faire | — |
 | 5 | à faire | — |
 | 6 | à faire | — |
