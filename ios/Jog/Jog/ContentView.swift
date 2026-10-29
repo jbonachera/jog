@@ -2,32 +2,33 @@ import SwiftUI
 import JogCore
 
 /// Racine de l'app : quatre onglets, chacun dans sa pile de navigation, avec le bouton Paramètres dans la barre (maquette).
-/// L'Aperçu suit `EtatApp` (accueil, import, Vue, erreur) ; les autres onglets lisent la Vue, ou montrent l'état en attente
+/// La sélection d'onglet et la partie de Charge vivent dans `Navigation`. Aujourd’hui suit `EtatApp` (accueil, import, Vue, erreur) ; les autres onglets lisent la Vue, ou montrent l'état en attente
 /// (chargement, import, erreur). En DEBUG, la maquette peut remplacer les données réelles (Paramètres > Développement).
 struct ContentView: View {
     let modele: ModeleApp
     @Environment(\.scenePhase) private var phase
     @State private var parametresOuverts = false
+    @State private var navigation = Navigation()
 
     var body: some View {
-        TabView {
-            Tab("Aperçu", systemImage: "gauge.with.dots.needle.33percent") {
+        TabView(selection: $navigation.onglet) {
+            Tab("Aujourd’hui", systemImage: "gauge.with.dots.needle.33percent", value: Onglet.aujourdhui) {
                 NavigationStack {
                     contenuApercu
                         .toolbar { boutonParametres }
                 }
             }
-            Tab("Charge", systemImage: "chart.bar.xaxis") {
+            Tab("Charge", systemImage: "chart.bar.xaxis", value: Onglet.charge) {
                 NavigationStack {
                     if let vue = vueCourante {
-                        ChargeView(vue: vue)
+                        ChargeView(vue: vue, partie: $navigation.partieCharge)
                             .toolbar { boutonParametres }
                     } else {
                         sansVue("Charge", icone: "chart.bar.xaxis")
                     }
                 }
             }
-            Tab("Progression", systemImage: "chart.line.uptrend.xyaxis") {
+            Tab("Progression", systemImage: "chart.line.uptrend.xyaxis", value: Onglet.progression) {
                 NavigationStack {
                     if let vue = vueCourante {
                         ProgressionView(vue: vue)
@@ -37,7 +38,7 @@ struct ContentView: View {
                     }
                 }
             }
-            Tab("Historique", systemImage: "calendar") {
+            Tab("Historique", systemImage: "calendar", value: Onglet.historique) {
                 NavigationStack {
                     if let vue = vueCourante {
                         HistoriqueView(vue: vue, surMarquage: surMarquage)
@@ -69,6 +70,11 @@ struct ContentView: View {
                 parametresOuverts = true
             }
         }
+    }
+
+    /// Depuis l'Aperçu : ouvre les tendances de récupération dans l'onglet Charge.
+    private var ouvrirTendances: () -> Void {
+        { navigation.ouvrirTendancesRecuperation() }
     }
 
     /// Marquage d'une séance (D-020), relayé au modèle qui recalcule la Vue.
@@ -118,7 +124,7 @@ struct ContentView: View {
     private var contenuApercu: some View {
         #if DEBUG
         if let maquette = modele.maquette {
-            ApercuView(vue: maquette, surMarquage: surMarquage)
+            ApercuView(vue: maquette, surMarquage: surMarquage, ouvrirTendances: ouvrirTendances)
         } else {
             contenuEtat
         }
@@ -139,13 +145,13 @@ struct ContentView: View {
         case let .importEnCours(traitees, total):
             ImportView(traitees: traitees, total: total)
         case let .pret(vue):
-            ApercuView(vue: vue, surMarquage: surMarquage)
+            ApercuView(vue: vue, surMarquage: surMarquage, ouvrirTendances: ouvrirTendances)
         case let .erreur(message, nil):
             ErreurView(message: message, modele: modele)
         case let .erreur(message, vue?):
             VStack(spacing: 0) {
                 BandeauErreur(message: message, modele: modele)
-                ApercuView(vue: vue, surMarquage: surMarquage)
+                ApercuView(vue: vue, surMarquage: surMarquage, ouvrirTendances: ouvrirTendances)
             }
         }
     }

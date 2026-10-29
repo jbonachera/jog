@@ -20,6 +20,7 @@
 		00000000000000000000A082 /* ParametresTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A083 /* ParametresTests.swift */; };
 		00000000000000000000A084 /* EcranTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A085 /* EcranTests.swift */; };
 		00000000000000000000A086 /* TransitionsAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A087 /* TransitionsAppTests.swift */; };
+		00000000000000000000A088 /* NavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A089 /* NavigationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,7 @@
 		00000000000000000000A083 /* ParametresTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParametresTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A085 /* EcranTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcranTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A087 /* TransitionsAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransitionsAppTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A089 /* NavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -121,6 +123,7 @@
 				00000000000000000000A083 /* ParametresTests.swift */,
 				00000000000000000000A085 /* EcranTests.swift */,
 				00000000000000000000A087 /* TransitionsAppTests.swift */,
+				00000000000000000000A089 /* NavigationTests.swift */,
 			);
 			path = JogTests;
 			sourceTree = "<group>";
@@ -244,6 +247,7 @@
 				00000000000000000000A082 /* ParametresTests.swift in Sources */,
 				00000000000000000000A084 /* EcranTests.swift in Sources */,
 				00000000000000000000A086 /* TransitionsAppTests.swift in Sources */,
+				00000000000000000000A088 /* NavigationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
