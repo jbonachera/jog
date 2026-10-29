@@ -793,7 +793,7 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 | 4 | fait | swift test 356 verts, relu |
 | 5 | fait | swift test 366 verts, goldens intacts, relu |
 | 6 | fait | swift test 375 verts, goldens intacts, relu |
-| 7 | à faire | — |
+| 7 | fait | swift test 390 verts, relu |
 | 8 | à faire | — |
 | 9 | à faire | — |
 | 10 | à faire | — |
@@ -810,3 +810,4 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 - Lot 4 : la FC de repos s'affiche sans décimale (04 et plan) alors que la maquette en met une.
 - Lot 5 : `FORMAT_VUE` passe à 6 alors que les 34 goldens de la Vue portent `formatVersion: 5`. `VueOracleTests` ramène donc `formatVersion` à 5 dans la sortie comparée (adaptateur `auFormatDesGoldens`, seule clé touchée) ; aucun JSON n'est modifié, et le format 6 est testé dans `RecuperationVueTests`.
 - Lot 6 : le plan (test 6.5) écrit « Footings sous le plafond, Récupération » ; l'énumération existante donne « X et Y » à deux éléments, conservée.
+- Lot 7 : `nuits.json` suit la protection des autres fichiers (`completeFileProtectionUntilFirstUserAuthentication`, lisible téléphone verrouillé pour la livraison en arrière-plan) et non `complete` comme écrit au plan ; le moteur lève `nuitsNonCalculees` au chargement d'un relevé (le drapeau n'est pas persisté, une app tuée avant le recalcul ne doit pas laisser une Vue sans nuits) ; `synchroniser` ignore les sessions antérieures à la fenêtre `depuis`.

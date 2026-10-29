@@ -296,3 +296,50 @@ private actor Progressions {
     #expect(apres.jours.date.last == "2026-07-03")
     #expect(apres.J == apres.jours.date.last.flatMap { try? ajouterJours($0, 1) })
 }
+
+// MARK: - Nuits et Vue (D-023)
+
+@Test func d023UneNuitNouvelleSansSeanceRecalculeLaVueAvecLaRecuperation() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (stockage, moteur) = contexte(dossier)
+    let fuseau = TimeZone(identifier: "Europe/Paris")!
+    let soir = ISO8601DateFormatter().date(from: "2026-10-29T10:00:00+01:00")!
+    let synchro = Synchroniseur(source: FauxSource(changements: changements(), seances: []), stockage: stockage, moteur: moteur, decalage: { _ in 120 })
+    let avant = try await synchro.synchroniser(maintenant: soir, fuseau: fuseau)
+    #expect(avant.recuperation == nil)
+
+    // Une nuit arrive sans aucune séance nouvelle : la Vue stockée n'a plus le bon contenu, elle est recalculée.
+    let nuits = SynchroniseurNuits(
+        source: FauxSourceNuits(echantillons: try echantillonsNuits(["2026-10-28"]), vfc: mesureVFCNuit("2026-10-28", 50)),
+        moteur: moteur
+    )
+    #expect(try await nuits.synchroniser(maintenant: soir, fuseau: fuseau))
+
+    let apres = try await synchro.synchroniser(maintenant: soir, fuseau: fuseau)
+    #expect(apres.recuperation?.nuits.map(\.date) == ["2026-10-28"])
+}
+
+@Test func d023SansNuitNouvelleLaVueStockeeEstRenduTelleQuelle() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (stockage, moteur) = contexte(dossier)
+    let fuseau = TimeZone(identifier: "Europe/Paris")!
+    let soir = ISO8601DateFormatter().date(from: "2026-10-29T10:00:00+01:00")!
+    let synchro = Synchroniseur(source: FauxSource(changements: changements(), seances: []), stockage: stockage, moteur: moteur, decalage: { _ in 120 })
+    let nuits = SynchroniseurNuits(
+        source: FauxSourceNuits(echantillons: try echantillonsNuits(["2026-10-28"]), vfc: mesureVFCNuit("2026-10-28", 50)),
+        moteur: moteur
+    )
+    _ = try await synchro.synchroniser(maintenant: soir, fuseau: fuseau)
+    _ = try await nuits.synchroniser(maintenant: soir, fuseau: fuseau)
+    let calculee = try await synchro.synchroniser(maintenant: soir, fuseau: fuseau)
+
+    // Une heure plus tard, même jour J, sans nuit nouvelle : la Vue stockée est rendue telle quelle, donc sa
+    // `derniereSynchro` ne change pas (un recalcul l'aurait mise à l'heure).
+    let plusTard = soir.addingTimeInterval(3600)
+    #expect(try await nuits.synchroniser(maintenant: plusTard, fuseau: fuseau) == false)
+    let rendue = try await synchro.synchroniser(maintenant: plusTard, fuseau: fuseau)
+
+    #expect(rendue == calculee)
+}

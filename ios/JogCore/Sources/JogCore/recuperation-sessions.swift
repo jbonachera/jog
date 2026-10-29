@@ -91,7 +91,7 @@ private func decouper(_ morceaux: [Morceau]) -> [[Morceau]] {
 }
 
 /// 18:00 locale la veille du jour civil `date`, en ms depuis l'époque.
-private func dixHuitHeuresLaVeille(_ date: DateCivile, _ fuseau: TimeZone) -> Double? {
+func dixHuitHeuresLaVeille(_ date: DateCivile, _ fuseau: TimeZone) -> Double? {
     guard let veille = try? ajouterJours(date, -1), let jour = try? numeroJour(veille) else { return nil }
     let naif = Double(jour) * MS_PAR_JOUR + 18 * MS_PAR_HEURE
     let approche = naif - decalageMin(naif, fuseau) * MS_PAR_MINUTE

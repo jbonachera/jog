@@ -224,9 +224,10 @@ public actor Synchroniseur {
         }
 
         // Recalcul seulement si quelque chose a changé, ou si la Vue stockée n'est pas celle du jour (même coupure J, D-022) ou manque.
+        // Des nuits nouvelles (D-023) comptent comme un changement : la récupération de la Vue doit être à jour.
         let J = moteur.jourDeCoupure(maintenant: maintenant, fuseau: fuseau)
         let stockee = await moteur.charger()
-        if !illisibles, resultatVide, let stockee, stockee.J == J {
+        if !illisibles, resultatVide, let stockee, stockee.J == J, !(await moteur.nuitsNonCalculees) {
             return stockee
         }
         return try await moteur.recalculer(J: J, derniereSynchro: maintenant.formatted(Date.ISO8601FormatStyle()))

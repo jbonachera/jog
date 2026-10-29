@@ -392,3 +392,75 @@ private actor Relais {
     #expect(vue.seances.map(\.cleSource).sorted() == ["a", "b"])
     #expect(await moteur.charger() == vue)
 }
+
+// MARK: - Nuits de la récupération (D-023)
+
+/// Une nuit résumée avec une VFC de 50 ms, datée de `date`.
+private func nuitAvecVFC(_ date: DateCivile) -> NuitResumee {
+    NuitResumee(
+        date: date, debutUtc_ms: 0, finUtc_ms: 0, coucher_min: 300, sommeil_min: 420, leger_min: 420, profond_min: 0,
+        paradoxal_min: 0, eveille_min: 0, vfcLn: Foundation.log(50)
+    )
+}
+
+@Test func d023ApresRemplacerNuitsLaVueAUneRecuperationEtLeReleveSurvit() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (moteur, _) = moteurNeuf(dossier)
+    let releve = ReleveNuits(version: VERSION_RECUPERATION, nuits: [nuitAvecVFC("2026-09-09")], derniereSession: nil)
+
+    #expect(try await moteur.remplacerNuits(releve))
+    #expect(await moteur.nuitsNonCalculees)
+
+    let vue = try await moteur.recalculer(J: J, derniereSynchro: nil)
+
+    #expect(vue.recuperation?.point.date == "2026-09-09")
+    #expect(await moteur.nuitsNonCalculees == false)
+    // Un autre moteur sur le même dossier relit le relevé tel quel.
+    let relu = Moteur(stockage: Stockage(racine: dossier), lireFlux: lecteur(Lectures()))
+    #expect(try await relu.releveNuits() == releve)
+}
+
+@Test func d023UnMoteurRelancePrudemmentLeDrapeauDesNuitsQuandUnReleveExiste() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (moteur, _) = moteurNeuf(dossier)
+    let releve = ReleveNuits(version: VERSION_RECUPERATION, nuits: [nuitAvecVFC("2026-09-09")], derniereSession: nil)
+    #expect(try await moteur.remplacerNuits(releve))
+    _ = try await moteur.recalculer(J: J, derniereSynchro: nil)
+    #expect(await moteur.nuitsNonCalculees == false)
+
+    // Nouveau processus (app tuée avant d'avoir persisté la Vue) : les nuits relues sont à recalculer.
+    let relance = Moteur(stockage: Stockage(racine: dossier), lireFlux: lecteur(Lectures()))
+    _ = try await relance.releveNuits()
+    #expect(await relance.nuitsNonCalculees)
+    // Sans relevé, rien à recalculer.
+    let dossierVide = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossierVide) }
+    let (sansNuits, _) = moteurNeuf(dossierVide)
+    _ = try await sansNuits.releveNuits()
+    #expect(await sansNuits.nuitsNonCalculees == false)
+}
+
+@Test func d023RemplacerNuitsSansChangementRenvoieFauxSansLeverLeDrapeau() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    let (moteur, _) = moteurNeuf(dossier)
+    let releve = ReleveNuits(version: VERSION_RECUPERATION, nuits: [nuitAvecVFC("2026-09-09")], derniereSession: nil)
+    #expect(try await moteur.remplacerNuits(releve))
+    _ = try await moteur.recalculer(J: J, derniereSynchro: nil)
+
+    #expect(try await moteur.remplacerNuits(releve) == false)
+    #expect(await moteur.nuitsNonCalculees == false)
+}
+
+@Test func d023UnReleveIllisibleDonneUneVueSansRecuperationEtSansErreur() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    try Data("}{".utf8).write(to: dossier.appendingPathComponent("nuits.json"))
+    let (moteur, _) = moteurNeuf(dossier)
+
+    #expect(try await moteur.releveNuits() == nil)
+    let vue = try await moteur.recalculer(J: J, derniereSynchro: nil)
+    #expect(vue.recuperation == nil)
+}

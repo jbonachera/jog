@@ -108,6 +108,18 @@ public struct Stockage: Sendable {
         try ecrire(vue, "vue.json")
     }
 
+    // MARK: - Nuits de la récupération (D-023)
+
+    /// `nuits.json` : les nuits résumées et la dernière session (lot 7). Une version de relevé inconnue est gérée par le
+    /// moteur, pas ici : le fichier se décode, et l'appelant décide qu'il est périmé.
+    public func lireNuits() throws -> Lecture<ReleveNuits> {
+        try lire(ReleveNuits.self, "nuits.json")
+    }
+
+    public func ecrireNuits(_ releve: ReleveNuits) throws {
+        try ecrire(releve, "nuits.json")
+    }
+
     // MARK: - Marquages (D-020)
 
     /// `marquages.json` : marquage par clé source.
@@ -149,7 +161,7 @@ public struct Stockage: Sendable {
 
     // MARK: - Suppression (D-016)
 
-    /// Supprime tout le dossier : paramètres, séances, activités, ancre, vue et marquages.
+    /// Supprime tout le dossier : paramètres, séances, activités, ancre, vue, marquages et nuits.
     public func supprimerTout() throws {
         guard FileManager.default.fileExists(atPath: racine.path) else { return }
         try FileManager.default.removeItem(at: racine)

@@ -24,6 +24,7 @@ public actor Moteur {
         let marquages: [String: MarquageUtilisateur]
         let activites: [PivotSansFlux]
         let memoire: [String: SeanceIntrinseque]
+        let nuits: ReleveNuits?
     }
 
     private struct Calcul: Sendable {
@@ -45,6 +46,12 @@ public actor Moteur {
     private var activitesIllisiblesFichier = false
     /// Marquages saisis par l'athlète (D-020), par clé source. Persistés dans `marquages.json` à chaque changement.
     private var marquages: [String: MarquageUtilisateur] = [:]
+    /// Nuits de la récupération (D-023), persistées dans `nuits.json`. nil sans relevé valide : absent, illisible ou d'une
+    /// autre version (relecture complète).
+    private var nuits: ReleveNuits?
+    /// Vrai après un changement des nuits, jusqu'au prochain calcul persisté. La synchronisation s'en sert pour recalculer
+    /// une Vue du même jour, même sans séance nouvelle (D-023).
+    public private(set) var nuitsNonCalculees = false
     private var abonnes: [UUID: AsyncStream<Vue>.Continuation] = [:]
     /// Incrémenté à chaque modification des entrées. Un calcul plus ancien que le dernier ne persiste pas sa Vue.
     private var generation = 0
@@ -76,7 +83,9 @@ public actor Moteur {
         try chargerSiBesoin()
         for _ in 0..<TENTATIVES_CALCUL {
             let mienne = generation
-            let instantane = Instantane(parametres: parametres, marquages: marquages, activites: activites, memoire: memoire)
+            let instantane = Instantane(
+                parametres: parametres, marquages: marquages, activites: activites, memoire: memoire, nuits: nuits
+            )
             let calcul = try await calculer(instantane, J: J, derniereSynchro: derniereSynchro)
             // Une modification pendant le calcul l'a rendu périmé : on le refait, sans rien persister.
             guard mienne == generation else { continue }
@@ -135,6 +144,25 @@ public actor Moteur {
         try stockage.ecrireMarquages(resultat)
         marquages = resultat
         generation += 1
+    }
+
+    /// Le relevé des nuits (D-023), ou nil s'il est absent, illisible ou d'une autre version. Un relevé illisible est mis
+    /// de côté au premier chargement, comme les autres fichiers : la synchronisation repart d'une relecture complète.
+    public func releveNuits() throws -> ReleveNuits? {
+        try chargerSiBesoin()
+        return nuits
+    }
+
+    /// Remplace le relevé des nuits et le persiste. Lève `nuitsNonCalculees` et invalide les calculs en cours : la Vue
+    /// stockée ne reflète plus ces nuits. Rend vrai si quelque chose a changé ; sans changement, rien n'est écrit.
+    public func remplacerNuits(_ releve: ReleveNuits) throws -> Bool {
+        try chargerSiBesoin()
+        guard releve != nuits else { return false }
+        try stockage.ecrireNuits(releve)
+        nuits = releve
+        nuitsNonCalculees = true
+        generation += 1
+        return true
     }
 
     /// Ajoute les activités sans flux, ou remplace celles qui ont la même clé source. Persiste la liste.
@@ -213,6 +241,7 @@ public actor Moteur {
         activites = []
         activitesIllisiblesFichier = false
         marquages = [:]
+        nuits = nil
         ecartees = []
         doublons = []
         charge = true
@@ -283,6 +312,21 @@ public actor Moteur {
             // Simple cache : il se recalcule, et son fichier sera réécrit.
             memoire = [:]
         }
+        switch try stockage.lireNuits() {
+        case .absent:
+            nuits = nil
+        case .valeur(let lus) where lus.version == VERSION_RECUPERATION:
+            nuits = lus
+            // Le drapeau n'est pas persisté : si l'app a été tuée entre `remplacerNuits` et le recalcul, la Vue
+            // stockée peut ignorer ces nuits. Un recalcul par processus suffit à refermer ce trou.
+            nuitsNonCalculees = true
+        case .valeur:
+            // Une autre version : relevé périmé, traité comme absent. Le prochain enregistrement le remplace.
+            nuits = nil
+        case .illisible:
+            stockage.mettreDeCote("nuits.json")
+            nuits = nil
+        }
         charge = true
     }
 
@@ -305,7 +349,8 @@ public actor Moteur {
         memoireLocale.entrees = memoireLocale.entrees.filter { utilisees.contains($0.key) }
 
         let vue = try calculerVue(EntreeVue(
-            intrinseques: intrinseques.seances, parametres: s.parametres, J: J, derniereSynchro: derniereSynchro
+            intrinseques: intrinseques.seances, parametres: s.parametres, J: J, derniereSynchro: derniereSynchro,
+            nuits: s.nuits?.nuits, derniereSession: s.nuits?.derniereSession
         ))
         return Calcul(vue: vue, memoire: memoireLocale.entrees, ecartees: intrinseques.ecartees, doublons: doublons)
     }
@@ -317,6 +362,7 @@ public actor Moteur {
             memoire = calcul.memoire
         }
         try stockage.ecrireVue(calcul.vue)
+        nuitsNonCalculees = false
         ecartees = calcul.ecartees
         doublons = calcul.doublons
         for abonne in abonnes.values {
