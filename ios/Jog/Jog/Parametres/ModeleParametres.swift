@@ -7,6 +7,25 @@ import JogCore
 /// Clé UserDefaults de « Ignorer » (D-019) : `cleSource:bpm`, propre à l'appareil.
 let CLE_HRMAX_IGNOREE = "jog-hrmax-ignoree"
 
+/// Clé UserDefaults du besoin de sommeil (D-023, 06 « Récupération ») : minutes. Lue par la Charge, la carte, la feuille
+/// et R5 ; retirée par « Supprimer toutes mes données ».
+let CLE_BESOIN_SOMMEIL = "besoinSommeil_min"
+
+/// Besoin de sommeil (06, D-023) : un repère de lecture, pas un paramètre du moteur. De 4 h à 12 h, au pas de 15 min.
+enum BesoinSommeil {
+    static let defaut: Double = 450
+    static let minimum: Double = 240
+    static let maximum: Double = 720
+    static let pas: Double = 15
+
+    /// Ramène une valeur dans les bornes, puis au pas de 15 min le plus proche. Une valeur non finie donne le défaut.
+    static func borne(_ minutes: Double) -> Double {
+        guard minutes.isFinite else { return defaut }
+        let ramenee = Swift.min(maximum, Swift.max(minimum, minutes))
+        return (ramenee / pas).rounded() * pas
+    }
+}
+
 /// Un champ de la feuille : un paramètre daté (mesure de l'athlète) ou global (référence, constante du modèle).
 enum ChampParametre: Hashable, Sendable {
     case datee(CleDatee)

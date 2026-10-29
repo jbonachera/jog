@@ -7,7 +7,7 @@ struct ChargeView: View {
     let vue: Vue
     @Binding var partie: PartieCharge
     /// Besoin de sommeil (D-023), lu par la partie Récupération ; 450 minutes par défaut.
-    @AppStorage("besoinSommeil_min") private var besoinSommeil_min: Double = 450
+    @AppStorage(CLE_BESOIN_SOMMEIL) private var besoinSommeil_min: Double = BesoinSommeil.defaut
 
     var body: some View {
         ScrollView {

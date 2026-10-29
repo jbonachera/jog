@@ -10,7 +10,7 @@ struct SommeilNuitsView: View {
     @Environment(\.dynamicTypeSize) private var tailleTexte
     private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
     /// Le besoin réglé dans les Réglages (même clé que la Charge et la carte de l'aperçu).
-    @AppStorage("besoinSommeil_min") private var besoinSommeil_min: Double = 450
+    @AppStorage(CLE_BESOIN_SOMMEIL) private var besoinSommeil_min: Double = BesoinSommeil.defaut
 
     let recuperation: VueRecuperation
     /// Date touchée au doigt sur le graphique.

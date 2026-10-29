@@ -12,6 +12,13 @@ private let CLE_AUTORISATION_DEMANDEE = "autorisationDemandee"
 /// antérieures à la récupération : la demande est alors refaite une fois (iOS ne présente que les types nouveaux).
 private let CLE_AUTORISATION_RECUPERATION = "autorisationRecuperationDemandee"
 
+/// Retire les préférences de l'app (D-016, « Supprimer toutes mes données ») : autorisations, « Ignorer » et besoin de sommeil.
+func retirerPreferences(_ defaults: UserDefaults) {
+    for cle in [CLE_AUTORISATION_DEMANDEE, CLE_AUTORISATION_RECUPERATION, CLE_HRMAX_IGNOREE, CLE_BESOIN_SOMMEIL] {
+        defaults.removeObject(forKey: cle)
+    }
+}
+
 @MainActor
 @Observable
 final class ModeleApp {
@@ -20,9 +27,17 @@ final class ModeleApp {
     #if DEBUG
     /// Affiche la maquette à la place des données réelles (Paramètres > Développement). Non persisté.
     var maquetteActive = false {
-        didSet { maquette = maquetteActive ? (try? chargerMaquette()) : nil }
+        didSet { actualiserMaquette() }
+    }
+    /// Scénario de récupération de la maquette (Paramètres > Développement). Non persisté.
+    var scenarioMaquette: ScenarioRecuperation = .normal {
+        didSet { actualiserMaquette() }
     }
     private(set) var maquette: Vue?
+
+    private func actualiserMaquette() {
+        maquette = maquetteActive ? (try? maquetteAvecRecuperation(scenarioMaquette)) : nil
+    }
     #endif
 
     /// Les services sont absents si le stockage n'a pas pu s'ouvrir (l'app affiche alors une erreur) ou dans un aperçu.
@@ -261,9 +276,7 @@ final class ModeleApp {
             // Un échec d'arrêt n'empêche pas la suppression : sans autorisation, la synchronisation ne réimporte rien.
             try? await services.lecteur.arreterLivraisonEnArrierePlan()
             await services.synchro.reinitialiser()
-            UserDefaults.standard.removeObject(forKey: CLE_AUTORISATION_DEMANDEE)
-            UserDefaults.standard.removeObject(forKey: CLE_AUTORISATION_RECUPERATION)
-            UserDefaults.standard.removeObject(forKey: CLE_HRMAX_IGNOREE)
+            retirerPreferences(.standard)
             derniereSynchro = nil
             etat = .premiereOuverture
         }.value

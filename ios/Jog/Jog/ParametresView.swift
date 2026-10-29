@@ -61,6 +61,12 @@ struct ParametresView: View {
                 #if DEBUG
                 Section("Développement") {
                     Toggle("Afficher la maquette", isOn: $modele.maquetteActive)
+                    Picker("Scénario de récupération", selection: $modele.scenarioMaquette) {
+                        ForEach(ScenarioRecuperation.allCases, id: \.self) { scenario in
+                            Text(scenario.libelle).tag(scenario)
+                        }
+                    }
+                    .disabled(!modele.maquetteActive)
                     NavigationLink("Spike HealthKit") {
                         SpikeView()
                     }

@@ -800,7 +800,7 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 | 11 | fait | xcodebuild test vert (105 tests), swift test 390, relu ; captures à faire |
 | 12 | fait | xcodebuild test vert (114 tests), swift test 390, relu + 1 correction |
 | 13 | fait | xcodebuild test vert (119 tests), swift test 390, relu + 1 correction ; visuel à faire |
-| 14 | à faire | — |
+| 14 | fait | swift test 390, xcodebuild test 123, perf OK, relu ; iPhone à faire par l'utilisateur |
 
 ## Écarts proposés
 
@@ -820,3 +820,5 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 - Lot 11 : le test de troncature mesure le débordement (`sizeThatFits`), pas une troncature réelle.
 - À faire par l'utilisateur (lot 13) : relire R3 à R6 à 320 et 430 pt, en `.accessibility3` et sur R4 ; tester au doigt (`chartXSelection`), la vue tableau et VoiceOver. Non testés au rendu : la fenêtre 6 mois (182 points) et le 8 semaines.
 - Lot 13 : l'axe Y de la VFC a une plage minimale de 20 ms (choix d'implémentation) ; D-009 n'a pas de ligne pour la VFC ni la FC de repos.
+- À faire par l'utilisateur (lot 14, iPhone réel) : temps de la première synchronisation des nuits (budget < 3 s pour 250 nuits) ; deuxième lancement (< 300 ms pour les nuits) ; captures des 3 scénarios DEBUG (normal, fatigue, mauvaise nuit), clair et sombre ; mesure de l'écart FC de session entière / hors éveil (point de décision 4) et de la stabilité de l'état dans la matinée (point 3).
+- Lot 14 : perf release mesurée : `serieRecuperation` 0,245 ms, `calculerVue` (maquette 14 mois) 0,750 ms.

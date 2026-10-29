@@ -235,3 +235,58 @@ private func suggestion(ecart: Bool = false, nom: String? = "Sortie") -> Suggest
     #expect(etat.ignorees[.autreSource] == 1)
     #expect(etat.ignorees[.illisible] == nil)
 }
+
+// MARK: - Besoin de sommeil et maquette de DEBUG (06 « Récupération », D-023, lot 14)
+
+@Test func leBesoinDeSommeilEstBorneEtAuPasDeQuinzeMinutes() {
+    // 06 : de 4 h à 12 h. Hors bornes, ramené à la borne ; sinon arrondi au pas de 15 min le plus proche.
+    #expect(BesoinSommeil.borne(225) == 240)
+    #expect(BesoinSommeil.borne(735) == 720)
+    #expect(BesoinSommeil.borne(450) == 450)
+    #expect(BesoinSommeil.borne(452) == 450)
+    #expect(BesoinSommeil.borne(458) == 465)
+    #expect(BesoinSommeil.borne(.nan) == 450)
+}
+
+@Test func changerLeBesoinChangeLIndicateurSommeilSansRecalculerLaVue() throws {
+    // R2 : le besoin est un repère de lecture. La Vue de récupération reste la même ; seul l'indicateur Sommeil change.
+    let vue = try #require(try recuperationMaquette(.normal, J: "2026-10-30"))
+    let avant = try ModeleRecuperation.indicateurs(vue, besoin_min: 450)
+    let apres = try ModeleRecuperation.indicateurs(vue, besoin_min: 600)
+    let sommeilAvant = try #require(avant.first { $0.cle == .sommeil })
+    let sommeilApres = try #require(apres.first { $0.cle == .sommeil })
+
+    #expect(sommeilAvant.detail != sommeilApres.detail)
+    #expect(sommeilApres.etat == .surveiller)
+    #expect(sommeilAvant.valeurTexte == sommeilApres.valeurTexte)
+    #expect(avant.filter { $0.cle != .sommeil } == apres.filter { $0.cle != .sommeil })
+}
+
+@Test func supprimerLesPreferencesRetireLeBesoinDeSommeil() throws {
+    // « Supprimer toutes mes données » (D-016) retire le besoin de sommeil avec les autres préférences de l'app.
+    let suite = "jog-test-besoin-\(UUID().uuidString)"
+    let defaults = try #require(UserDefaults(suiteName: suite))
+    defer { defaults.removePersistentDomain(forName: suite) }
+    defaults.set(600.0, forKey: CLE_BESOIN_SOMMEIL)
+    defaults.set("a:192", forKey: CLE_HRMAX_IGNOREE)
+
+    retirerPreferences(defaults)
+
+    #expect(defaults.object(forKey: CLE_BESOIN_SOMMEIL) == nil)
+    #expect(defaults.object(forKey: CLE_HRMAX_IGNOREE) == nil)
+}
+
+@Test func laMaquetteDeDebugAUneRecuperationDuScenarioAvecLaVeilleCommeJour() throws {
+    // La maquette reçoit calculerRecuperation(nuitsExemple(scenario, aujourdhui: veille(J))) : A = J−1 (D-023).
+    // Les états attendus sont ceux que JogCore calcule pour les scénarios de la maquette.
+    let attendus: [(ScenarioRecuperation, EtatRecuperation)] = [
+        (.normal, .dansLaNorme),
+        (.fatigue, .basse),
+        (.mauvaiseNuit, .dansLaNorme),
+    ]
+    for (scenario, etat) in attendus {
+        let r = try #require(try recuperationMaquette(scenario, J: "2026-10-30"))
+        #expect(r.aujourdhui == "2026-10-29", "\(scenario)")
+        #expect(r.etat == etat, "\(scenario)")
+    }
+}

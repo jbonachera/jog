@@ -23,6 +23,8 @@ struct SectionsParametres: View {
     let statut: String?
     let erreur: String?
     let actions: ActionsParametres
+    /// Besoin de sommeil (minutes), même clé que la Charge, la carte et R5 (D-023).
+    @AppStorage(CLE_BESOIN_SOMMEIL) private var besoinSommeil_min: Double = BesoinSommeil.defaut
 
     var body: some View {
         Section {
@@ -106,6 +108,19 @@ struct SectionsParametres: View {
             Text("Modèle de charge")
         } footer: {
             Text("Constantes du modèle de forme (CTL) et de fatigue (ATL), pour tout l’historique.")
+        }
+
+        Section {
+            Stepper(
+                value: Binding(get: { besoinSommeil_min }, set: { besoinSommeil_min = BesoinSommeil.borne($0) }),
+                in: BesoinSommeil.minimum...BesoinSommeil.maximum, step: BesoinSommeil.pas
+            ) {
+                LabeledContent("Besoin de sommeil", value: ModeleRecuperation.besoinTexte(besoinSommeil_min))
+            }
+        } header: {
+            Text("Récupération")
+        } footer: {
+            Text("Durée de sommeil qui te laisse reposé. C’est un repère de lecture, pas une consigne.")
         }
 
         Section {

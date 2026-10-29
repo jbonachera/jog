@@ -11,7 +11,7 @@ struct ApercuView: View {
     /// Ouvre les tendances de récupération dans l'onglet Charge.
     let ouvrirTendances: () -> Void
     /// Besoin de sommeil des réglages (minutes), 7 h 30 par défaut : il règle la norme de sommeil de la carte Récupération.
-    @AppStorage("besoinSommeil_min") private var besoinSommeil_min: Double = 450
+    @AppStorage(CLE_BESOIN_SOMMEIL) private var besoinSommeil_min: Double = BesoinSommeil.defaut
     /// Les compteurs et les sept derniers jours, calculés une fois par Vue.
     @State private var memo = Memo<Vue, Calculs>()
 
