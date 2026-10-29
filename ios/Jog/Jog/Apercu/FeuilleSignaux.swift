@@ -5,6 +5,8 @@ import JogCore
 /// valeur chiffrée et sa phrase. Un signal à surveiller ou en alerte a une bordure teintée.
 struct FeuilleSignaux: View {
     let signaux: [Signal]
+    /// Ouvre Charge › Récupération : la feuille se ferme avant.
+    let ouvrirTendances: () -> Void
     @Environment(\.dismiss) private var fermer
 
     var body: some View {
@@ -12,7 +14,10 @@ struct FeuilleSignaux: View {
             ScrollView {
                 VStack(spacing: 12) {
                     ForEach(signaux, id: \.cle) { signal in
-                        CarteSignal(signal: signal)
+                        CarteSignal(signal: signal, tendances: signal.cle == .recuperation ? {
+                            fermer()
+                            ouvrirTendances()
+                        } : nil)
                     }
                 }
                 .padding(16)
@@ -31,6 +36,8 @@ struct FeuilleSignaux: View {
 
 private struct CarteSignal: View {
     let signal: Signal
+    /// Pour le signal Récupération : ouvre Charge › Récupération. Nil pour les autres signaux.
+    let tendances: (() -> Void)?
 
     private var bordure: Color? {
         switch signal.etat {
@@ -42,27 +49,35 @@ private struct CarteSignal: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(signal.nom)
-                    .font(.headline)
-                    .foregroundStyle(.encre)
-                Spacer(minLength: 8)
-                Pastille(texte: ModeleApercu.libelleEtat(signal.etat), ton: ModeleApercu.tonEtat(signal.etat))
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(signal.nom)
+                        .font(.headline)
+                        .foregroundStyle(.encre)
+                    Spacer(minLength: 8)
+                    Pastille(texte: ModeleApercu.libelleEtat(signal.etat), ton: ModeleApercu.tonEtat(signal.etat))
+                }
+                Text(ModeleApercu.valeurSignal(signal))
+                    .font(.title3.weight(.bold))
+                    .monospacedDigit()
+                    .foregroundStyle(signal.etat == .insuffisant ? .encre3 : .encre)
+                Text(signal.explication)
+                    .font(.footnote)
+                    .foregroundStyle(.encre2)
             }
-            Text(ModeleApercu.valeurSignal(signal))
-                .font(.title3.weight(.bold))
-                .monospacedDigit()
-                .foregroundStyle(signal.etat == .insuffisant ? .encre3 : .encre)
-            Text(signal.explication)
-                .font(.footnote)
-                .foregroundStyle(.encre2)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(ModeleApercu.libelleAccessibleSignal(signal))
+
+            if let tendances {
+                Button("Tendances de récupération", action: tendances)
+                    .buttonStyle(.bordered)
+                    .font(.footnote.weight(.semibold))
+            }
         }
         .carte()
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(bordure ?? .clear, lineWidth: 1.5)
         )
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(ModeleApercu.libelleAccessibleSignal(signal))
     }
 }

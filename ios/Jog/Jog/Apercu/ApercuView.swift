@@ -8,8 +8,10 @@ struct ApercuView: View {
     let vue: Vue
     /// Marquage d'une séance (D-020) : clé source, puis marquage à enregistrer (nil pour retirer le marquage saisi).
     let surMarquage: (String, MarquageUtilisateur?) -> Void
-    /// Ouvre les tendances de récupération dans l'onglet Charge. Pas encore affiché (lot 11), la navigation reste hors de la vue.
+    /// Ouvre les tendances de récupération dans l'onglet Charge.
     let ouvrirTendances: () -> Void
+    /// Besoin de sommeil des réglages (minutes), 7 h 30 par défaut : il règle la norme de sommeil de la carte Récupération.
+    @AppStorage("besoinSommeil_min") private var besoinSommeil_min: Double = 450
     /// Les compteurs et les sept derniers jours, calculés une fois par Vue.
     @State private var memo = Memo<Vue, Calculs>()
 
@@ -30,7 +32,8 @@ struct ApercuView: View {
                 if vue.seances.isEmpty {
                     SansDonneesView()
                 }
-                DecisionVolumeView(vue: vue)
+                DecisionVolumeView(vue: vue, ouvrirTendances: ouvrirTendances)
+                CarteRecuperationView(recuperation: vue.recuperation, besoin_min: besoinSommeil_min, ouvrirTendances: ouvrirTendances)
                 VolumeRealiseView(compteurs: calculs.compteurs)
                 SeptDerniersJoursView(modele: calculs.septJours, surMarquage: surMarquage)
                 if let texte = ModeleApercu.texteDerniereSynchro(vue.derniereSynchro) {

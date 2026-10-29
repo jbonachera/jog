@@ -5,6 +5,8 @@ import JogCore
 /// Les signaux et le simulateur s'ouvrent dans des feuilles (maquette, « Les signaux… s'ouvrent dans des feuilles »).
 struct DecisionVolumeView: View {
     let vue: Vue
+    /// Ouvre les tendances de récupération, depuis la carte du signal Récupération.
+    let ouvrirTendances: () -> Void
     @State private var signauxOuverts = false
     @State private var simulateurOuvert = false
 
@@ -83,7 +85,7 @@ struct DecisionVolumeView: View {
             }
         }
         .sheet(isPresented: $signauxOuverts) {
-            FeuilleSignaux(signaux: decision.signaux)
+            FeuilleSignaux(signaux: decision.signaux, ouvrirTendances: ouvrirTendances)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }

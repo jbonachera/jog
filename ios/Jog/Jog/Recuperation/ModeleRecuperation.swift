@@ -54,6 +54,23 @@ enum ModeleRecuperation {
         )
     }
 
+    /// Libellé VoiceOver combiné de la carte (A5) : état, puis chaque tuile, puis la phrase.
+    static func libelleAccessible(_ carte: Carte) -> String {
+        let tuiles = carte.tuiles.map(libelleAccessible).joined(separator: ", ")
+        return "Récupération : \(carte.titre). \(tuiles). \(carte.phrase)"
+    }
+
+    /// Une tuile lue à voix haute : « VFC 52 millisecondes, norme 40 à 59 ».
+    private static func libelleAccessible(_ tuile: Tuile) -> String {
+        let unite = switch tuile.unite {
+        case "ms": "millisecondes"
+        case "bpm": "battements par minute"
+        default: tuile.unite
+        }
+        let valeur = [tuile.valeur, unite].filter { !$0.isEmpty }.joined(separator: " ")
+        return "\(tuile.libelle) \(valeur), \(tuile.norme.replacingOccurrences(of: "–", with: " à "))"
+    }
+
     // MARK: - États
 
     static func tonEtat(_ e: EtatRecuperation) -> Ton {
