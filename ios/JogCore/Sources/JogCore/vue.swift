@@ -144,12 +144,21 @@ public struct EntreeVue: Codable, Sendable, Equatable {
     /// Journée en cours : elle n'entre dans aucun calcul (03).
     public var J: DateCivile
     public var derniereSynchro: String?
+    /// Nuits résumées (D-023) ; nil quand l'app ne lit pas le sommeil, et alors la Vue n'a pas de `recuperation`.
+    public var nuits: [NuitResumee]?
+    /// Dernière session de sommeil (hypnogramme). Gardée dans la Vue seulement si sa date est A (J−1).
+    public var derniereSession: SessionSommeil?
 
-    public init(intrinseques: [SeanceIntrinseque], parametres: Parametres, J: DateCivile, derniereSynchro: String?) {
+    public init(
+        intrinseques: [SeanceIntrinseque], parametres: Parametres, J: DateCivile, derniereSynchro: String?,
+        nuits: [NuitResumee]? = nil, derniereSession: SessionSommeil? = nil
+    ) {
         self.intrinseques = intrinseques
         self.parametres = parametres
         self.J = J
         self.derniereSynchro = derniereSynchro
+        self.nuits = nuits
+        self.derniereSession = derniereSession
     }
 }
 
@@ -349,6 +358,11 @@ private func assemblerVue(_ entree: EntreeVue) throws -> Vue {
     let palierVue = try palier(semainesVue)
     let compteursVue = try compteurs(jours, seances, J)
 
+    // La récupération ne dépend que des nuits et de A = J−1 : elle est absente sans nuits (goldens, D-023).
+    let recuperation = try entree.nuits.flatMap {
+        try calculerRecuperation($0, derniereSession: entree.derniereSession, aujourdhui: veille)
+    }
+
     let decision: Decision
     if premiere == nil {
         decision = DECISION_VIDE
@@ -389,7 +403,8 @@ private func assemblerVue(_ entree: EntreeVue) throws -> Vue {
         semaines: semainesVue,
         palier: palierVue,
         compteurs: compteursVue,
-        decision: decision
+        decision: decision,
+        recuperation: recuperation
     )
 }
 
@@ -452,7 +467,76 @@ private func arrondirVueFinale(_ brute: Vue) -> Vue {
     finale.semaines = brute.semaines.map(arrondiSemaine)
     finale.palier = arrondiPalier(brute.palier)
     finale.compteurs = arrondiCompteurs(brute.compteurs)
+    finale.recuperation = brute.recuperation.map(arrondiRecuperation)
     return finale
+}
+
+/// Arrondit les nombres du bloc récupération (D-023). L'état, le titre et la phrase ne bougent pas : ils sont calculés
+/// sur les valeurs brutes. `point` reste égal à `serie.last`, arrondis tous deux de la même façon.
+private func arrondiRecuperation(_ r: VueRecuperation) -> VueRecuperation {
+    var f = r
+    f.point = arrondiPointRecuperation(r.point)
+    f.serie = r.serie.map(arrondiPointRecuperation)
+    f.nuits = r.nuits.map(arrondiNuitResumee)
+    f.derniereSession = r.derniereSession.map(arrondiSessionSommeil)
+    f.semaines = r.semaines.map { semaine in
+        var s = semaine
+        s.ecartVfc_pct = semaine.ecartVfc_pct.map(arrondiVue)
+        return s
+    }
+    return f
+}
+
+private func arrondiPointRecuperation(_ p: PointRecuperation) -> PointRecuperation {
+    var r = p
+    r.vfc_ms = p.vfc_ms.map(arrondiVue)
+    r.vfc7_ms = p.vfc7_ms.map(arrondiVue)
+    r.vfcBas = p.vfcBas.map(arrondiVue)
+    r.vfcHaut = p.vfcHaut.map(arrondiVue)
+    r.vfcMilieu = p.vfcMilieu.map(arrondiVue)
+    r.fc = p.fc.map(arrondiVue)
+    r.fc7 = p.fc7.map(arrondiVue)
+    r.fcBas = p.fcBas.map(arrondiVue)
+    r.fcHaut = p.fcHaut.map(arrondiVue)
+    r.fcMilieu = p.fcMilieu.map(arrondiVue)
+    r.sommeil_min = p.sommeil_min.map(arrondiVue)
+    r.sommeil7_min = p.sommeil7_min.map(arrondiVue)
+    return r
+}
+
+private func arrondiNuitResumee(_ n: NuitResumee) -> NuitResumee {
+    var r = n
+    r.debutUtc_ms = arrondiVue(n.debutUtc_ms)
+    r.finUtc_ms = arrondiVue(n.finUtc_ms)
+    r.coucher_min = arrondiVue(n.coucher_min)
+    r.sommeil_min = arrondiVue(n.sommeil_min)
+    r.leger_min = arrondiVue(n.leger_min)
+    r.profond_min = arrondiVue(n.profond_min)
+    r.paradoxal_min = arrondiVue(n.paradoxal_min)
+    r.eveille_min = arrondiVue(n.eveille_min)
+    r.vfcLn = n.vfcLn.map(arrondiVue)
+    r.fcSommeil = n.fcSommeil.map(arrondiVue)
+    r.respiration = n.respiration.map(arrondiVue)
+    return r
+}
+
+private func arrondiSessionSommeil(_ s: SessionSommeil) -> SessionSommeil {
+    var r = s
+    r.debutUtc_ms = arrondiVue(s.debutUtc_ms)
+    r.finUtc_ms = arrondiVue(s.finUtc_ms)
+    r.segments = s.segments.map { segment in
+        var g = segment
+        g.debutUtc_ms = arrondiVue(segment.debutUtc_ms)
+        g.finUtc_ms = arrondiVue(segment.finUtc_ms)
+        return g
+    }
+    r.coucher_min = arrondiVue(s.coucher_min)
+    r.sommeil_min = arrondiVue(s.sommeil_min)
+    r.leger_min = arrondiVue(s.leger_min)
+    r.profond_min = arrondiVue(s.profond_min)
+    r.paradoxal_min = arrondiVue(s.paradoxal_min)
+    r.eveille_min = arrondiVue(s.eveille_min)
+    return r
 }
 
 private func arrondiSeanceVue(_ s: SeanceVue) -> SeanceVue {

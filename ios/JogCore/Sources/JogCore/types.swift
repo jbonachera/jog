@@ -995,13 +995,16 @@ public struct Vue: Codable, Sendable, Equatable {
     /// Compteurs de volume de A2 (04) : année, 30 jours, 7 jours.
     public var compteurs: Compteurs
     public var decision: Decision
+    /// Bloc de récupération nocturne (D-023). Absent (nil, clé omise) sans nuits mesurées.
+    public var recuperation: VueRecuperation?
 
     public init(
         formatVersion: Int, reglesVersion: String, J: DateCivile, derniereSynchro: String?,
         parametresEnVigueur: ParametresEnVigueur, seances: [SeanceVue], jours: JoursVue, premierJour: DateCivile?,
         serieCharge: [PointCharge], ratio: SerieRatioVue, semaines: [SemaineVue], palier: Palier, compteurs: Compteurs,
-        decision: Decision
+        decision: Decision, recuperation: VueRecuperation? = nil
     ) {
+        self.recuperation = recuperation
         self.formatVersion = formatVersion
         self.reglesVersion = reglesVersion
         self.J = J

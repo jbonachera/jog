@@ -791,7 +791,7 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 | 2 | fait | swift test 320 verts, relu |
 | 3 | fait | swift test 337 verts, perf serie 0,24 ms, relu |
 | 4 | fait | swift test 356 verts, relu |
-| 5 | à faire | — |
+| 5 | fait | swift test 366 verts, goldens intacts, relu |
 | 6 | à faire | — |
 | 7 | à faire | — |
 | 8 | à faire | — |
@@ -806,3 +806,6 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 
 - Lot 0 : la clé de persistance du sélecteur « Partie de Charge » (`jog-charge-partie`) n'est pas inscrite dans `02-navigation.md` (non précisée par le plan).
 - Lot 0 : `03-composants.md` (Conventions communes) dit que la journée en cours n'entre dans aucun calcul, ce qui contredit D-022 (écart préexistant).
+- Lot 4 : avec une norme absente mais une moyenne 7 nuits disponible, les indicateurs VFC et FC affichent la valeur (état « Données insuffisantes ») au lieu de « – » ; 04 dit « – » seulement sous 4 nuits. Choix conservé, à trancher.
+- Lot 4 : la FC de repos s'affiche sans décimale (04 et plan) alors que la maquette en met une.
+- Lot 5 : `FORMAT_VUE` passe à 6 alors que les 34 goldens de la Vue portent `formatVersion: 5`. `VueOracleTests` ramène donc `formatVersion` à 5 dans la sortie comparée (adaptateur `auFormatDesGoldens`, seule clé touchée) ; aucun JSON n'est modifié, et le format 6 est testé dans `RecuperationVueTests`.

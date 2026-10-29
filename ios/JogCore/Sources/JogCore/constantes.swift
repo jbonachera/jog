@@ -14,8 +14,9 @@ public let FORMAT_SEANCE = 3
 /// VERSION_ESTIMATION : version du détecteur des répétitions estimées (D-021), dans la clé de mémorisation de ②a. À monter
 /// à chaque changement de son résultat.
 public let VERSION_ESTIMATION = 2  // 2 : les répétitions estimées classent les minutes (2026-10-28)
-/// FORMAT_VUE : `vue.formatVersion`, à monter à chaque changement de forme de la Vue (5 : suggestion hrMax, D-019).
-public let FORMAT_VUE = 5
+/// FORMAT_VUE : `vue.formatVersion`, à monter à chaque changement de forme de la Vue.
+/// Historique : 6 : bloc `recuperation` (D-023) ; 5 : suggestion hrMax (D-019).
+public let FORMAT_VUE = 6
 
 /// Seuils du verdict (05, « Seuils du verdict », D-008).
 public enum SEUILS {
