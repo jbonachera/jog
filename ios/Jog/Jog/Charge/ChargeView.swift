@@ -6,6 +6,8 @@ import JogCore
 struct ChargeView: View {
     let vue: Vue
     @Binding var partie: PartieCharge
+    /// Besoin de sommeil (D-023), lu par la partie Récupération ; 450 minutes par défaut.
+    @AppStorage("besoinSommeil_min") private var besoinSommeil_min: Double = 450
 
     var body: some View {
         ScrollView {
@@ -29,10 +31,7 @@ struct ChargeView: View {
                     MinutesSousSeuilView(vue: vue)
                     DisciplineView(vue: vue)
                 case .recuperation:
-                    // Emplacement provisoire : la partie Récupération arrive au lot 12.
-                    Text("Les tendances de récupération arrivent bientôt.")
-                        .font(.body)
-                        .foregroundStyle(.encre2)
+                    RecuperationView(recuperation: vue.recuperation, besoin_min: besoinSommeil_min)
                 }
             }
             .padding(.horizontal, 16)

@@ -172,3 +172,58 @@ func lHypnogrammeDessineUnRectangleParSegment(largeur: CGFloat, sombre: Bool) as
         "libellé : \(ModeleRecuperation.libelleAccessible(carte))"
     )
 }
+
+// MARK: - Liste des signaux (R2) et feuille d'un indicateur
+
+/// Les cinq indicateurs du scénario normal, plus un indicateur « Données insuffisantes » à la valeur tiret (le cas le plus
+/// large en texte pour la pastille).
+private func indicateursAvecInsuffisant() throws -> [IndicateurRecuperation] {
+    let r = try recuperation(.normal)
+    return try ModeleRecuperation.indicateurs(r, besoin_min: besoin) + [
+        IndicateurRecuperation(
+            cle: .sommeil, nom: "Sommeil", etat: .insuffisant, valeurTexte: "–", detail: "",
+            explication: "Il manque des nuits : 2 sur 4 mesurées.", reperes: []
+        ),
+    ]
+}
+
+@MainActor
+@Test(arguments: renduLargeursEcran)
+func laListeDesIndicateursNeDeborderPasEnAccessibility3(largeur: CGFloat) throws {
+    let liste = ListeSignauxRecuperation(indicateurs: try indicateursAvecInsuffisant())
+    let largeurRendue = largeurRendue(liste, largeur: largeur, taille: .accessibility3)
+    #expect(
+        largeurRendue <= largeur,
+        "liste des indicateurs : largeur rendue \(largeurRendue) pt, écran de \(largeur) pt, Dynamic Type accessibility3 : un élément déborde"
+    )
+}
+
+@Test func laFeuilleDUnIndicateurDeContexteNAPasDeBlocReperes() {
+    let contexte = IndicateurRecuperation(
+        cle: .respiration, nom: "Fréquence respiratoire", etat: .contexte, valeurTexte: "14,2 /min",
+        detail: "pendant le sommeil", explication: "Très stable d’une nuit à l’autre.", reperes: []
+    )
+    let feuille = ModeleRecuperation.feuille(contexte)
+    #expect(feuille.reperes == nil, "un indicateur de contexte ne doit pas avoir de bloc « Repères »")
+    #expect(feuille.note == "Norme : 60 nuits précédentes, plus ou moins un écart-type environ.")
+    #expect(feuille.pastille == "Contexte")
+}
+
+@Test func laFeuilleDUnIndicateurAvecNormeALesReperesEtLaNote() {
+    let vfc = IndicateurRecuperation(
+        cle: .vfc, nom: "VFC", etat: .ok, valeurTexte: "52 ms", detail: "7 nuits · norme 40–59",
+        explication: "Dans ta plage habituelle.",
+        reperes: [
+            RepereIndicateur(etat: .ok, texte: "dans la norme ou au-dessus"),
+            RepereIndicateur(etat: .surveiller, texte: "sous la norme"),
+            RepereIndicateur(etat: .alerte, texte: "sous la norme et FC de repos haute"),
+        ]
+    )
+    let feuille = ModeleRecuperation.feuille(vfc)
+    #expect(feuille.reperes?.map(\.libelle) == ["OK", "À surveiller", "Alerte"])
+    #expect(feuille.reperes?.map(\.ton) == [.bon, .attention, .mauvais])
+    #expect(feuille.reperes?.map(\.texte) == ["dans la norme ou au-dessus", "sous la norme", "sous la norme et FC de repos haute"])
+    #expect(feuille.note == "Norme : 60 nuits précédentes, plus ou moins un écart-type environ.")
+    #expect(feuille.pastille == "OK")
+    #expect(feuille.ton == .bon)
+}

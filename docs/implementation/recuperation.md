@@ -798,7 +798,7 @@ Pas d'étiquette « nouveau » ni « D-023 » : ce sont des annotations de la ma
 | 9 | fait | xcodebuild test vert (78 tests), swift test 390, relu ; captures à faire |
 | 10 | fait | xcodebuild test vert (102 tests), swift test 390, relu |
 | 11 | fait | xcodebuild test vert (105 tests), swift test 390, relu ; captures à faire |
-| 12 | à faire | — |
+| 12 | fait | xcodebuild test vert (114 tests), swift test 390, relu + 1 correction |
 | 13 | à faire | — |
 | 14 | à faire | — |
 

@@ -242,3 +242,49 @@ private func vueAvecRecuperation(_ recuperation: VueRecuperation) throws -> Vue 
 @Test func leBesoinSEcritEnHeuresEtMinutes() {
     #expect(ModeleRecuperation.besoinTexte(450) == "7 h 30")
 }
+
+// MARK: - Sections de l'onglet Récupération (lot 12, R1 à R7)
+
+@Test func lesSectionsDeLaRecuperationSuiventLOrdreDeR1AR7() throws {
+    let r = try recuperation(.normal)
+    #expect(ModeleRecuperation.sections(r) == [.etat, .signaux, .vfc, .fcRepos, .sommeil, .chargeRecuperation, .methode])
+}
+
+@Test func sansNuitLesSectionsSeReduisentAuMessageSansNuit() {
+    #expect(ModeleRecuperation.sections(nil) == [.sansNuit])
+}
+
+// MARK: - Textes de R1, R2 et R7 (maquette recuperation.html)
+
+@Test func lesTextesDuSurtitreEtDeLaSourceSontCeuxDeLaMaquette() {
+    #expect(ModeleRecuperation.surtitre == "Ce matin · moyenne des 7 dernières nuits face à ta norme de 60 jours")
+    #expect(ModeleRecuperation.sourceTexte == "Source : Apple Santé (HealthKit). Pas de score sur 100 : chaque valeur est affichée face à sa propre norme.")
+}
+
+@Test func laMethodeDonneQuatreParagraphesExactsDansLOrdre() {
+    let paragraphes = ModeleRecuperation.methode
+    #expect(paragraphes.map(\.titre) == ["Mesure.", "Norme.", "État", "Sommeil."])
+    #expect(paragraphes.map(\.texte) == [
+        "Mesure. L’Apple Watch relève la VFC (SDNN, pas RMSSD) plusieurs fois pendant le sommeil. On fait la moyenne de la nuit, en logarithme. La FC de repos est la FC moyenne pendant le sommeil, pas la valeur du jour donnée par Santé.",
+        "Norme. Moyenne des 60 nuits précédentes, plus ou moins un écart-type environ, recalculée chaque matin. Il faut au moins 21 nuits mesurées. Avant cela, l’écran affiche « Norme en cours de calcul ».",
+        "État, figé au réveil :",
+        "Sommeil. C’est un contexte, pas une entrée de l’état. Repère : besoin réglable, 7 h 30 par défaut. Une nuit sans montre est ignorée, jamais comptée à zéro.",
+    ])
+}
+
+@Test func lesPucesDeLEtatSontLesTroisEtatsDeLaMethode() {
+    #expect(ModeleRecuperation.methode[2].puces == [
+        "Dans ta norme : VFC sur 7 nuits dans la bande.",
+        "Sous ta norme : VFC sur 7 nuits sous la bande.",
+        "Basse : VFC sous la bande et FC de repos au-dessus de la sienne.",
+    ])
+    #expect(ModeleRecuperation.methode.filter { !$0.puces.isEmpty }.count == 1)
+}
+
+@Test func lesTonsDesIndicateursSuiventLEtatSansPrendreLaCouleurSeule() {
+    #expect(ModeleRecuperation.tonIndicateur(.ok) == .bon)
+    #expect(ModeleRecuperation.tonIndicateur(.surveiller) == .attention)
+    #expect(ModeleRecuperation.tonIndicateur(.alerte) == .mauvais)
+    #expect(ModeleRecuperation.tonIndicateur(.insuffisant) == .neutre)
+    #expect(ModeleRecuperation.tonIndicateur(.contexte) == .neutre)
+}

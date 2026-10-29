@@ -246,6 +246,116 @@ enum ModeleRecuperation {
         dureeEspacee(min)
     }
 
+    // MARK: - Onglet Récupération (lot 12, R1 à R7)
+
+    /// Sections de l'onglet, dans l'ordre de 03 : R1 état, R2 signaux, R3 VFC, R4 FC de repos, R5 sommeil, R6 charge et
+    /// récupération, R7 méthode. Sans nuit mesurée, il ne reste que le message (A5).
+    enum SectionRecuperation: Hashable, Sendable {
+        case etat, signaux, vfc, fcRepos, sommeil, chargeRecuperation, methode, sansNuit
+    }
+
+    static func sections(_ r: VueRecuperation?) -> [SectionRecuperation] {
+        guard r != nil else { return [.sansNuit] }
+        return [.etat, .signaux, .vfc, .fcRepos, .sommeil, .chargeRecuperation, .methode]
+    }
+
+    /// Surtitre de R1 (maquette, « Ce matin »).
+    static let surtitre = "Ce matin · moyenne des 7 dernières nuits face à ta norme de 60 jours"
+
+    /// Mention de source, sous la méthode (R7, maquette).
+    static let sourceTexte = "Source : Apple Santé (HealthKit). Pas de score sur 100 : chaque valeur est affichée face à sa propre norme."
+
+    /// Note de norme de la feuille d'un indicateur qui a une norme (R2).
+    static let noteNorme = "Norme : 60 nuits précédentes, plus ou moins un écart-type environ."
+
+    /// Les cinq indicateurs de R2 de la Vue, au besoin de l'app (JogCore, 04).
+    static func indicateurs(_ r: VueRecuperation, besoin_min: Double) throws -> [IndicateurRecuperation] {
+        try indicateursRecuperation(point: r.point, nuits: r.nuits, aujourdhui: r.aujourdhui, besoin_min: besoin_min)
+    }
+
+    /// Ton d'une pastille d'indicateur : vert, orange, rouge ; données insuffisantes et contexte restent neutres.
+    static func tonIndicateur(_ e: EtatIndicateur) -> Ton {
+        switch e {
+        case .ok: .bon
+        case .surveiller: .attention
+        case .alerte: .mauvais
+        case .insuffisant, .contexte: .neutre
+        }
+    }
+
+    /// « valeur · détail » d'une ligne de R2 ; sans détail, la valeur seule.
+    static func valeurEtDetail(_ indicateur: IndicateurRecuperation) -> String {
+        indicateur.detail.isEmpty ? indicateur.valeurTexte : "\(indicateur.valeurTexte) · \(indicateur.detail)"
+    }
+
+    /// Feuille d'un indicateur (R2) : valeur, pastille, détail, explication, repères et note de norme.
+    struct FeuilleIndicateur: Equatable {
+        struct Repere: Equatable {
+            let libelle: String
+            let ton: Ton
+            let texte: String
+        }
+
+        let nom: String
+        let valeur: String
+        let pastille: String
+        let ton: Ton
+        let detail: String
+        let explication: String
+        /// Nil s'il n'y a pas de repère (contexte) : la feuille n'a alors pas de bloc « Repères ».
+        let reperes: [Repere]?
+        /// Note de norme, affichée sur la feuille de chaque indicateur.
+        let note: String
+    }
+
+    static func feuille(_ indicateur: IndicateurRecuperation) -> FeuilleIndicateur {
+        let reperes = indicateur.reperes.isEmpty ? nil : indicateur.reperes.map {
+            FeuilleIndicateur.Repere(libelle: libelleIndicateur($0.etat), ton: tonIndicateur($0.etat), texte: $0.texte)
+        }
+        return FeuilleIndicateur(
+            nom: indicateur.nom, valeur: indicateur.valeurTexte, pastille: libelleIndicateur(indicateur.etat),
+            ton: tonIndicateur(indicateur.etat), detail: indicateur.detail, explication: indicateur.explication,
+            reperes: reperes, note: noteNorme
+        )
+    }
+
+    /// Un paragraphe de R7 : le titre en gras, puis la suite, et les puces de l'état.
+    struct ParagrapheMethode: Equatable {
+        let titre: String
+        let suite: String
+        let puces: [String]
+
+        var texte: String { titre + suite }
+    }
+
+    /// Les 4 paragraphes de « Comment c’est calculé », recopiés de la maquette recuperation.html.
+    static let methode: [ParagrapheMethode] = [
+        ParagrapheMethode(
+            titre: "Mesure.",
+            suite: " L’Apple Watch relève la VFC (SDNN, pas RMSSD) plusieurs fois pendant le sommeil. On fait la moyenne de la nuit, en logarithme. La FC de repos est la FC moyenne pendant le sommeil, pas la valeur du jour donnée par Santé.",
+            puces: []
+        ),
+        ParagrapheMethode(
+            titre: "Norme.",
+            suite: " Moyenne des 60 nuits précédentes, plus ou moins un écart-type environ, recalculée chaque matin. Il faut au moins 21 nuits mesurées. Avant cela, l’écran affiche « Norme en cours de calcul ».",
+            puces: []
+        ),
+        ParagrapheMethode(
+            titre: "État",
+            suite: ", figé au réveil :",
+            puces: [
+                "Dans ta norme : VFC sur 7 nuits dans la bande.",
+                "Sous ta norme : VFC sur 7 nuits sous la bande.",
+                "Basse : VFC sous la bande et FC de repos au-dessus de la sienne.",
+            ]
+        ),
+        ParagrapheMethode(
+            titre: "Sommeil.",
+            suite: " C’est un contexte, pas une entrée de l’état. Repère : besoin réglable, 7 h 30 par défaut. Une nuit sans montre est ignorée, jamais comptée à zéro.",
+            puces: []
+        ),
+    ]
+
     // MARK: - Aides
 
     private static func nombre(_ valeur: Double?, _ decimales: Int = 0) -> String {
