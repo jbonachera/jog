@@ -624,7 +624,7 @@ enum ModeleNiveau {
 | 2 | fait | 415 tests verts (12 nouveaux) ; relu ; aucune correction |
 | 3 | fait | 433 tests verts (18 nouveaux) ; relu ; 3 corrections (jour A = `vue.J − 1` dans `niveauVDOT` du lot 1, borne A − 364/A − 365, écart % mi-chemin testé au lot 2) |
 | 4 | fait | 449 tests verts (16 nouveaux) ; relu ; 1 correction (FC de repos sans norme testée) |
-| 5 | | |
+| 5 | fait | 460 tests verts (11 nouveaux) ; oracle intact (0 cas avec altitude : l'adaptateur ne retire rien aujourd'hui) ; relu ; 1 correction (décodage d'un cache sans D+ testé) |
 | 6 | | |
 | 7 | | |
 | 8 | | |
@@ -650,3 +650,5 @@ enum ModeleNiveau {
 - Lot 3 : `Vue.J` est la coupure (le lendemain d'aujourd'hui) ; le jour A vaut `vue.J − 1`. Le plan écrivait « A = vue.J » au lot 1, corrigé ; `niveauVDOT` est corrigé dans ce commit.
 - Lot 3 : `LigneJauge.enCours` est une struct `MentionEnCours { n, sur }` (un tuple n'est pas `Equatable`) ; l'écart en % se calcule `(v − t) ÷ t × 100` pour que 209 face à 200 donne bien +5 (D-015).
 - Lot 4 : « Norme en cours (n sur 4) » ne s'affiche que sur la VFC ; `PointRecuperation` ne compte pas les nuits de la norme FC (l'ajouter changerait la forme de la Vue). La semaine de A est « en cours » même quand A est un dimanche.
+- Lot 5 : lissage de 30 s = moyenne sur fenêtre pleine, régression linéaire aux bords du tracé (une moyenne y perdrait la moitié de la pente). Le test « bruit ±2 m à 1 Hz » utilise un motif alterné déterministe : un bruit aléatoire laisse ≈ 13 m sur 10 min après tout lissage de 30 s.
+- Lot 5 : aucun cas d'oracle n'a d'altitude (`alt_m` nul partout) : l'adaptateur `sansDPlusDesGoldens` est en place mais ne retire rien. `dPlus_m` est aussi sur `SeanceIntrinseque` (ce que ②a mémorise), et `VERSION_DENIVELE` entre aussi dans l'empreinte de la Vue (sinon une Vue en cache sans D+ serait servie).

@@ -173,7 +173,7 @@ public struct EntreeVue: Codable, Sendable, Equatable {
 /// d'avant D-020.
 public func cleDeSeance(
     _ pivot: EmpreinteActivite, _ p: ParamsDates, marquage: MarquageUtilisateur? = nil,
-    versionEstimation: Int = VERSION_ESTIMATION
+    versionEstimation: Int = VERSION_ESTIMATION, versionDenivele: Int = VERSION_DENIVELE
 ) -> String {
     var champs = [
         pivot.empreinteBrute,
@@ -186,6 +186,7 @@ public func cleDeSeance(
         "subtHrLo=\(p.subtHrLo)",
         "FORMAT_SEANCE=\(FORMAT_SEANCE)",
         "VERSION_ESTIMATION=\(versionEstimation)",
+        "VERSION_DENIVELE=\(versionDenivele)",
     ]
     // Le bundle de l'app source entre dans la clé (migration-ios, décision 5) : une séance HealthKit d'une autre app
     // n'a pas la même analyse. Absent pour FIT et Strava, la clé de ces sources reste celle d'avant.
@@ -199,15 +200,18 @@ public func cleDeSeance(
 }
 
 /// Empreinte des entrées de la Vue (ADR 0009, démarrage rapide) : activités actives (clé source et empreinte),
-/// paramètres, date de dernière synchronisation, `REGLES_VERSION` et `VERSION_ESTIMATION` (D-021 : un changement du
-/// détecteur change les séances sans changer `REGLES_VERSION`, qui reste celui du cœur partagé avec TypeScript).
+/// paramètres, date de dernière synchronisation, `REGLES_VERSION`, `VERSION_ESTIMATION` (D-021 : un changement du
+/// détecteur change les séances sans changer `REGLES_VERSION`, qui reste celui du cœur partagé avec TypeScript) et
+/// `VERSION_DENIVELE` (D-025 : une Vue en cache sans D+ n'est pas servie).
 /// Deux appels aux mêmes entrées donnent la même empreinte, quel que soit leur ordre. Les globaux entrent en entier
 /// (sérialisés triés) : un paramètre global ajouté plus tard ne sera pas oublié de l'empreinte.
 public func empreinteEntrees(
     activites: [EmpreinteActivite], parametres: Parametres, derniereSynchro: String?,
-    versionEstimation: Int = VERSION_ESTIMATION
+    versionEstimation: Int = VERSION_ESTIMATION, versionDenivele: Int = VERSION_DENIVELE
 ) throws -> String {
-    var champs: [String] = ["REGLES_VERSION=\(REGLES_VERSION)", "VERSION_ESTIMATION=\(versionEstimation)"]
+    var champs: [String] = [
+        "REGLES_VERSION=\(REGLES_VERSION)", "VERSION_ESTIMATION=\(versionEstimation)", "VERSION_DENIVELE=\(versionDenivele)",
+    ]
 
     let triees = activites.sorted { $0.cleSource < $1.cleSource }
     champs.append("activites=\(triees.count)")

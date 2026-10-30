@@ -503,13 +503,15 @@ public struct SeanceIntrinseque: Codable, Sendable, Equatable {
     @ChampNul public var temps_s: Double?
     /// Vrai quand les répétitions sont estimées sur la vitesse et la FC, sans tours (D-021). Nil sinon (absent de l'oracle).
     @ChampNul public var repetitionsEstimees: Bool?
+    /// D+ de la séance, en m (D-025) ; nil sans altitude. Clé absente du JSON quand elle est nil.
+    public var dPlus_m: Double?
 
     public init(
         cleSource: String, date: DateCivile, debutUtc: Double, nom: String?, marquage: Marquage,
         duree_min: Double, km: Double, fcMoy: Double?, allureMoy_skm: Double?, minutes: Minutes, charge: Double,
         mp_min: Double, segmentsMp: [SegmentMp], repetitions: [Repetition], format: String?, recup_s: Double?,
         ef: Double?, fcPic: Double?, decouplage: Decouplage?, lignesDroites: Bool, distanceRef_km: Double?, temps_s: Double?,
-        repetitionsEstimees: Bool? = nil
+        repetitionsEstimees: Bool? = nil, dPlus_m: Double? = nil
     ) {
         self.cleSource = cleSource
         self.date = date
@@ -534,6 +536,7 @@ public struct SeanceIntrinseque: Codable, Sendable, Equatable {
         self.distanceRef_km = distanceRef_km
         self.temps_s = temps_s
         self.repetitionsEstimees = repetitionsEstimees
+        self.dPlus_m = dPlus_m
     }
 
     /// Décodage explicite : `repetitionsEstimees` est facultatif dans les JSON anciens (mémoire, oracle), donc lu à part.
@@ -563,6 +566,7 @@ public struct SeanceIntrinseque: Codable, Sendable, Equatable {
         _temps_s = try c.decode(ChampNul<Double>.self, forKey: .temps_s)
         // Champ ajouté après la mémorisation (D-021) : absent des JSON anciens, lu comme nil.
         _repetitionsEstimees = try c.decodeIfPresent(ChampNul<Bool>.self, forKey: .repetitionsEstimees) ?? ChampNul(wrappedValue: nil)
+        dPlus_m = try c.decodeIfPresent(Double.self, forKey: .dPlus_m)
     }
 }
 
@@ -591,6 +595,8 @@ public struct Seance: Codable, Sendable, Equatable {
     @ChampNul public var distanceRef_km: Double?
     @ChampNul public var temps_s: Double?
     @ChampNul public var repetitionsEstimees: Bool?
+    /// D+ de la séance, en m (D-025) ; nil sans altitude. Clé absente du JSON quand elle est nil.
+    public var dPlus_m: Double?
     public var type: TypeSeance
 
     public init(intrinseque s: SeanceIntrinseque, type: TypeSeance) {
@@ -617,6 +623,7 @@ public struct Seance: Codable, Sendable, Equatable {
         distanceRef_km = s.distanceRef_km
         temps_s = s.temps_s
         repetitionsEstimees = s.repetitionsEstimees
+        dPlus_m = s.dPlus_m
         self.type = type
     }
 
@@ -647,6 +654,7 @@ public struct Seance: Codable, Sendable, Equatable {
         _temps_s = try c.decode(ChampNul<Double>.self, forKey: .temps_s)
         // Champ ajouté après la mémorisation (D-021) : absent des JSON anciens, lu comme nil.
         _repetitionsEstimees = try c.decodeIfPresent(ChampNul<Bool>.self, forKey: .repetitionsEstimees) ?? ChampNul(wrappedValue: nil)
+        dPlus_m = try c.decodeIfPresent(Double.self, forKey: .dPlus_m)
         type = try c.decode(TypeSeance.self, forKey: .type)
     }
 }
@@ -675,6 +683,8 @@ public struct SeanceVue: Codable, Sendable, Equatable {
     @ChampNul public var distanceRef_km: Double?
     @ChampNul public var temps_s: Double?
     @ChampNul public var repetitionsEstimees: Bool?
+    /// D+ de la séance, en m (D-025) ; nil sans altitude. Clé absente du JSON quand elle est nil.
+    public var dPlus_m: Double?
     public var type: TypeSeance
 
     public init(seance: Seance) {
@@ -701,6 +711,7 @@ public struct SeanceVue: Codable, Sendable, Equatable {
         distanceRef_km = s.distanceRef_km
         temps_s = s.temps_s
         repetitionsEstimees = s.repetitionsEstimees
+        dPlus_m = s.dPlus_m
         type = seance.type
     }
 
@@ -730,6 +741,7 @@ public struct SeanceVue: Codable, Sendable, Equatable {
         _temps_s = try c.decode(ChampNul<Double>.self, forKey: .temps_s)
         // Champ ajouté après la mémorisation (D-021) : absent des JSON anciens, lu comme nil.
         _repetitionsEstimees = try c.decodeIfPresent(ChampNul<Bool>.self, forKey: .repetitionsEstimees) ?? ChampNul(wrappedValue: nil)
+        dPlus_m = try c.decodeIfPresent(Double.self, forKey: .dPlus_m)
         type = try c.decode(TypeSeance.self, forKey: .type)
     }
 }

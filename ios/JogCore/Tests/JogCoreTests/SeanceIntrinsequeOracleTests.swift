@@ -8,7 +8,7 @@ private func executerSeanceIntrinseque(_ cas: CasOracle) throws -> JSONValue {
     case "calculerSeanceIntrinseque":
         let pivot = try argDecode(try arg(args, 0), ActivitePivot.self)
         let p = try argDecode(try arg(args, 1), ParamsDates.self)
-        return try JSONValue(encodant: try calculerSeanceIntrinseque(pivot, p))
+        return sansDPlusDesGoldens(try JSONValue(encodant: try calculerSeanceIntrinseque(pivot, p)))
     default:
         throw ErreurHarnais("fonction inconnue dans seance-intrinseque : \(cas.fn)")
     }

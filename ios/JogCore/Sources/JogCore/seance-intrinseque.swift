@@ -87,7 +87,8 @@ func calculerSeanceIntrinsequeAvec(
         lignesDroites: reps.repetitions.isEmpty && detecterLignesDroites(g),
         distanceRef_km: enCourse && resume.km > 0 ? distanceStandardProche(resume.km) : nil,
         temps_s: enCourse ? resume.duree_s : nil,
-        repetitionsEstimees: estimees
+        repetitionsEstimees: estimees,
+        dPlus_m: denivelePositif(g)
     )
 }
 

@@ -12,14 +12,27 @@ private func auFormatDesGoldens(_ valeur: JSONValue) -> JSONValue {
     return .object(champs)
 }
 
+/// Adaptateur du lot 5 (D-025) : `dPlus_m` est apparu après la fabrication des goldens, qui ne le portent pas. La sortie
+/// comparée perd cette clé, et seulement celle-là, partout où une séance est sérialisée (récursivement).
+func sansDPlusDesGoldens(_ valeur: JSONValue) -> JSONValue {
+    switch valeur {
+    case let .object(champs):
+        return .object(champs.filter { $0.key != "dPlus_m" }.mapValues(sansDPlusDesGoldens))
+    case let .array(elements):
+        return .array(elements.map(sansDPlusDesGoldens))
+    default:
+        return valeur
+    }
+}
+
 /// Dispatch des cas `vue` de l'oracle : `calculerVue` et `calculerVueBrute` reçoivent un objet (EntreeVue).
 private func executerVue(_ cas: CasOracle) throws -> JSONValue {
     let entree = try argDecode(cas.entree, EntreeVue.self)
     switch cas.fn {
     case "calculerVue":
-        return auFormatDesGoldens(try JSONValue(encodant: try calculerVue(entree)))
+        return auFormatDesGoldens(sansDPlusDesGoldens(try JSONValue(encodant: try calculerVue(entree))))
     case "calculerVueBrute":
-        return auFormatDesGoldens(try JSONValue(encodant: try calculerVueBrute(entree)))
+        return auFormatDesGoldens(sansDPlusDesGoldens(try JSONValue(encodant: try calculerVueBrute(entree))))
     default:
         throw ErreurHarnais("fonction inconnue dans vue : \(cas.fn)")
     }
@@ -42,7 +55,7 @@ private func executerVue(_ cas: CasOracle) throws -> JSONValue {
 @Test func oracleVueMaquette14Mois() throws {
     let cas = try chargerCasOracle("vue").cas.first { $0.nom == "maquette 14 mois" }
     let trouve = try #require(cas)
-    let sortie = auFormatDesGoldens(try JSONValue(encodant: try calculerVue(try argDecode(trouve.entree, EntreeVue.self))))
+    let sortie = auFormatDesGoldens(sansDPlusDesGoldens(try JSONValue(encodant: try calculerVue(try argDecode(trouve.entree, EntreeVue.self)))))
     let differences = comparer(trouve.sortie ?? .null, sortie)
     #expect(differences.isEmpty, messageDifferences(differences))
 }
