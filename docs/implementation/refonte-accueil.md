@@ -632,7 +632,7 @@ enum ModeleNiveau {
 | 10 | fait | swift test 528 ; xcodebuild test 130 verts (NavigationTests 3 → 10) ; relu ; 2 corrections (verdict de l'Aperçu ouvre `.decision`, test paramétré signal → destination) |
 | 11 | fait | swift test 528 ; xcodebuild test 130 verts ; relu ; 1 correction (les 8 signaux en ligne sur l'écran Décision, `ListeSignaux` partagée avec la feuille) |
 | 12 | fait | swift test 530 ; xcodebuild test 161 verts (31 nouveaux) ; relu ; 5 corrections (plus de double arrondi de l'écart en %, `point` optionnel, marge d'échelle dans `ACCUEIL`, absence en récupération testée, diff du pbxproj réduit à l'ajout) |
-| 13 | | |
+| 13 | fait | swift test 531 ; xcodebuild test 189 verts (35 nouveaux) ; relu ; 4 corrections (`LigneJauge.n` pour « {n} footings des 8 dernières semaines », formats de toutes les jauges testés, borne 365/366 jours, résumé sans sous-seuil testé) |
 | 14 | | |
 | 15 | | |
 | 16 | | |
@@ -661,3 +661,5 @@ enum ModeleNiveau {
 - Lot 11 : `RecuperationChargeView` citée au plan n'existe pas ; `EcranRecuperation` réutilise `RecuperationView` (R1–R7) sous l'en-tête de la nuit (A6). La feuille « Cette nuit » (`FeuilleNuitView`) est retirée : son contenu est l'en-tête de l'écran. Aucun test nouveau : la destination de chaque signal est testée au lot 10.
 - À faire par l'utilisateur (lot 11) : captures des écrans Décision et Récupération, clair et sombre.
 - Lot 12 : `LigneJaugeModele.point` est `Double?` (nil sans valeur, la vue n'a rien à tester) au lieu de `Double`. Les milliers gardent l'espace insécable U+00A0 des formateurs existants (`ModeleApercu`), pas l'espace fine. Phrases non écrites au plan : « norme 44–58 ms », « besoin 7 h 30 », « Norme en cours (n sur 21) » pour la VFC (minimum de 21 nuits). Le lien « Saisons › » (point 11) est porté par la vue.
+- Lot 13 : le marquage (D-020, `OptionMarquage`) passe de `ModeleApercu` à `ModeleSeances` ; les appels de l'Aperçu et de l'Historique sont renommés, leurs tests déplacés sans changer d'assertion. `enTete` reçoit les séances pour nommer la course (point 15). `LigneJauge` gagne `n` (taille de l'échantillon), pour la phrase de S2 (point 11).
+- Lot 13 : le résumé de semaine omet « · N seuils · X′ sous-seuil (P %) » sans séance sous-seuil (sinon « 0 seuil · 0′ (0 %) »). Une séance de plus de 365 jours porte l'année. La séance qualité prend la couleur « au-dessus du seuil », comme courses et tests.

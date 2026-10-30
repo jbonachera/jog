@@ -37,7 +37,7 @@ private struct LigneJourView: View {
     @ScaledMetric(relativeTo: .body) private var largeurJour: CGFloat = 44
 
     private var marquages: [String] {
-        ligne.seances.compactMap { ModeleApercu.libelleMarquage($0.marquage) }
+        ligne.seances.compactMap { ModeleSeances.libelleMarquage($0.marquage) }
     }
 
     var body: some View {
@@ -96,8 +96,8 @@ private struct LigneJourView: View {
                 }
                 .accessibilityActions {
                     ForEach(ligne.seances) { seance in
-                        ForEach(ModeleApercu.optionsMarquage(seance.marquage), id: \.titre) { option in
-                            Button(ModeleApercu.libelleAction(option, seance: seance, plusieurs: ligne.seances.count > 1)) {
+                        ForEach(ModeleSeances.optionsMarquage(seance.marquage), id: \.titre) { option in
+                            Button(ModeleSeances.libelleAction(option, seance: seance, plusieurs: ligne.seances.count > 1)) {
                                 surMarquage(seance.id, option.valeur)
                             }
                         }
@@ -106,11 +106,11 @@ private struct LigneJourView: View {
         }
     }
 
-    /// Les entrées du menu d'une séance : son marquage actuel, puis les actions de `optionsMarquage`.
+    /// Les entrées du menu d'une séance : son marquage actuel, puis les actions de `ModeleSeances.optionsMarquage`.
     @ViewBuilder
     private func menuMarquage(_ seance: SeanceAffichee) -> some View {
-        Text(ModeleApercu.libelleMarquageActuel(seance.marquage))
-        ForEach(ModeleApercu.optionsMarquage(seance.marquage), id: \.titre) { option in
+        Text(ModeleSeances.libelleMarquageActuel(seance.marquage))
+        ForEach(ModeleSeances.optionsMarquage(seance.marquage), id: \.titre) { option in
             Button(option.titre) {
                 surMarquage(seance.id, option.valeur)
             }

@@ -115,3 +115,14 @@ import Testing
     #expect(ligne.ecart == nil)
     #expect(ligne.horsBande == false)
 }
+
+// MARK: - Taille de l'échantillon (point de décision 11)
+
+@Test func uneLigneAvecNormePorteLaTailleDeLEchantillon() {
+    // Point de décision 11 : « {n} footings … » lit n sur la ligne. Sans norme, n est absent.
+    let avecNorme = ligneDeNorme(valeur: 138, trait: 137, resultat: norme([134, 136, 138, 140], minimum: 4), precision: 1)
+    #expect(avecNorme.n == 4)
+    let enCours = ligneDeNorme(valeur: 138, trait: nil, resultat: norme([134, 136], minimum: 4), precision: 1)
+    #expect(enCours.n == nil)
+    #expect(ligneJauge(valeur: 138, trait: 137, bande: 134...140, precision: 1).n == nil)
+}

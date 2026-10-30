@@ -1,51 +1,9 @@
-// Tests purs de ModeleApercu (app, dossier Apercu) : marquage (D-020), tableaux (D-011) et bornes des barres.
+// Tests purs de ModeleApercu (app, dossier Apercu) : tableaux (D-011) et bornes des barres.
 // Exécuté dans la cible JogTests (hébergée par Jog). Aucun test ne dépend de SwiftUI ni de HealthKit.
 import Foundation
 import Testing
 import JogCore
 @testable import Jog
-
-// MARK: - Marquage (D-020)
-
-@Test func uneSeanceNonMarqueeProposeLesDeuxMarquages() {
-    #expect(ModeleApercu.optionsMarquage(.aucun).map(\.titre) == ["Marquer comme course", "Marquer comme test"])
-    #expect(ModeleApercu.optionsMarquage(.inconnu).map(\.titre) == ["Marquer comme course", "Marquer comme test"])
-}
-
-@Test func uneCourseProposeLeTestEtLeRetrait() {
-    let options = ModeleApercu.optionsMarquage(.course)
-    #expect(options.map(\.titre) == ["Marquer comme test", "Retirer le marquage"])
-    #expect(options.map(\.valeur) == [.test, nil])
-}
-
-@Test func unTestProposeLaCourseEtLeRetrait() {
-    let options = ModeleApercu.optionsMarquage(.test)
-    #expect(options.map(\.titre) == ["Marquer comme course", "Retirer le marquage"])
-    #expect(options.map(\.valeur) == [.course, nil])
-}
-
-@Test func lesValeursEnregistrentLeMarquageChoisi() {
-    #expect(ModeleApercu.optionsMarquage(.aucun).map(\.valeur) == [.course, .test])
-}
-
-@Test func lePastilleSuitLeMarquageCourant() {
-    #expect(ModeleApercu.libelleMarquage(.course) == "Course")
-    #expect(ModeleApercu.libelleMarquage(.test) == "Test")
-    #expect(ModeleApercu.libelleMarquage(.aucun) == nil)
-    #expect(ModeleApercu.libelleMarquage(.inconnu) == nil)
-}
-
-@Test func lEnteteDuMenuNommeLeMarquageActuel() {
-    #expect(ModeleApercu.libelleMarquageActuel(.course) == "Marquage actuel : Course")
-    #expect(ModeleApercu.libelleMarquageActuel(.aucun) == "Marquage actuel : aucun")
-}
-
-@Test func lActionVoiceOverNommeLaSeanceQuandLeJourEnComptePlusieurs() {
-    let seance = SeanceAffichee(id: "k", titre: "Sous-seuil", marquage: .aucun)
-    let option = ModeleApercu.optionsMarquage(.aucun)[0]
-    #expect(ModeleApercu.libelleAction(option, seance: seance, plusieurs: false) == "Marquer comme course")
-    #expect(ModeleApercu.libelleAction(option, seance: seance, plusieurs: true) == "Marquer comme course : Sous-seuil")
-}
 
 // MARK: - Tableaux (D-011)
 

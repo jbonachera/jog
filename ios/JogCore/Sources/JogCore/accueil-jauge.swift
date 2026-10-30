@@ -43,10 +43,12 @@ public struct LigneJauge: Sendable, Equatable {
     public var horsBande: Bool
     /// « Norme en cours (n sur minimum) » : la bande manque, l'échantillon étant trop petit (D-026). Nil sinon.
     public var enCours: MentionEnCours?
+    /// Taille de l'échantillon de la norme, quand la norme existe (point de décision 11) ; nil sinon.
+    public var n: Int?
 
     public init(
         valeur: Double?, valeurAffichee: Double?, trait: Double?, bande: ClosedRange<Double>?, ecart: Double?,
-        horsBande: Bool, enCours: MentionEnCours? = nil
+        horsBande: Bool, enCours: MentionEnCours? = nil, n: Int? = nil
     ) {
         self.valeur = valeur
         self.valeurAffichee = valeurAffichee
@@ -55,6 +57,7 @@ public struct LigneJauge: Sendable, Equatable {
         self.ecart = ecart
         self.horsBande = horsBande
         self.enCours = enCours
+        self.n = n
     }
 }
 

@@ -278,7 +278,7 @@ enum ModeleHistorique {
                 titre: "\(ModeleApercu.jourCourt(seance.date)) \(ModeleApercu.quantieme(seance.date)) · \(libelle)",
                 detail: morceaux.joined(separator: " · "),
                 marquage: seance.marquage,
-                libelleMarquage: ModeleApercu.libelleMarquage(seance.marquage)
+                libelleMarquage: ModeleSeances.libelleMarquage(seance.marquage)
             ))
         }
         return resultat

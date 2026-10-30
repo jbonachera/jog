@@ -38,15 +38,15 @@ struct FeuilleSemaine: View {
                             ForEach(seances) { seance in
                                 LigneSeanceView(seance: seance)
                                     .contextMenu {
-                                        Text(ModeleApercu.libelleMarquageActuel(seance.marquage))
-                                        ForEach(ModeleApercu.optionsMarquage(seance.marquage), id: \.titre) { option in
+                                        Text(ModeleSeances.libelleMarquageActuel(seance.marquage))
+                                        ForEach(ModeleSeances.optionsMarquage(seance.marquage), id: \.titre) { option in
                                             Button(option.titre) {
                                                 surMarquage(seance.id, option.valeur)
                                             }
                                         }
                                     }
                                     .accessibilityActions {
-                                        ForEach(ModeleApercu.optionsMarquage(seance.marquage), id: \.titre) { option in
+                                        ForEach(ModeleSeances.optionsMarquage(seance.marquage), id: \.titre) { option in
                                             Button(option.titre) {
                                                 surMarquage(seance.id, option.valeur)
                                             }

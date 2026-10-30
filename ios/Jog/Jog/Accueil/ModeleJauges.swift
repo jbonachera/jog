@@ -127,21 +127,26 @@ enum ModeleJauges {
     }
 
     /// Ce qui se dit d'une ligne : son format d'affichage, sa lecture à voix haute, et la référence de son écart.
-    private struct Gabarit {
+    struct Gabarit {
         let texte: (Double) -> String
         let lue: (Double) -> String
         let suffixeEcart: String
         let uniteEcart: String
         let reference: String
+        /// Décimales de l'écart et de la lecture des bornes (point de décision 4 et D-015).
+        var decimalesEcart = 0
+        /// Une borne de la norme, sans unité (la phrase « habituel 132–140 bpm »), et son unité.
+        var borne: (Double) -> String = { ModeleApercu.nombre($0) }
+        var uniteBande = ""
     }
 
-    private static func ligne(id: String, libelle: String, jauge: LigneJauge, gabarit: Gabarit, phrase: String?) -> Ligne {
+    static func ligne(id: String, libelle: String, jauge: LigneJauge, gabarit: Gabarit, phrase: String?) -> Ligne {
         let echelle = echelle(jauge)
         let valeur = jauge.valeurAffichee.map(gabarit.texte) ?? ModeleApercu.tiret
         let valeurLue = jauge.valeurAffichee.map(gabarit.lue) ?? "valeur absente"
         return Ligne(
             id: id, libelle: libelle, valeur: valeur,
-            ecart: jauge.ecart.map { ModeleApercu.signe($0, 0, unite: gabarit.suffixeEcart) } ?? "",
+            ecart: jauge.ecart.map { ModeleApercu.signe($0, gabarit.decimalesEcart, unite: gabarit.suffixeEcart) } ?? "",
             horsBande: jauge.horsBande, echelle: echelle, point: jauge.valeurAffichee,
             trait: jauge.trait, bande: jauge.bande, phrase: phrase,
             accessibilite: accessibilite(libelle: libelle, valeurLue: valeurLue, jauge: jauge, gabarit: gabarit)
@@ -163,7 +168,7 @@ enum ModeleJauges {
         guard ecart != 0 else { return "comme \(gabarit.reference)" }
         let unite = gabarit.uniteEcart.isEmpty ? "" : " \(gabarit.uniteEcart)"
         let sens = ecart > 0 ? "de plus" : "de moins"
-        return "\(ModeleApercu.nombre(abs(ecart)))\(unite) \(sens) que \(gabarit.reference)"
+        return "\(ModeleApercu.nombre(abs(ecart), gabarit.decimalesEcart))\(unite) \(sens) que \(gabarit.reference)"
     }
 
     /// Échelle de la barre : l'étendue des valeurs affichées, avec une marge (ACCUEIL), sans
@@ -176,7 +181,7 @@ enum ModeleJauges {
     }
 
     /// Mention « Norme en cours (n sur m) » d'une ligne dont l'échantillon est trop petit (D-026), sinon nil.
-    private static func mention(_ jauge: LigneJauge) -> String? {
+    static func mention(_ jauge: LigneJauge) -> String? {
         jauge.enCours.map { "Norme en cours (\($0.n) sur \($0.sur))" }
     }
 

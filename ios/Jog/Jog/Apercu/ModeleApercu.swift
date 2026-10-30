@@ -8,12 +8,6 @@ enum Ton: Equatable, Sendable {
     case bon, attention, mauvais, neutre, accent
 }
 
-/// Une option du marquage (D-020) : son titre de menu, et le marquage à enregistrer (nil pour « Retirer »).
-struct OptionMarquage: Equatable, Sendable {
-    let titre: String
-    let valeur: MarquageUtilisateur?
-}
-
 /// Une séance du jour, avec ce qu'il faut à son menu de marquage.
 struct SeanceAffichee: Identifiable, Equatable, Sendable {
     let id: String
@@ -466,7 +460,7 @@ enum ModeleApercu {
         let affichees = seances.map { SeanceAffichee(id: $0.cleSource, titre: $0.nom ?? libelleType($0.type), marquage: $0.marquage) }
         var accessible = "\(jourCourt(jour)) \(quantieme(jour)), \(titre)"
         if let detail { accessible += ", \(detail)" }
-        for marque in affichees.compactMap({ libelleMarquage($0.marquage) }) {
+        for marque in affichees.compactMap({ ModeleSeances.libelleMarquage($0.marquage) }) {
             accessible += ", \(marque)"
         }
         return LigneJour(
@@ -474,39 +468,6 @@ enum ModeleApercu {
             estRepos: estRepos, detail: detail, repartition: segments,
             libelleAccessible: accessible, seances: affichees
         )
-    }
-
-    // MARK: - Marquage (D-020)
-
-    /// « Course » ou « Test » pour une séance marquée, nil sinon : c'est le texte de la pastille.
-    static func libelleMarquage(_ marquage: Marquage) -> String? {
-        switch marquage {
-        case .course: "Course"
-        case .test: "Test"
-        case .aucun, .inconnu: nil
-        }
-    }
-
-    /// En tête du menu : le marquage actuel de la séance.
-    static func libelleMarquageActuel(_ marquage: Marquage) -> String {
-        "Marquage actuel : \(libelleMarquage(marquage) ?? "aucun")"
-    }
-
-    /// Les actions du menu, selon l'état courant (D-020). Une séance marquée propose l'autre marquage et le retrait.
-    static func optionsMarquage(_ courant: Marquage) -> [OptionMarquage] {
-        let course = OptionMarquage(titre: "Marquer comme course", valeur: .course)
-        let test = OptionMarquage(titre: "Marquer comme test", valeur: .test)
-        let retirer = OptionMarquage(titre: "Retirer le marquage", valeur: nil)
-        switch courant {
-        case .course: return [test, retirer]
-        case .test: return [course, retirer]
-        case .aucun, .inconnu: return [course, test]
-        }
-    }
-
-    /// Le titre d'une action VoiceOver : celui du menu, suivi du nom de la séance quand le jour en compte plusieurs.
-    static func libelleAction(_ option: OptionMarquage, seance: SeanceAffichee, plusieurs: Bool) -> String {
-        plusieurs ? "\(option.titre) : \(seance.titre)" : option.titre
     }
 
     static func repartition(easy: Double, mp: Double, subt: Double, hard: Double) -> [SegmentIntensite] {

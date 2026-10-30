@@ -134,14 +134,18 @@ func ligneDeNorme(
 ) -> LigneJauge {
     var bande: ClosedRange<Double>?
     var mention: MentionEnCours?
+    var taille: Int?
     switch resultat {
-    case let .norme(n): bande = n.bas...n.haut
+    case let .norme(n):
+        bande = n.bas...n.haut
+        taille = n.n
     case let .enCours(n, sur): mention = MentionEnCours(n: n, sur: sur)
     }
     var ligne = ligneJauge(
         valeur: valeur, trait: trait, bande: bande, precision: precision, ecartEnPourcent: ecartEnPourcent, sens: sens
     )
     ligne.enCours = mention
+    ligne.n = taille
     return ligne
 }
 
