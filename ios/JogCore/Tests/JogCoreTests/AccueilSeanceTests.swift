@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import JogCore
 
-// Lot 6 de la refonte de l'accueil (docs/implementation/refonte-accueil.md) : carte de séance hors course (S2).
+// Lots 6 et 7 de la refonte de l'accueil (docs/implementation/refonte-accueil.md) : carte de séance (S2), hors course au lot 6.
 // Tests à la frontière publique `cartesSeances` / `carteSeance`, sur des Vue dont les séances sont écrites ici.
 // Règles citées : 04 « Carte de séance », D-025 (échantillon, minimum, verdicts), D-006 (paramètres à la date de la
 // séance), D-015 (arrondi avant comparaison). Points de décision 1, 2 et 4 appliqués.
@@ -308,14 +308,6 @@ private func jauge(_ carte: CarteSeance, _ cle: CleJauge) throws -> LigneJauge {
 
 // MARK: - 04, Carte de séance : périmètre et cohérence
 
-@Test func lesCoursesEtLesTestsNaurontPasDeCarteAvantLeLot7() throws {
-    // Lot 6 « hors course » : course et test n'ont pas de carte ici (lot 7, 04 « Carte de course et de test »).
-    let vue = try vueAvec([seance("course", try jour(0), .course, fcMoy: 170), seance("test", try jour(-1), .test, fcMoy: 170)])
-
-    #expect(try cartesSeances(vue, parDefaut).isEmpty)
-    #expect(try carteSeance(vue, cleSource: "course", parDefaut) == nil)
-}
-
 @Test func cartesSeancesDonneLeMemeResultatQueCarteSeanceSeanceParSeance() throws {
     // Le sélecteur groupé (index une fois par Vue) rend, séance par séance, ce que rend `carteSeance`.
     let seances = [
@@ -346,16 +338,24 @@ private func millisecondes(_ duree: Duration) -> Double {
 /// Lancement : JOG_PERF=1 swift test -c release --disable-sandbox --scratch-path /tmp/jogcore-A --filter mesure
 @Test(.enabled(if: ProcessInfo.processInfo.environment["JOG_PERF"] == "1"))
 func mesureCartesSeances() throws {
-    // 2 000 séances sur 4 ans, types en rotation, FC et découplage variés.
+    // 2 000 séances sur 4 ans, types en rotation, une course sur dix, FC et découplage variés.
     let types: [TypeSeance] = [.footing, .sousSeuil, .sortieLongue, .seanceQualite, .footingLignesDroites]
     var seances: [SeanceVue] = []
     for k in 0..<2_000 {
         let date = try ajouterJours("2022-11-01", k * 730 / 1_000)
         let type = types[k % types.count]
         let reps = type == .sousSeuil ? [repetition(allure: 300 + Double(k % 7), fcFin: 160 + Double(k % 12))] : []
-        seances.append(seance("s-\(k)", date, type, fcMoy: 130 + Double(k % 20), ef: 0.8 + Double(k % 9) / 100,
-                              charge: Double(40 + k % 30), repetitions: reps,
-                              decouplage: type == .sortieLongue ? decouplage(Double(k % 10)) : nil, dPlus: Double(k % 300)))
+        var s = seance("s-\(k)", date, type, fcMoy: 130 + Double(k % 20), ef: 0.8 + Double(k % 9) / 100,
+                       charge: Double(40 + k % 30), repetitions: reps,
+                       decouplage: type == .sortieLongue ? decouplage(Double(k % 10)) : nil, dPlus: Double(k % 300))
+        if k % 10 == 9 {
+            // Une course sur dix (lot 7) : distance et temps de référence, donc VDOT, FC de même distance et niveau.
+            s.type = .course
+            s.marquage = .course
+            s.distanceRef_km = 10
+            s.temps_s = 2_400 + Double(k % 300)
+        }
+        seances.append(s)
     }
     let vue = try vueAvec(seances)
 

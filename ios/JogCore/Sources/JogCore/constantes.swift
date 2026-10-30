@@ -62,6 +62,8 @@ public enum PRECISION {
     public static let ecartPalier = 0.1
     /// Précisions des jauges de la carte de séance (D-015, 04 « Carte de séance »).
     public static let bpm = 1.0, ef = 0.01, allureSkm = 1.0, dPlus = 1.0, charge = 1.0
+    /// VDOT (D-015, 04 « VDOT et niveau ») et charge en « × » de la carte de course (point de décision 5).
+    public static let vdot = 0.1, ratioCharge = 0.1
 }
 
 /// Poids de charge par catégorie d'intensité (04, Charge de séance).

@@ -15,21 +15,24 @@ public func vdot(distance_m: Double, temps_min: Double) -> Double? {
 
 /// Une course ou un test de la Vue, avec son VDOT. Seules les séances marquées course ou test, avec une distance et un
 /// temps de référence, ont un VDOT (D-014).
-private struct Performance {
+struct Performance {
     let seance: SeanceVue
     let km: Double
     let temps_s: Double
     let vdot: Double
 }
 
+/// La performance d'une séance de la Vue, si c'en est une (course ou test avec distance et temps de référence).
+func performance(_ s: SeanceVue) -> Performance? {
+    guard s.marquage == .course || s.marquage == .test,
+          let km = s.distanceRef_km, let temps_s = s.temps_s,
+          let valeur = vdot(distance_m: km * 1000, temps_min: temps_s / 60)
+    else { return nil }
+    return Performance(seance: s, km: km, temps_s: temps_s, vdot: valeur)
+}
+
 private func performances(_ vue: Vue) -> [Performance] {
-    vue.seances.compactMap { s in
-        guard s.marquage == .course || s.marquage == .test,
-              let km = s.distanceRef_km, let temps_s = s.temps_s,
-              let valeur = vdot(distance_m: km * 1000, temps_min: temps_s / 60)
-        else { return nil }
-        return Performance(seance: s, km: km, temps_s: temps_s, vdot: valeur)
-    }
+    vue.seances.compactMap(performance)
 }
 
 /// Le meilleur VDOT des courses et tests datés de d−364 à d inclus (D-027), et la course qui le fixe. À égalité, la plus
@@ -115,7 +118,7 @@ public struct LigneCourse: Sendable, Equatable {
 }
 
 /// Catégorie de distance d'une course (D-014) : 5 km, 10 km, semi, marathon, ou autre distance.
-public enum DistanceCourse: Sendable, Equatable {
+public enum DistanceCourse: Sendable, Hashable {
     case cinqKm, dixKm, semi, marathon
     case autre(km: Double)
 }
