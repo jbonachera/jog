@@ -2,13 +2,13 @@ import SwiftUI
 import JogCore
 
 /// A5 · Récupération : en-tête avec « Tendances », carte d'état (titre, pastille, chevron), 3 tuiles et la phrase (03, A5).
-/// Un appui sur la carte ouvre « Cette nuit » (A6). Sans nuit mesurée, le message remplace la carte et ses tuiles.
+/// Un appui sur la carte, comme « Tendances », empile l'écran Récupération (A6 en tête, puis R1 à R7). Sans nuit mesurée,
+/// le message remplace la carte et ses tuiles.
 struct CarteRecuperationView: View {
     let recuperation: VueRecuperation?
     let besoin_min: Double
-    /// Empile l'écran Récupération (« Tendances »).
+    /// Empile l'écran Récupération.
     let ouvrir: (Destination) -> Void
-    @State private var nuitOuverte = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -26,7 +26,7 @@ struct CarteRecuperationView: View {
 
             if let recuperation, let carte = ModeleRecuperation.carte(recuperation, besoin_min: besoin_min) {
                 Button {
-                    nuitOuverte = true
+                    ouvrir(.recuperation)
                 } label: {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack(alignment: .center, spacing: 8) {
@@ -51,19 +51,12 @@ struct CarteRecuperationView: View {
                 .buttonStyle(.plain)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(ModeleRecuperation.libelleAccessible(carte))
-                .accessibilityHint("Ouvre le détail de la nuit")
+                .accessibilityHint("Ouvre l’écran Récupération")
             } else {
                 Text(ModeleRecuperation.messageSansNuit)
                     .font(.footnote)
                     .foregroundStyle(.encre2)
                     .carte()
-            }
-        }
-        .sheet(isPresented: $nuitOuverte) {
-            if let recuperation {
-                FeuilleNuitView(recuperation: recuperation, besoin_min: besoin_min, ouvrir: ouvrir)
-                    .presentationDetents([.medium, .large])
-                    .presentationDragIndicator(.visible)
             }
         }
     }

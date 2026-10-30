@@ -26,7 +26,7 @@ struct DestinationView: View {
             ecranRecuperation(vue)
         case .decision:
             page("Décision") {
-                DecisionVolumeView(vue: vue, ouvrir: ouvrir)
+                EcranDecision(vue: vue, ouvrir: ouvrir)
             }
         case let .signal(cle):
             signal(Navigation.destination(du: cle), vue)
@@ -56,7 +56,7 @@ struct DestinationView: View {
 
     private func ecranRecuperation(_ vue: Vue) -> some View {
         page("Récupération") {
-            RecuperationView(
+            EcranRecuperation(
                 recuperation: vue.recuperation,
                 besoin_min: besoinSommeil_min,
                 semaines: ModeleRecuperation.chargeEtRecuperation(vue)

@@ -2,62 +2,52 @@ import SwiftUI
 import Charts
 import JogCore
 
-/// A6 · Cette nuit : durée endormie en grand, pastille d'écart au besoin, date, hypnogramme, 4 valeurs, puis le lien vers
-/// les tendances (03, A6). Sans nuit mesurée, « Pas de nuit mesurée cette nuit. » et le bouton seul.
-struct FeuilleNuitView: View {
-    let recuperation: VueRecuperation
+/// L'écran Récupération (03, A6 puis R1 à R7). En tête, « Cette nuit » (A6) : durée endormie en grand, pastille d'écart au
+/// besoin, date, hypnogramme et 4 valeurs. Sans nuit mesurée, « Pas de nuit mesurée cette nuit. ». Puis les sections R1 à R7
+/// de `RecuperationView`. Sans Vue de récupération, `RecuperationView` affiche seul le message de A5.
+struct EcranRecuperation: View {
+    let recuperation: VueRecuperation?
     let besoin_min: Double
-    /// Empile l'écran Récupération : la feuille se ferme d'abord.
-    let ouvrir: (Destination) -> Void
-    @Environment(\.dismiss) private var fermer
+    /// Les 16 semaines de R6, passées à `RecuperationView`.
+    let semaines: [ModeleRecuperation.SemaineChargeRecup]
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    if let nuit = ModeleRecuperation.nuit(recuperation, besoin_min: besoin_min, calendrier: .current) {
-                        VStack(alignment: .leading, spacing: 16) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(nuit.duree)
-                                    .font(.largeTitle.weight(.heavy))
-                                    .tracking(-0.5)
-                                    .monospacedDigit()
-                                    .foregroundStyle(.encre)
-                                Pastille(texte: nuit.ecart, ton: nuit.ecartTon)
-                                Text(nuit.date)
-                                    .font(.footnote)
-                                    .foregroundStyle(.encre2)
-                            }
-                            HypnogrammeView(segments: nuit.segments, heures: nuit.heures)
-                            ValeursNuit(valeurs: nuit.valeurs)
-                        }
-                        .carte()
-                    } else {
-                        Text("Pas de nuit mesurée cette nuit.")
-                            .font(.body)
-                            .foregroundStyle(.encre2)
-                    }
+        VStack(alignment: .leading, spacing: 36) {
+            if let recuperation {
+                EnteteNuitView(recuperation: recuperation, besoin_min: besoin_min)
+            }
+            RecuperationView(recuperation: recuperation, besoin_min: besoin_min, semaines: semaines)
+        }
+    }
+}
 
-                    Button {
-                        fermer()
-                        ouvrir(.recuperation)
-                    } label: {
-                        Text("Tendances de récupération")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.glassProminent)
-                    .controlSize(.large)
+/// A6 · Cette nuit : durée endormie en grand, pastille d'écart au besoin, date, hypnogramme, 4 valeurs.
+struct EnteteNuitView: View {
+    let recuperation: VueRecuperation
+    let besoin_min: Double
+
+    var body: some View {
+        if let nuit = ModeleRecuperation.nuit(recuperation, besoin_min: besoin_min, calendrier: .current) {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(nuit.duree)
+                        .font(.largeTitle.weight(.heavy))
+                        .tracking(-0.5)
+                        .monospacedDigit()
+                        .foregroundStyle(.encre)
+                    Pastille(texte: nuit.ecart, ton: nuit.ecartTon)
+                    Text(nuit.date)
+                        .font(.footnote)
+                        .foregroundStyle(.encre2)
                 }
-                .padding(16)
+                HypnogrammeView(segments: nuit.segments, heures: nuit.heures)
+                ValeursNuit(valeurs: nuit.valeurs)
             }
-            .background(Color.fond.ignoresSafeArea())
-            .navigationTitle("Cette nuit")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Fermer") { fermer() }
-                }
-            }
+            .carte()
+        } else {
+            Text("Pas de nuit mesurée cette nuit.")
+                .font(.body)
+                .foregroundStyle(.encre2)
         }
     }
 }
@@ -152,7 +142,7 @@ struct HypnogrammeView: View {
 }
 
 /// Les 4 valeurs de A6 en grille de deux colonnes : VFC, FC de repos, Profond, Paradoxal.
-private struct ValeursNuit: View {
+struct ValeursNuit: View {
     let valeurs: [(String, String, String)]
 
     var body: some View {

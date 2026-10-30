@@ -630,7 +630,7 @@ enum ModeleNiveau {
 | 8 | fait | 523 tests verts (30 nouveaux) ; perf 0,12 ms ; relu ; 6 corrections (précisions lues dans `PRECISION`, bornes 23/24 semaines, plafonnement du rayon, semaine partielle, mi-chemins D-015, références vides ; écart d'Efficacité arrondi à 1 %) |
 | 9 | fait | 528 tests verts (5 nouveaux) ; relu ; 1 correction (mesure sur 450 nuits, < 1 ms : 0,66 → 0,48 ms par un tableau indexé par jour) |
 | 10 | fait | swift test 528 ; xcodebuild test 130 verts (NavigationTests 3 → 10) ; relu ; 2 corrections (verdict de l'Aperçu ouvre `.decision`, test paramétré signal → destination) |
-| 11 | | |
+| 11 | fait | swift test 528 ; xcodebuild test 130 verts ; relu ; 1 correction (les 8 signaux en ligne sur l'écran Décision, `ListeSignaux` partagée avec la feuille) |
 | 12 | | |
 | 13 | | |
 | 14 | | |
@@ -658,3 +658,5 @@ enum ModeleNiveau {
 - Lot 9 : `VERSION_RECUPERATION` passe à 2 pour qu'un relevé de 250 nuits soit relu une fois à 450 (sinon il ne se rattraperait jamais). `charger()` rejette une Vue d'un autre `formatVersion` (recalcul une fois). `milieuxNormeVFC` est un tableau non optionnel (vide sans norme).
 - Lot 10 : `.courses`, `.seance` et `.semaine` affichent « Bientôt disponible » jusqu'à leur lot (aucun bouton n'y mène). Depuis Charge ou Historique (sans pile avant le lot 19), `ouvrir` bascule sur Aujourd'hui. La feuille des signaux gagne un bouton « Voir le détail » par signal. `ancre` est écrite mais pas encore consommée.
 - Lot 10 : `xcodebuild` réécrit parfois `project.pbxproj` (ordre, ligne `TEST_HOST`) ; il est restauré après chaque build.
+- Lot 11 : `RecuperationChargeView` citée au plan n'existe pas ; `EcranRecuperation` réutilise `RecuperationView` (R1–R7) sous l'en-tête de la nuit (A6). La feuille « Cette nuit » (`FeuilleNuitView`) est retirée : son contenu est l'en-tête de l'écran. Aucun test nouveau : la destination de chaque signal est testée au lot 10.
+- À faire par l'utilisateur (lot 11) : captures des écrans Décision et Récupération, clair et sombre.
