@@ -197,3 +197,31 @@ public enum RECUPERATION {
     public static let besoinDefaut_min = 450.0, besoinMin_min = 240.0, besoinMax_min = 720.0, besoinPas_min = 15.0
     public static let nuitsLues = 250, nuitsRelues = 3, nuitsSerie = 182, semainesCharge = 16
 }
+
+// Accueil (D-024 à D-028 ; docs/implementation/refonte-accueil.md, « Architecture »). Tous les seuils et fenêtres de
+// l'accueil sont lus ici, jamais écrits en dur ailleurs. Les seuils déjà publiés (easyCap, horsSousSeuil, 30 % du
+// compteur) ne sont pas dupliqués : ils restent dans leurs modules et sont appelés.
+public enum ACCUEIL {
+    // D-026 · lignes de jauge et volume
+    public static let kEcartType = 0.95                // bande de norme par défaut (= RECUPERATION.kEcartType)
+    public static let semainesVolume = 8              // semaines terminées comparées au même jour
+    public static let joursFenetre30 = 30, joursNorme30 = 365
+    public static let minEchantillonVolume = 4        // point de décision 3
+    // D-025 · carte de séance
+    public static let joursEchantillonSeance = 56, seancesEchantillonSousSeuil = 6, minEchantillonSeance = 4
+    public static let margeFootingUnPeuRapide_bpm = 5
+    public static let horsSousSeuilUnPeuHautMax = 2   // 1 ou 2 : « Un peu haut » ; 3 ou plus : « Au-dessus du seuil »
+    public static let decouplageTenu_pct = 5.0, decouplageDerive_pct = 8.0
+    public static let bandeVdotCourse = 0.5, minCoursesMemeDistance = 2
+    /// Tolérance d'une course à sa distance standard, en fraction (point de décision 9).
+    public static let toleranceDistanceCourse = 0.03
+    public static let lissageDenivele_s = 30.0
+    // D-027 · niveau
+    public static let joursNiveau = 365, joursIlYAUnAn = 365
+    // D-028 · six qualités
+    public static let semainesQualites = 12, joursDecalageQualites = 364, seancesSemaineReguliere = 4
+    public static let emaxMin = (volume_pct: 5.0, seuil_skm: 3.0, efficacite_pct: 2.0,
+                                 endurance_pt: 1.0, regularite_pt: 10.0, resilience_ms: 3.0)
+}
+/// VERSION_DENIVELE : clé de mémorisation de ②a pour le D+ (D-025). À monter à chaque changement du D+ calculé.
+public let VERSION_DENIVELE = 1
