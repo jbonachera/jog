@@ -6,8 +6,8 @@ import JogCore
 struct CarteRecuperationView: View {
     let recuperation: VueRecuperation?
     let besoin_min: Double
-    /// Ouvre Charge › Récupération (« Tendances »).
-    let ouvrirTendances: () -> Void
+    /// Empile l'écran Récupération (« Tendances »).
+    let ouvrir: (Destination) -> Void
     @State private var nuitOuverte = false
 
     var body: some View {
@@ -61,7 +61,7 @@ struct CarteRecuperationView: View {
         }
         .sheet(isPresented: $nuitOuverte) {
             if let recuperation {
-                FeuilleNuitView(recuperation: recuperation, besoin_min: besoin_min, ouvrirTendances: ouvrirTendances)
+                FeuilleNuitView(recuperation: recuperation, besoin_min: besoin_min, ouvrir: ouvrir)
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
             }
@@ -80,7 +80,7 @@ struct CarteRecuperationView: View {
     }
 
     private var lienTendances: some View {
-        Button("Tendances", action: ouvrirTendances)
+        Button("Tendances") { ouvrir(.recuperation) }
             .font(.footnote.weight(.semibold))
             .foregroundStyle(.accentFjord)
     }

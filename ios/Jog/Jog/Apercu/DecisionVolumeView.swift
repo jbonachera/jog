@@ -5,8 +5,8 @@ import JogCore
 /// Les signaux et le simulateur s'ouvrent dans des feuilles (maquette, « Les signaux… s'ouvrent dans des feuilles »).
 struct DecisionVolumeView: View {
     let vue: Vue
-    /// Ouvre les tendances de récupération, depuis la carte du signal Récupération.
-    let ouvrirTendances: () -> Void
+    /// Empile un écran de détail, depuis la feuille des signaux.
+    let ouvrir: (Destination) -> Void
     @State private var signauxOuverts = false
     @State private var simulateurOuvert = false
 
@@ -15,23 +15,30 @@ struct DecisionVolumeView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 28) {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(ModeleApercu.surtitre(J: vue.J))
-                    .font(.footnote)
-                    .foregroundStyle(.encre2)
+            Button {
+                ouvrir(.decision)
+            } label: {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(ModeleApercu.surtitre(J: vue.J))
+                        .font(.footnote)
+                        .foregroundStyle(.encre2)
 
-                Text(ModeleApercu.titreVerdict(decision.verdict))
-                    .font(.largeTitle.weight(.heavy))
-                    .tracking(-0.5)
-                    .foregroundStyle(ModeleApercu.tonVerdict(decision.verdict).couleur)
-                    .accessibilityAddTraits(.isHeader)
+                    Text(ModeleApercu.titreVerdict(decision.verdict))
+                        .font(.largeTitle.weight(.heavy))
+                        .tracking(-0.5)
+                        .foregroundStyle(ModeleApercu.tonVerdict(decision.verdict).couleur)
 
-                Text(decision.phrase)
-                    .font(.body)
-                    .foregroundStyle(.encre2)
+                    Text(decision.phrase)
+                        .font(.body)
+                        .foregroundStyle(.encre2)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .accessibilityElement(children: .combine)
+            .buttonStyle(.plain)
             .accessibilityLabel("Verdict : \(ModeleApercu.titreVerdict(decision.verdict)). \(decision.phrase)")
+            .accessibilityHint("Ouvre le détail de la décision")
+            .accessibilityAddTraits(.isHeader)
 
             if aVerdict, let fourchette = decision.fourchette {
                 VStack(alignment: .leading, spacing: 8) {
@@ -85,7 +92,7 @@ struct DecisionVolumeView: View {
             }
         }
         .sheet(isPresented: $signauxOuverts) {
-            FeuilleSignaux(signaux: decision.signaux, ouvrirTendances: ouvrirTendances)
+            FeuilleSignaux(signaux: decision.signaux, ouvrir: ouvrir)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }

@@ -5,8 +5,8 @@ import JogCore
 /// valeur chiffrée et sa phrase. Un signal à surveiller ou en alerte a une bordure teintée.
 struct FeuilleSignaux: View {
     let signaux: [Signal]
-    /// Ouvre Charge › Récupération : la feuille se ferme avant.
-    let ouvrirTendances: () -> Void
+    /// Empile l'écran de détail d'un signal : la feuille se ferme avant.
+    let ouvrir: (Destination) -> Void
     @Environment(\.dismiss) private var fermer
 
     var body: some View {
@@ -14,10 +14,10 @@ struct FeuilleSignaux: View {
             ScrollView {
                 VStack(spacing: 12) {
                     ForEach(signaux, id: \.cle) { signal in
-                        CarteSignal(signal: signal, tendances: signal.cle == .recuperation ? {
+                        CarteSignal(signal: signal) {
                             fermer()
-                            ouvrirTendances()
-                        } : nil)
+                            ouvrir(.signal(signal.cle))
+                        }
                     }
                 }
                 .padding(16)
@@ -36,8 +36,8 @@ struct FeuilleSignaux: View {
 
 private struct CarteSignal: View {
     let signal: Signal
-    /// Pour le signal Récupération : ouvre Charge › Récupération. Nil pour les autres signaux.
-    let tendances: (() -> Void)?
+    /// Ouvre l'écran de détail du signal (02, « Écrans de détail »).
+    let ouvrirDetail: () -> Void
 
     private var bordure: Color? {
         switch signal.etat {
@@ -68,11 +68,9 @@ private struct CarteSignal: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(ModeleApercu.libelleAccessibleSignal(signal))
 
-            if let tendances {
-                Button("Tendances de récupération", action: tendances)
-                    .buttonStyle(.bordered)
-                    .font(.footnote.weight(.semibold))
-            }
+            Button(signal.cle == .recuperation ? "Tendances de récupération" : "Voir le détail", action: ouvrirDetail)
+                .buttonStyle(.bordered)
+                .font(.footnote.weight(.semibold))
         }
         .carte()
         .overlay(

@@ -13,9 +13,10 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $navigation.onglet) {
             Tab("Aujourd’hui", systemImage: "gauge.with.dots.needle.33percent", value: Onglet.aujourdhui) {
-                NavigationStack {
+                NavigationStack(path: $navigation.pileAujourdhui) {
                     contenuApercu
                         .toolbar { boutonParametres }
+                        .navigationDestination(for: Destination.self) { destinationVue($0) }
                 }
             }
             Tab("Charge", systemImage: "chart.bar.xaxis", value: Onglet.charge) {
@@ -29,13 +30,16 @@ struct ContentView: View {
                 }
             }
             Tab("Progression", systemImage: "chart.line.uptrend.xyaxis", value: Onglet.progression) {
-                NavigationStack {
-                    if let vue = vueCourante {
-                        ProgressionView(vue: vue)
-                            .toolbar { boutonParametres }
-                    } else {
-                        sansVue("Progression", icone: "chart.line.uptrend.xyaxis")
+                NavigationStack(path: $navigation.pileProgres) {
+                    Group {
+                        if let vue = vueCourante {
+                            ProgressionView(vue: vue)
+                                .toolbar { boutonParametres }
+                        } else {
+                            sansVue("Progression", icone: "chart.line.uptrend.xyaxis")
+                        }
                     }
+                    .navigationDestination(for: Destination.self) { destinationVue($0) }
                 }
             }
             Tab("Historique", systemImage: "calendar", value: Onglet.historique) {
@@ -72,9 +76,14 @@ struct ContentView: View {
         }
     }
 
-    /// Depuis l'Aperçu : ouvre les tendances de récupération dans l'onglet Charge.
-    private var ouvrirTendances: () -> Void {
-        { navigation.ouvrirTendancesRecuperation() }
+    /// Empile un écran de détail dans la pile de l'onglet courant (02, « Écrans de détail »).
+    private var ouvrir: (Destination) -> Void {
+        { navigation.ouvrir($0) }
+    }
+
+    /// L'écran d'une destination empilée, avec la Vue de l'app (ou la maquette de DEBUG).
+    private func destinationVue(_ destination: Destination) -> DestinationView {
+        DestinationView(destination: destination, vue: vueCourante, ouvrir: ouvrir)
     }
 
     /// Marquage d'une séance (D-020), relayé au modèle qui recalcule la Vue.
@@ -124,7 +133,7 @@ struct ContentView: View {
     private var contenuApercu: some View {
         #if DEBUG
         if let maquette = modele.maquette {
-            ApercuView(vue: maquette, surMarquage: surMarquage, ouvrirTendances: ouvrirTendances)
+            ApercuView(vue: maquette, surMarquage: surMarquage, ouvrir: ouvrir)
         } else {
             contenuEtat
         }
@@ -145,13 +154,13 @@ struct ContentView: View {
         case let .importEnCours(traitees, total):
             ImportView(traitees: traitees, total: total)
         case let .pret(vue):
-            ApercuView(vue: vue, surMarquage: surMarquage, ouvrirTendances: ouvrirTendances)
+            ApercuView(vue: vue, surMarquage: surMarquage, ouvrir: ouvrir)
         case let .erreur(message, nil):
             ErreurView(message: message, modele: modele)
         case let .erreur(message, vue?):
             VStack(spacing: 0) {
                 BandeauErreur(message: message, modele: modele)
-                ApercuView(vue: vue, surMarquage: surMarquage, ouvrirTendances: ouvrirTendances)
+                ApercuView(vue: vue, surMarquage: surMarquage, ouvrir: ouvrir)
             }
         }
     }

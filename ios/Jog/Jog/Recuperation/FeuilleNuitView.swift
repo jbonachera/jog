@@ -7,8 +7,8 @@ import JogCore
 struct FeuilleNuitView: View {
     let recuperation: VueRecuperation
     let besoin_min: Double
-    /// Ouvre Charge › Récupération : la feuille se ferme d'abord.
-    let ouvrirTendances: () -> Void
+    /// Empile l'écran Récupération : la feuille se ferme d'abord.
+    let ouvrir: (Destination) -> Void
     @Environment(\.dismiss) private var fermer
 
     var body: some View {
@@ -40,7 +40,7 @@ struct FeuilleNuitView: View {
 
                     Button {
                         fermer()
-                        ouvrirTendances()
+                        ouvrir(.recuperation)
                     } label: {
                         Text("Tendances de récupération")
                             .frame(maxWidth: .infinity)

@@ -8,8 +8,8 @@ struct ApercuView: View {
     let vue: Vue
     /// Marquage d'une séance (D-020) : clé source, puis marquage à enregistrer (nil pour retirer le marquage saisi).
     let surMarquage: (String, MarquageUtilisateur?) -> Void
-    /// Ouvre les tendances de récupération dans l'onglet Charge.
-    let ouvrirTendances: () -> Void
+    /// Empile un écran de détail (Décision, Récupération, signal) dans la pile de l'onglet courant.
+    let ouvrir: (Destination) -> Void
     /// Besoin de sommeil des réglages (minutes), 7 h 30 par défaut : il règle la norme de sommeil de la carte Récupération.
     @AppStorage(CLE_BESOIN_SOMMEIL) private var besoinSommeil_min: Double = BesoinSommeil.defaut
     /// Les compteurs et les sept derniers jours, calculés une fois par Vue.
@@ -32,8 +32,8 @@ struct ApercuView: View {
                 if vue.seances.isEmpty {
                     SansDonneesView()
                 }
-                DecisionVolumeView(vue: vue, ouvrirTendances: ouvrirTendances)
-                CarteRecuperationView(recuperation: vue.recuperation, besoin_min: besoinSommeil_min, ouvrirTendances: ouvrirTendances)
+                DecisionVolumeView(vue: vue, ouvrir: ouvrir)
+                CarteRecuperationView(recuperation: vue.recuperation, besoin_min: besoinSommeil_min, ouvrir: ouvrir)
                 VolumeRealiseView(compteurs: calculs.compteurs)
                 SeptDerniersJoursView(modele: calculs.septJours, surMarquage: surMarquage)
                 if let texte = ModeleApercu.texteDerniereSynchro(vue.derniereSynchro) {
@@ -54,27 +54,27 @@ struct ApercuView: View {
 
 #Preview("Clair") {
     NavigationStack {
-        ApercuView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"), surMarquage: { _, _ in }, ouvrirTendances: {})
+        ApercuView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"), surMarquage: { _, _ in }, ouvrir: { _ in })
     }
     .preferredColorScheme(.light)
 }
 
 #Preview("Sombre") {
     NavigationStack {
-        ApercuView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"), surMarquage: { _, _ in }, ouvrirTendances: {})
+        ApercuView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"), surMarquage: { _, _ in }, ouvrir: { _ in })
     }
     .preferredColorScheme(.dark)
 }
 
 #Preview("Dynamic Type grand") {
     NavigationStack {
-        ApercuView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"), surMarquage: { _, _ in }, ouvrirTendances: {})
+        ApercuView(vue: (try? chargerMaquette()) ?? Vue.vide(J: "2026-10-20"), surMarquage: { _, _ in }, ouvrir: { _ in })
     }
     .dynamicTypeSize(.accessibility3)
 }
 
 #Preview("Pas encore de verdict") {
     NavigationStack {
-        ApercuView(vue: Vue.vide(J: "2026-10-20"), surMarquage: { _, _ in }, ouvrirTendances: {})
+        ApercuView(vue: Vue.vide(J: "2026-10-20"), surMarquage: { _, _ in }, ouvrir: { _ in })
     }
 }

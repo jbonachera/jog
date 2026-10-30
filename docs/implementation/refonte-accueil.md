@@ -629,7 +629,7 @@ enum ModeleNiveau {
 | 7 | fait | 493 tests verts (16 nouveaux, 1 retiré) ; perf 2,2 ms ; relu ; 2 corrections (carte neutre « Sans VDOT » au lieu d'aucune carte, bornes des 56 jours et échantillons vides) |
 | 8 | fait | 523 tests verts (30 nouveaux) ; perf 0,12 ms ; relu ; 6 corrections (précisions lues dans `PRECISION`, bornes 23/24 semaines, plafonnement du rayon, semaine partielle, mi-chemins D-015, références vides ; écart d'Efficacité arrondi à 1 %) |
 | 9 | fait | 528 tests verts (5 nouveaux) ; relu ; 1 correction (mesure sur 450 nuits, < 1 ms : 0,66 → 0,48 ms par un tableau indexé par jour) |
-| 10 | | |
+| 10 | fait | swift test 528 ; xcodebuild test 130 verts (NavigationTests 3 → 10) ; relu ; 2 corrections (verdict de l'Aperçu ouvre `.decision`, test paramétré signal → destination) |
 | 11 | | |
 | 12 | | |
 | 13 | | |
@@ -656,3 +656,5 @@ enum ModeleNiveau {
 - Lot 7 : la FC d'une course se compare aux courses et tests de même distance antérieurs, sans limite de 56 jours, minimum `ACCUEIL.minCoursesMemeDistance`, des deux côtés (non listé au point 4). La charge « × » sans norme n'a pas de valeur (« Norme en cours »). Une course sans VDOT calculable a une carte neutre « Sans VDOT ».
 - Lot 8 : la première semaine partielle de l'historique n'entre ni dans Q ni dans Q₀ ; Emax inclut la fenêtre courante (le rayon reste dans [0, 1]). `PointNormeVFC` est défini provisoirement dans `niveau-qualites.swift`, à déplacer au lot 9.
 - Lot 9 : `VERSION_RECUPERATION` passe à 2 pour qu'un relevé de 250 nuits soit relu une fois à 450 (sinon il ne se rattraperait jamais). `charger()` rejette une Vue d'un autre `formatVersion` (recalcul une fois). `milieuxNormeVFC` est un tableau non optionnel (vide sans norme).
+- Lot 10 : `.courses`, `.seance` et `.semaine` affichent « Bientôt disponible » jusqu'à leur lot (aucun bouton n'y mène). Depuis Charge ou Historique (sans pile avant le lot 19), `ouvrir` bascule sur Aujourd'hui. La feuille des signaux gagne un bouton « Voir le détail » par signal. `ancre` est écrite mais pas encore consommée.
+- Lot 10 : `xcodebuild` réécrit parfois `project.pbxproj` (ordre, ligne `TEST_HOST`) ; il est restauré après chaque build.
