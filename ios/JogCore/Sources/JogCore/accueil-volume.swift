@@ -127,7 +127,11 @@ public func lignesVolume(_ vue: Vue) throws -> LignesVolume {
 }
 
 /// Une ligne à norme : la bande vient de la norme, ou la mention « en cours » si l'échantillon est trop petit.
-private func ligneDeNorme(valeur: Double, trait: Double?, resultat: NormeOuEnCours, precision: Double) -> LigneJauge {
+/// Partagée par le volume (A2) et la carte de séance (S2).
+func ligneDeNorme(
+    valeur: Double?, trait: Double?, resultat: NormeOuEnCours, precision: Double, ecartEnPourcent: Bool = true,
+    sens: SensHorsBande = .deuxCotes
+) -> LigneJauge {
     var bande: ClosedRange<Double>?
     var mention: MentionEnCours?
     switch resultat {
@@ -135,7 +139,7 @@ private func ligneDeNorme(valeur: Double, trait: Double?, resultat: NormeOuEnCou
     case let .enCours(n, sur): mention = MentionEnCours(n: n, sur: sur)
     }
     var ligne = ligneJauge(
-        valeur: valeur, trait: trait, bande: bande, precision: precision, ecartEnPourcent: true
+        valeur: valeur, trait: trait, bande: bande, precision: precision, ecartEnPourcent: ecartEnPourcent, sens: sens
     )
     ligne.enCours = mention
     return ligne

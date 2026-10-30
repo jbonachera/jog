@@ -625,7 +625,7 @@ enum ModeleNiveau {
 | 3 | fait | 433 tests verts (18 nouveaux) ; relu ; 3 corrections (jour A = `vue.J − 1` dans `niveauVDOT` du lot 1, borne A − 364/A − 365, écart % mi-chemin testé au lot 2) |
 | 4 | fait | 449 tests verts (16 nouveaux) ; relu ; 1 correction (FC de repos sans norme testée) |
 | 5 | fait | 460 tests verts (11 nouveaux) ; oracle intact (0 cas avec altitude : l'adaptateur ne retire rien aujourd'hui) ; relu ; 1 correction (décodage d'un cache sans D+ testé) |
-| 6 | | |
+| 6 | fait | 478 tests verts (18 nouveaux) ; relu ; 3 corrections (valeurs précalculées par séance : 3,1 → 2,3 ms en release pour 2 000 séances ; budget testé ; demi-pas du plafond de footing) |
 | 7 | | |
 | 8 | | |
 | 9 | | |
@@ -652,3 +652,4 @@ enum ModeleNiveau {
 - Lot 4 : « Norme en cours (n sur 4) » ne s'affiche que sur la VFC ; `PointRecuperation` ne compte pas les nuits de la norme FC (l'ajouter changerait la forme de la Vue). La semaine de A est « en cours » même quand A est un dimanche.
 - Lot 5 : lissage de 30 s = moyenne sur fenêtre pleine, régression linéaire aux bords du tracé (une moyenne y perdrait la moitié de la pente). Le test « bruit ±2 m à 1 Hz » utilise un motif alterné déterministe : un bruit aléatoire laisse ≈ 13 m sur 10 min après tout lissage de 30 s.
 - Lot 5 : aucun cas d'oracle n'a d'altitude (`alt_m` nul partout) : l'adaptateur `sansDPlusDesGoldens` est en place mais ne retire rien. `dPlus_m` est aussi sur `SeanceIntrinseque` (ce que ②a mémorise), et `VERSION_DENIVELE` entre aussi dans l'empreinte de la Vue (sinon une Vue en cache sans D+ serait servie).
+- Lot 6 : l'allure normalisée lit `refHr` et `paceHrK` dans `parametresEnVigueur.globaux` (globaux selon D-006, absents de `ParamsDates`) ; le plafond et les seuils sous-seuil sont datés. Un sous-seuil sans répétition a un verdict neutre « Répétitions absentes » (point 2). Le minimum de 4 s'applique par jauge (l'EF peut rester « en cours » quand la FC a sa norme).

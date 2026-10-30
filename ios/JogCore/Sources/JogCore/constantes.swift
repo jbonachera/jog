@@ -60,6 +60,8 @@ public enum PRECISION {
     public static let footings = 1.0
     public static let decouplage = 0.1
     public static let ecartPalier = 0.1
+    /// Précisions des jauges de la carte de séance (D-015, 04 « Carte de séance »).
+    public static let bpm = 1.0, ef = 0.01, allureSkm = 1.0, dPlus = 1.0, charge = 1.0
 }
 
 /// Poids de charge par catégorie d'intensité (04, Charge de séance).
@@ -209,7 +211,7 @@ public enum ACCUEIL {
     public static let minEchantillonVolume = 4        // point de décision 3
     // D-025 · carte de séance
     public static let joursEchantillonSeance = 56, seancesEchantillonSousSeuil = 6, minEchantillonSeance = 4
-    public static let margeFootingUnPeuRapide_bpm = 5
+    public static let margeFootingUnPeuRapide_bpm = 5.0
     public static let horsSousSeuilUnPeuHautMax = 2   // 1 ou 2 : « Un peu haut » ; 3 ou plus : « Au-dessus du seuil »
     public static let decouplageTenu_pct = 5.0, decouplageDerive_pct = 8.0
     public static let bandeVdotCourse = 0.5, minCoursesMemeDistance = 2
