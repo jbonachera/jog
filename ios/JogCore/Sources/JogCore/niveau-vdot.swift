@@ -47,11 +47,12 @@ public func niveauAu(_ vue: Vue, _ d: DateCivile) throws -> (vdot: Double, cleSo
     return meilleur
 }
 
-/// Le niveau du coureur au jour de la Vue (A = vue.J, D-022), sa valeur il y a un an et leur écart (04, « VDOT et niveau »).
-/// L'écart se fait sur les valeurs arrondies à 0,1 (D-015).
+/// Le niveau du coureur au jour A = vue.J − 1 (D-022 : J est la coupure, le lendemain du jour clos), sa valeur il y a un an
+/// (A − 365) et leur écart (04, « VDOT et niveau »). L'écart se fait sur les valeurs arrondies à 0,1 (D-015).
 public func niveauVDOT(_ vue: Vue) throws -> VueNiveau {
-    let maintenant = try niveauAu(vue, vue.J)
-    let ilYAUnAn = try niveauAu(vue, try dateDecalee(vue.J, -ACCUEIL.joursIlYAUnAn))
+    let a = try dateDecalee(vue.J, -1)
+    let maintenant = try niveauAu(vue, a)
+    let ilYAUnAn = try niveauAu(vue, try dateDecalee(a, -ACCUEIL.joursIlYAUnAn))
     var ecart: Double?
     if let maintenant, let avant = ilYAUnAn {
         ecart = try arrondir(maintenant.vdot - avant.vdot, 0.1)

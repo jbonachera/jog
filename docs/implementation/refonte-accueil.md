@@ -142,7 +142,7 @@ public struct SixQualites { public var axes: [AxeQualite]; public var referenceP
 ```swift
 public func vdot(distance_m: Double, temps_min: Double) -> Double?      // nil si distance ou temps ≤ 0
 public func niveauAu(_ vue: Vue, _ d: DateCivile) throws -> (vdot: Double, cleSource: String)?
-public func niveauVDOT(_ vue: Vue) throws -> VueNiveau                   // A = vue.J (D-022)
+public func niveauVDOT(_ vue: Vue) throws -> VueNiveau                   // A = vue.J − 1 (D-022 : J est la coupure, le lendemain d'aujourd'hui)
 public func coursesEtTests(_ vue: Vue) throws -> [LigneCourse]           // du plus récent au plus ancien
 public func distanceCourse(_ km: Double) -> DistanceCourse
 ```
@@ -622,7 +622,7 @@ enum ModeleNiveau {
 |---|---|---|
 | 1 | fait | 403 tests verts (13 nouveaux) ; relu ; 2 corrections (tolérance de distance dans `ACCUEIL`, borne de 3 % testée sur valeur arrondie) |
 | 2 | fait | 415 tests verts (12 nouveaux) ; relu ; aucune correction |
-| 3 | | |
+| 3 | fait | 433 tests verts (18 nouveaux) ; relu ; 3 corrections (jour A = `vue.J − 1` dans `niveauVDOT` du lot 1, borne A − 364/A − 365, écart % mi-chemin testé au lot 2) |
 | 4 | | |
 | 5 | | |
 | 6 | | |
@@ -647,3 +647,5 @@ enum ModeleNiveau {
 - Lot 1 : la tolérance des distances (point 9, ±3 %) est `ACCUEIL.toleranceDistanceCourse` et se compare sur l'écart arrondi à 0,01 km (5,15 km est un 5 km, 5,16 km non).
 - Lot 1 : `.gitignore` contient `tests/`, qui ignore `Tests/` sur un disque insensible à la casse ; les nouveaux fichiers de test sont ajoutés avec `git add -f`, comme les existants.
 - Lot 2 : l'énumération du côté coloré s'appelle `SensHorsBande` (`Sens` existe déjà dans `progression-types.swift`) ; `LigneJauge.enCours` est reporté au lot 3, premier à s'en servir.
+- Lot 3 : `Vue.J` est la coupure (le lendemain d'aujourd'hui) ; le jour A vaut `vue.J − 1`. Le plan écrivait « A = vue.J » au lot 1, corrigé ; `niveauVDOT` est corrigé dans ce commit.
+- Lot 3 : `LigneJauge.enCours` est une struct `MentionEnCours { n, sur }` (un tuple n'est pas `Equatable`) ; l'écart en % se calcule `(v − t) ÷ t × 100` pour que 209 face à 200 donne bien +5 (D-015).

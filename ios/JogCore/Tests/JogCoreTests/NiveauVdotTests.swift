@@ -6,7 +6,7 @@ import Testing
 // construites par `calculerVue`. Données synthétiques écrites ici. Règles citées : 04 « VDOT et niveau », D-027,
 // D-014 (marquage), D-022 (séances du jour), D-015 (arrondi à 0,1 du VDOT).
 
-/// Journée de calcul de la Vue : l'app passe le lendemain de la dernière journée close (D-022).
+/// Journée de calcul de la Vue : J est la coupure, le lendemain du jour A = 2026-10-30 (D-022).
 private let jour: DateCivile = "2026-10-31"
 
 /// Une course ou un test (ou une séance non marquée) : distance et temps de référence, tels que la Vue les porte.
@@ -96,12 +96,24 @@ private func vueAvec(_ seances: [SeanceIntrinseque]) throws -> Vue {
     // 04 : écart à un an = niveau(A) − niveau(A − 365), sur les valeurs arrondies à 0,1 : 55,7 − 53,4 = +2,3.
     let vue = try vueAvec([
         course("aujourdhui", "2026-10-30", km: 10, tempsS: 2260),   // 55,7
-        course("il-y-a-un-an", "2025-10-31", km: 10, tempsS: 2345),  // 53,4 (39:05)
+        course("il-y-a-un-an", "2025-10-30", km: 10, tempsS: 2345),  // 53,4 (39:05), exactement A − 365
     ])
     let niveau = try niveauVDOT(vue)
     #expect(niveau.valeur == 55.7)
     #expect(niveau.ilYAUnAn == 53.4)
     #expect(niveau.ecart == 2.3)
+}
+
+@Test func uneCourseAA364CompteEtAA365NonPourLeNiveau() throws {
+    // Borne via niveauVDOT (D-027) : pour le niveau de A = 2026-10-30, la fenêtre va de A−364 à A.
+    // A−364 = 2025-10-31 compte ; A−365 = 2025-10-30 ne compte pas.
+    let dedans = try niveauVDOT(try vueAvec([course("a-364", "2025-10-31", km: 10, tempsS: 2260)]))
+    #expect(dedans.valeur == 55.7)
+    #expect(dedans.fixePar == "a-364")
+
+    let dehors = try niveauVDOT(try vueAvec([course("a-365", "2025-10-30", km: 10, tempsS: 2260)]))
+    #expect(dehors.valeur == nil)
+    #expect(dehors.fixePar == nil)
 }
 
 @Test func sansNiveauIlYAUnAnLEcartEstAbsent() throws {

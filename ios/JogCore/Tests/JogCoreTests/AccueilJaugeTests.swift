@@ -53,6 +53,13 @@ import Testing
     #expect(ligne.ecart == 4)
 }
 
+@Test func ecartEnPourcentMiCheminLoinDeZero() {
+    // 04, « Volume » et D-015 : 209 face à 200 vaut +4,5 %, arrondi à l'unité loin de zéro, soit +5 ; 191 vaut −4,5 %, soit −5.
+    // Le calcul est (valeur − trait) ÷ trait × 100 : la forme (valeur ÷ trait − 1) × 100 donnerait 4,499… et arrondirait à 4.
+    #expect(ligneJauge(valeur: 209, trait: 200, bande: nil, precision: 1, ecartEnPourcent: true).ecart == 5)
+    #expect(ligneJauge(valeur: 191, trait: 200, bande: nil, precision: 1, ecartEnPourcent: true).ecart == -5)
+}
+
 @Test func ecartAbsentSansTraitOuAvecTraitNul() {
     // 04 : trait nul ou absent, écart « – » (nil).
     #expect(ligneJauge(valeur: 37.4, trait: nil, bande: nil, precision: 0.1, ecartEnPourcent: true).ecart == nil)

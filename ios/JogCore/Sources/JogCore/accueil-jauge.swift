@@ -41,9 +41,12 @@ public struct LigneJauge: Sendable, Equatable {
     public var ecart: Double?
     /// Vrai si la valeur affichée sort de la bande, du côté que `sens` retient. Jamais vrai sans bande.
     public var horsBande: Bool
+    /// « Norme en cours (n sur minimum) » : la bande manque, l'échantillon étant trop petit (D-026). Nil sinon.
+    public var enCours: MentionEnCours?
 
     public init(
-        valeur: Double?, valeurAffichee: Double?, trait: Double?, bande: ClosedRange<Double>?, ecart: Double?, horsBande: Bool
+        valeur: Double?, valeurAffichee: Double?, trait: Double?, bande: ClosedRange<Double>?, ecart: Double?,
+        horsBande: Bool, enCours: MentionEnCours? = nil
     ) {
         self.valeur = valeur
         self.valeurAffichee = valeurAffichee
@@ -51,6 +54,18 @@ public struct LigneJauge: Sendable, Equatable {
         self.bande = bande
         self.ecart = ecart
         self.horsBande = horsBande
+        self.enCours = enCours
+    }
+}
+
+/// Mention « Norme en cours (n sur minimum) » d'une ligne dont l'échantillon est trop petit (D-026, point de décision 3).
+public struct MentionEnCours: Sendable, Equatable {
+    public var n: Int
+    public var sur: Int
+
+    public init(n: Int, sur: Int) {
+        self.n = n
+        self.sur = sur
     }
 }
 
@@ -81,7 +96,9 @@ public func ligneJauge(
     var ecart: Double?
     if let v = valeurAffichee, let t = traitAffiche {
         if ecartEnPourcent {
-            if t != 0 { ecart = arrondiAffichage((v / t - 1) * 100, 1) }
+            // (v − t) ÷ t × 100 et non (v ÷ t − 1) × 100 : la première forme est exacte sur des valeurs au pas près,
+            // la seconde donne 4,499… pour 209 ÷ 200 et arrondirait à 4 au lieu de 5 (D-015).
+            if t != 0 { ecart = arrondiAffichage((v - t) / t * 100, 1) }
         } else {
             ecart = arrondiAffichage(v - t, precision)
         }
