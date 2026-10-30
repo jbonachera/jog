@@ -3,7 +3,7 @@
 Une fiche par composant : **but**, **données**, **affichage**, **interactions**, **critères d'acceptation**. Les formules sont dans [04-metriques.md](04-metriques.md), et la logique de décision dans [05-decision-volume.md](05-decision-volume.md).
 
 Conventions communes :
-- **Fenêtres glissantes** : elles s'arrêtent **hier soir**, dernier jour complet. La journée en cours n'entre dans aucun calcul.
+- **Fenêtres glissantes** : elles s'arrêtent **aujourd'hui inclus** : une séance du jour compte aussitôt ([D-022](decisions.md#d-022--les-séances-du-jour-comptent-aussitôt)).
 - **Semaine** : du lundi au dimanche. Une semaine est « terminée » une fois son dimanche passé.
 - **Unité de volume** : le **km** partout. Les heures n'apparaissent qu'en information secondaire.
 - **Pastille d'état** : chaque état coloré porte aussi un **texte** (OK, À surveiller, Alerte, Dans la cible…). La couleur seule ne porte jamais l'information.
@@ -13,9 +13,94 @@ Conventions communes :
 
 ---
 
-## Onglet Aujourd'hui (ex-Aperçu)
+## Onglet Aujourd'hui
 
-### A1 · Décision volume
+Refonte [D-024](decisions.md#d-024--accueil-unique-et-deux-onglets) à [D-028](decisions.md#d-028--six-qualités-face-à-il-y-a-un-an). Maquette : [`maquette/accueil.html`](maquette/accueil.html). Ordre fixe : N1, A5, A2, puis S1.
+
+**Ligne de jauge** (A5, A2, S2) : une ligne par mesure, sans texte dessous. Grille : libellé · barre · valeur (chasse fixe, alignée à droite) · écart au trait (chasse fixe, `ink-3`). La barre porte la bande de norme (`Bande`), le trait de référence (`ink-2`) et le point de la valeur (accent). Hors bande, le point et l'écart passent en `Attention`. Toucher la ligne affiche sa phrase de référence. Règles : `04`, « Ligne de jauge ».
+
+### N1 · Niveau
+
+**But** : situer le coureur et sa progression sur un an, d'un coup d'œil.
+**Données** : niveau VDOT et six qualités (`04`, « VDOT et niveau », « Six qualités »).
+**Affichage** :
+- en-tête : surtitre « Niveau (VDOT) », le VDOT en grand chiffre sans unité (« 54,2 ») ; à droite « il y a un an », la valeur d'il y a un an et l'écart signé (vert s'il est positif) ;
+- radar hexagonal des six qualités, dans l'ordre horaire depuis le haut : Volume, Seuil, Efficacité, Endurance, Régularité, Résilience. Anneaux à 25, 50, 75 et 100 % ; l'anneau 50 %, tracé en `ink-2`, est l'an dernier. Le polygone actuel est en accent, aire teintée ;
+- sous chaque nom d'axe, l'écart à un an dans son unité, vert s'il va dans le bon sens, orange sinon, `ink-2` s'il est nul ;
+- légende : Il y a un an · Maintenant.
+**Interactions** :
+- toucher une qualité ouvre une **bulle** (fond encre, texte inversé) : nom, mesure en clair (`04`), écart « face à il y a un an », bouton de fermeture. Le nom touché passe en accent. La bulle ne déclenche pas la navigation ;
+- toucher ailleurs sur la carte ouvre **Courses** (N2).
+**Cas particuliers** : sans course ni test, titre « Niveau en cours : cours un test 5 km », radar seul. Moins d'un an d'historique : « face à tes 12 premières semaines » sous le titre.
+**Critères** : à 320 pt, aucun nom ni écart d'axe n'est coupé. VoiceOver lit chaque axe comme un bouton « Seuil, −9 s/km face à il y a un an ».
+
+### A5 · Récupération (carte)
+
+**But** : lire le matin, en une carte, si le corps absorbe la charge.
+**Données** : `Vue.recuperation` (D-023, `04` « Récupération » et « Récupération (lignes) »).
+**Affichage** :
+- en-tête : « Récupération » sur une ligne, et à droite une pastille d'état (Dans ta norme · Sous ta norme · Récupération basse · Norme en cours · Pas assez de nuits) suivie d'un chevron ;
+- 3 lignes de jauge : **VFC** (« 41 ms », écart « −6 »), **FC repos** (« 47 bpm », « +1 »), **Sommeil** (« 6 h 52 », « −38′ »).
+**Sans aucune nuit mesurée** : « Aucune nuit mesurée dans Santé. Porte l’Apple Watch la nuit, avec le suivi du sommeil activé. », sans lignes.
+**Interactions** : toucher la carte ouvre l'écran **Récupération** (A6 en tête, puis R1 à R7).
+**Critères** : toujours au-dessus du pli. Une valeur absente s'écrit « – ».
+
+### A2 · Volume (carte)
+
+**But** : situer le volume réalisé et rappeler le verdict.
+**Données** : `04`, « Volume » ; verdict et fourchette de `05`.
+**Affichage** :
+- en-tête : « Volume », et à droite la pastille du verdict avec la fourchette (« Maintenir · 62–66 km / 7 j › »), colorée selon le verdict ; « Pas encore de verdict » avant 30 jours ;
+- 3 lignes de jauge : **Semaine** (« 37,4 km », « +4 % »), **30 jours** (« 248 km », « +6 % »), **{AAAA}** (« 1 842 km », « +11 % »).
+**Interactions** : la pastille ouvre **Décision** (A1). Une ligne affiche sa phrase de référence : « à jeudi soir, d'habitude 32–40 km » · « 30 j précédents 234 km, habituel 210–255 » · « 2025 à date 1 660 km · 42 km/sem · 117 séances ». La ligne Année ouvre ensuite Progrès › Saisons.
+
+### S1 · Séances, par semaine
+
+**But** : tout le réalisé, du plus récent au plus ancien, sans quitter l'accueil.
+**Affichage** :
+- un **en-tête par semaine** (lundi → dimanche), collé en haut pendant le défilement : « Cette semaine » ou « Sem. du {lundi} », km et durée à droite ; barre de répartition par intensité (4 couleurs) ; ligne « {n} séances · {n} seuils · {min}′ sous-seuil ({part} %) » ;
+- sous l'en-tête, une **carte de séance** (S2) par séance, de la plus récente à la plus ancienne. Les séances du jour ont un contour accent ;
+- un jour de repos n'a pas de ligne ; une semaine sans séance garde son en-tête avec « aucune séance ».
+**Interactions** : une carte ouvre **Séance** (S3) ; un en-tête ouvre le détail de la semaine (ratio 7 j / 30 j au dimanche, footings sous le plafond) ; un sélecteur de mois permet de sauter dans le temps. Chargement au fil du défilement.
+
+### S2 · Carte de séance
+
+**But** : lire une séance selon son type, avec la même carte partout.
+**Données** : `04`, « Carte de séance ».
+**Affichage** :
+- ligne 1 : pastille de couleur du type, nom (« Footing », « Sous-seuil 5×8′ », « Sortie longue », « Course · 10 km ») ; à droite la date (« auj. 12:15 », « mer. 29 · 18:05 ») ;
+- ligne 2, chasse fixe : distance · durée · allure (sous-seuil : allure moyenne des répétitions) ;
+- ligne 3 : « Verdict » (surtitre) et la réponse en un mot dans une pastille d'état ;
+- 2 ou 3 lignes de jauge, selon le type (`04`).
+**Critères** : la même carte pour la séance du jour et les séances passées ; seul le contour change. Une jauge sans norme affiche « Norme en cours (n sur 4) ».
+
+## Écrans de détail
+
+### N2 · Courses
+
+Ouvert depuis N1. Titre « Courses », à droite « {n} courses et tests ».
+- carte d'en-tête : « Niveau (VDOT) » et sa valeur ; à droite la course qui le fixe ; courbe du VDOT de chaque course dans le temps, avec la valeur d'il y a un an en pointillé ;
+- filtres : Toutes · 5 km · 10 km · Semi · Marathon ;
+- liste par année, la plus récente en haut ; une ligne par course ou test : date, distance (« Test 5 km » pour un test), temps · allure, VDOT à droite, chevron. Toucher ouvre **Séance** (S3).
+
+### S3 · Séance
+
+Ancienne P4, élargie à tous les types. Carte S2 en tête, puis le détail : pour une séance sous-seuil, le graphique en sucettes de P4 ; pour les autres, les courbes d'allure et de FC, et les segments (allure marathon, lignes droites).
+
+### A6 · Cette nuit
+
+En tête de l'écran Récupération. **Affichage** :
+- durée endormie en grand (« 6 h 41 »), avec la pastille « −49 min / besoin », orange si l'écart est ≤ −45 min, neutre sinon ;
+- la date « Nuit du mar. 28 oct. au mer. 29 oct. » ;
+- un **hypnogramme** en 4 couloirs, de haut en bas Éveillé, Paradoxal, Léger, Profond, avec 3 heures sous l'axe (début, milieu, fin) ;
+- 4 valeurs : VFC (ms), FC de repos (bpm), Profond (min), Paradoxal (min) ;
+Sans nuit mesurée aujourd'hui : « Pas de nuit mesurée cette nuit. ».
+**Couleurs** : profond `ZAuDessus`, paradoxal `ZSousSeuil`, léger `ZFacile`, éveillé `Attention`.
+
+
+### A1 · Décision
+
+Écran ouvert depuis la pastille du verdict de A2. Sur iPhone, les deux colonnes s'empilent ; chaque signal ouvre son graphique (C1, A4, C2-C3, P2).
 
 **But** : dire en un coup d'œil s'il faut augmenter, maintenir ou alléger le volume des 7 prochains jours, et dans quelle fourchette.
 
@@ -36,76 +121,12 @@ Conventions communes :
 - Le curseur met à jour ses résultats en direct. Les résultats sont annoncés aux lecteurs d'écran (`aria-live="polite"`).
 - La phrase d'explication nomme les signaux qui déclenchent « Maintenir » ou « Alléger ».
 
-### A5 · Récupération (carte)
-
-**But** : lire le matin, en une carte, si le corps absorbe la charge.
-**Données** : `Vue.recuperation` (D-023, `04` « Récupération »).
-**Affichage** :
-- en-tête de section « Récupération », avec à droite un lien « Tendances » (vers Charge › Récupération) ;
-- titre : l'état (Dans ta norme · Sous ta norme · Récupération basse · Norme en cours de calcul · Pas assez de nuits), avec une pastille (OK · À surveiller · Alerte · Données insuffisantes) et un chevron ;
-- 3 tuiles : **VFC** (« 52 ms », « norme 40–59 »), **FC repos** (« 46 bpm », « norme 44–48 »), **Sommeil** (« 6h52 », « besoin 7h30 »). Chaque tuile porte une mini-courbe des 14 dernières moyennes sur 7 nuits, sur la bande de norme. Pour le sommeil, la bande va du besoin − 45 min au besoin ;
-- la phrase d'explication de l'état.
-**Sans aucune nuit mesurée** : « Aucune nuit mesurée dans Santé. Porte l’Apple Watch la nuit, avec le suivi du sommeil activé. », sans tuiles.
-**Interactions** : un appui sur la carte ouvre A6. « Tendances » ouvre Charge › Récupération.
-**Critères** : à 320 pt, aucune valeur de tuile n'est tronquée ; une valeur absente s'écrit « – ».
-
-### A6 · Cette nuit (feuille)
-
-**Affichage** :
-- durée endormie en grand (« 6 h 41 »), avec la pastille « −49 min / besoin », orange si l'écart est ≤ −45 min, neutre sinon ;
-- la date « Nuit du mar. 28 oct. au mer. 29 oct. » ;
-- un **hypnogramme** en 4 couloirs, de haut en bas Éveillé, Paradoxal, Léger, Profond, avec 3 heures sous l'axe (début, milieu, fin) ;
-- 4 valeurs : VFC (ms), FC de repos (bpm), Profond (min), Paradoxal (min) ;
-- un bouton « Tendances de récupération » vers Charge › Récupération.
-Sans nuit mesurée aujourd'hui : « Pas de nuit mesurée cette nuit. », et le bouton seul.
-**Couleurs** : profond `ZAuDessus`, paradoxal `ZSousSeuil`, léger `ZFacile`, éveillé `Attention`.
-
-### A2 · Volume réalisé
-
-**But** : valoriser l'accompli et situer le volume récent.
-
-**Disposition** : bandeau de 3 compteurs côte à côte, séparés par des filets verticaux, sur fond de surface avec bordure et coins arrondis. Ils s'empilent sous 980 px.
-
-| Compteur | Fenêtre | Comparaison | Mini-graphique |
-|---|---|---|---|
-| Année {AAAA} | du 1er janvier à hier | moyenne en km par semaine, pastille neutre | une barre par semaine |
-| 30 derniers jours | J−30 à hier | face aux 30 jours d'avant | une barre par jour |
-| 7 derniers jours | J−7 à hier | face aux 7 jours d'avant | une barre par jour |
-
-Chaque compteur contient :
-- le libellé et la plage de dates ;
-- le **km** en grand, avec séparateur de milliers ;
-- une ligne secondaire « {durée} · {n} séances » ;
-- la comparaison ;
-- le mini-graphique.
-
-La pastille d'écart est **orange si |écart| > 30 %**, neutre sinon. Les barres journalières des jours sous-seuil sont en couleur sous-seuil, les autres en couleur facile.
-
-**Interactions** : infobulle par barre, avec la date, le type de séance et les km.
-
-**Critères** : une période sans historique précédent affiche « pas d'historique ». Les jours de repos ont une barre de hauteur nulle, pas de trou.
-
-### A3 · 7 derniers jours
-
-**But** : voir ce qui a été réellement fait cette semaine glissante.
-
-**Disposition** : liste verticale, la plus récente en haut, une ligne par jour de J−7 à hier, jours sans séance compris.
-- **En-tête** : « 7 derniers jours » et un résumé « {n} séances · {km} km · {min} min de sous-seuil ».
-- **Ligne** (grille : jour 72 px, contenu, détails) :
-  - jour court et quantième ;
-  - libellé de séance (Footing, Footing + lignes droites, Sous-seuil 6×6', Sortie longue dont 40' allure marathon…) ou **Repos** grisé ;
-  - détails en chasse fixe : durée · km · FC moyenne, plus, pour une séance sous-seuil, l'allure moyenne des répétitions ;
-  - barre de répartition par intensité.
-
-**Critères** : aucune notion de « prévu ». Une ligne Repos n'a pas de cadre plein.
 
 ---
 
-## Onglet Charge
+## Graphiques de détail (ex-onglet Charge)
 
-### Charge · sélecteur Entraînement · Récupération
-
-Un sélecteur segmenté sous le grand titre (« Ce que tu fais, et comment ton corps l'encaisse »). Il est mémorisé.
+L'onglet Charge et son sélecteur sont supprimés ([D-024](decisions.md#d-024--accueil-unique-et-deux-onglets)). A4, C1, C2 et C3 s'ouvrent depuis les signaux de la Décision (A1) ; C2 et C3 forment un seul écran « Sous-seuil et discipline ». R1 à R7 forment l'écran Récupération, ouvert depuis A5. La note de discipline ne montre plus la monotonie de Foster.
 
 ### A4 · Forme et fatigue
 
@@ -175,7 +196,6 @@ Un sélecteur segmenté sous le grand titre (« Ce que tu fais, et comment ton c
   - barres dans la cible (tolérance ±1 point) en couleur sous-seuil, les autres en couleur facile.
 - **Note** :
   - part des footings sous le plafond sur 8 semaines ;
-  - monotonie de Foster moyenne, avec cet avertissement : « élevée par construction en NSA, à lire avec la charge et non comme une alerte isolée » ;
   - légende des couleurs de barres.
 
 
@@ -214,7 +234,9 @@ Un bloc repliable, avec les 4 paragraphes de la maquette (Mesure, Norme, État, 
 
 ---
 
-## Onglet Progression
+## Onglet Progrès
+
+Ordre : P1, P2, P3, P5, puis H1 (Saisons). P4 devient l'écran Séance (S3).
 
 ### P1 · Comparer deux périodes
 
@@ -303,6 +325,8 @@ Chaque panneau contient :
 
 ### P4 · Dernière séance sous-seuil
 
+*Devenu le détail sous-seuil de l'écran Séance (S3), pour toute séance sous-seuil.*
+
 **But** : juger la maîtrise de la séance la plus récente : régularité, et rien au-dessus du seuil.
 
 **Affichage**
@@ -333,9 +357,13 @@ Le sous-titre rappelle la source et la nuance : « c'est un niveau, pas une pré
 
 ---
 
-## Onglet Historique
+## Ex-onglet Historique
+
+L'onglet est fusionné dans Aujourd'hui ([D-024](decisions.md#d-024--accueil-unique-et-deux-onglets)) : le journal hebdomadaire H2 est remplacé par les en-têtes de semaine de S1, et les colonnes charge, ratio, monotonie, contrainte et footings sont retirées (le ratio et les footings restent dans le détail de la semaine).
 
 ### H1 · Saisons et volume hebdomadaire
+
+*Dans Progrès, en dernier ([D-024](decisions.md#d-024--accueil-unique-et-deux-onglets)).*
 
 **But** : lire l'historique, saison après saison.
 
@@ -347,32 +375,9 @@ Le sous-titre rappelle la source et la nuance : « c'est un niveau, pas une pré
 - Mois sur l'axe X.
 - Légende des 4 intensités.
 
-**Sélecteur** : 12 semaines · 26 semaines · Toutes les saisons. Il pilote aussi H2. Aucune semaine future n'est affichée.
+**Sélecteur** : 12 semaines · 26 semaines · Toutes les saisons. Aucune semaine future n'est affichée.
 
 **Interactions** : infobulle par semaine avec la durée, les km, les minutes et la part de sous-seuil, et le ratio 7 j / 30 j.
-
-### H2 · Journal hebdomadaire
-
-**But** : le détail chiffré, semaine par semaine.
-
-**Tableau** :
-- conteneur à hauteur maximale de 560 px qui défile, avec en-tête collant ;
-- la semaine la plus récente en haut, la semaine en cours surlignée ;
-- colonnes :
-
-| Colonne | Contenu |
-|---|---|
-| Semaine | date du lundi |
-| km | réalisés |
-| Durée | h:mm |
-| Répartition | barre par intensité, 120 px |
-| Sous-seuil | pastille verte dans la cible, orange sinon ; « en cours » pour la semaine courante |
-| Séances SS | nombre |
-| Charge | somme de la charge |
-| Ratio 7 j / 30 j | au dimanche de la semaine, ou à hier pour la semaine en cours ; pastille orange au-delà de 1,3 ou sous 0,8, rouge au-delà de 1,5 |
-| Monotonie | Foster |
-| Contrainte | Foster |
-| Footings ≤ {plafond} bpm | part ; pastille orange sous 90 %, rouge sous 75 % |
 
 ---
 

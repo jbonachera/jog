@@ -366,3 +366,76 @@ Décisions prises sur les questions ouvertes de la spécification. Chaque entré
   - les nuits coupées en deux sessions ;
   - la largeur réelle de la bande (0,95 σ) ;
   - la répartition des états sur 6 mois.
+
+## D-024 · Accueil unique et deux onglets
+
+- **Date** : 2026-10-30
+- **Question** : La navigation empile des niveaux (onglet Charge, puis sélecteur Entraînement · Récupération) et chaque onglet demande trop de défilement. Comment restructurer sans perdre d'information ?
+- **Décision** :
+  - **Deux onglets** : **Aujourd'hui** et **Progrès**. Les Paramètres passent en bouton dans la barre de titre.
+  - **Aujourd'hui fusionne l'ancien Aujourd'hui et l'Historique**. De haut en bas, dans un ordre fixe : Niveau (N1), Récupération (A5), Volume (A2), puis toutes les séances, de la plus récente à la plus ancienne, groupées par semaine (S1). Descendre, c'est remonter le temps.
+  - **L'onglet Charge disparaît**, ainsi que le sélecteur Entraînement · Récupération. Ses graphiques deviennent des **écrans de détail**, ouverts depuis le bloc qui les cite : Récupération → R1 à R7 ; pastille du verdict → Décision (A1, signaux, simulateur) → graphique de chaque signal (C1, A4, C2-C3, P2).
+  - **Saisons (H1)** passe dans Progrès. Le **journal hebdomadaire (H2)** est remplacé par les en-têtes de semaine de S1. Les compteurs A2 historiques et la liste « 7 derniers jours » (A3) sont supprimés.
+  - **Une métrique s'affiche une fois en résumé, une fois en détail.** Les sélecteurs segmentés ne servent qu'aux fenêtres de temps d'un graphique, jamais à changer de contenu.
+  - **Retraits** : monotonie et contrainte de Foster (élevées par construction en NSA, sans action possible) ; charge hebdomadaire brute ; colonnes ratio, footings, monotonie, contrainte et charge du journal.
+- **Options écartées** :
+  - feu « séance intense aujourd'hui ? » en tête d'accueil : la place est réservée aux séances déjà faites ;
+  - radar des 8 signaux de la décision : redondant avec la Décision, illisible en valeurs ;
+  - trajectoire fraîcheur × VFC en accueil : trop abstraite ;
+  - bande de 4 semaines charge et nuits : riche, mais n'explique ni le niveau ni le verdict.
+- **Raison** : chaque écran répond à une question. Le défilement prend un sens (le passé), au lieu de servir à atteindre un autre sujet.
+- **Impacts** : `01` (questions), `02` (navigation), `03` (composants A, H, Charge), maquette `maquette/accueil.html`.
+- **Fichiers modifiés** : `01-vision.md`, `02-navigation.md`, `03-composants.md`.
+
+## D-025 · Carte de séance par type et normes par type
+
+- **Date** : 2026-10-30
+- **Question** : Comment analyser chaque séance sans écran supplémentaire, alors qu'on ne regarde pas la même chose sur un footing, un seuil, une sortie longue ou une course ?
+- **Décision** :
+  - **Une seule carte de séance** (S2), identique pour la séance du jour et pour toutes les séances passées. En-tête (type, date, distance, durée, allure), puis **« Verdict »** et une réponse en un mot, puis **2 ou 3 jauges** sur une ligne chacune. Rien de ce que dit l'en-tête (répétitions, durée) n'est répété en jauge.
+  - **Jauges et verdict par type** : voir `04`, « Carte de séance ».
+  - **Normes par type** : chaque jauge compare la séance aux **séances du même type** (footing face aux footings…). Fenêtre : les 56 jours qui précèdent la séance (les 6 séances sous-seuil précédentes pour le sous-seuil). Minimum 4 séances, sinon « Norme en cours (n sur 4) » sans bande.
+  - **D+** : nouvelle mesure, dénivelé positif cumulé, calculé depuis l'altitude du tracé.
+- **Options écartées** : une question par type en titre (« Était-il vraiment facile ? ») ; une ligne par séance avec un seul repère ; tuiles « dernière séance de chaque type » ; jauge du nombre de répétitions, de la durée, de l'allure marathon et du record.
+- **Raison** : un seul gabarit à apprendre ; chaque séance se lit face à ses semblables.
+- **Fichiers modifiés** : `03-composants.md`, `04-metriques.md`.
+- **À valider sur données réelles** : le seuil « Un peu rapide » (plafond + 5 bpm), le bruit du D+ barométrique, la bande « Conforme » de la course (±0,5 VDOT).
+
+## D-026 · Lignes de jauge et volume au même jour
+
+- **Date** : 2026-10-30
+- **Question** : Comment lire volume, récupération et séances avec la même grammaire, sans texte sous les barres ?
+- **Décision** :
+  - **Ligne de jauge** : libellé, barre (bande de norme, trait de référence, point de la valeur), valeur, **écart du point au trait**. Le point et l'écart passent en orange quand le point sort de la bande. La phrase de référence (« à jeudi soir, d'habitude 32–40 km ») s'affiche au toucher de la ligne.
+  - **Écarts** : en % pour le volume ; dans l'unité de la mesure pour la récupération (ms, bpm, minutes) et les séances.
+  - **Volume** : trois lignes, Semaine, 30 jours, Année. La **semaine en cours est comparée à tes semaines habituelles au même jour** de la semaine, pour qu'un milieu de semaine ne paraisse jamais en retard. Le verdict et la fourchette des 7 prochains jours sont dans la pastille d'en-tête de la carte.
+  - **Récupération** : le trait du sommeil est le besoin de sommeil (plus la moyenne de la norme).
+- **Options écartées** : ligne « 7 prochains jours » dans la carte (doublon de la pastille) ; « reste X km d'ici dimanche » (la fourchette est glissante, pas calendaire).
+- **Fichiers modifiés** : `03-composants.md`, `04-metriques.md`.
+
+## D-027 · Niveau VDOT
+
+- **Date** : 2026-10-30
+- **Question** : Quel nombre unique donne le niveau du coureur, en tête de l'accueil ?
+- **Décision** :
+  - **VDOT de Daniels**, calculé pour chaque course ou test marqué (D-014) depuis sa distance et son temps (formule dans `04`).
+  - **Niveau** = le meilleur VDOT des 365 derniers jours. Affiché sans unité sous le titre « Niveau (VDOT) », avec sa valeur il y a un an et l'écart.
+  - Écran **Courses** (N2) : toutes les courses et tous les tests, du plus récent au plus ancien, avec le VDOT de chacun et sa courbe.
+  - Sur la carte d'une course, la jauge VDOT compare la perf au niveau **la veille** de la course.
+  - Sans course ni test : « Niveau en cours : cours un test 5 km ».
+- **Options écartées** : barre de progression vers le palier suivant (projection, contraire aux non-objectifs) ; équivalence 10 km Riegel en titre (moins universelle). P5 (Riegel) reste dans Progrès.
+- **Fichiers modifiés** : `03-composants.md`, `04-metriques.md`.
+
+## D-028 · Six qualités face à il y a un an
+
+- **Date** : 2026-10-30
+- **Question** : Que montrer sous le niveau, sans redonder la récupération, le volume ou les séances ?
+- **Décision** :
+  - **Radar de six qualités**, chacune mesurée sur les 12 dernières semaines et comparée aux **mêmes 12 semaines il y a un an** : Volume, Seuil, Efficacité, Endurance, Régularité, Résilience (définitions dans `04`).
+  - **Échelle** : l'anneau du milieu est l'an dernier ; au-delà tu as progressé, en deçà tu as reculé. Chaque axe affiche son écart dans son unité. Aucun score composite.
+  - **Régularité** : nouvelle mesure, part des semaines terminées avec au moins 4 séances.
+  - Toucher une qualité ouvre une bulle qui explique sa mesure ; toucher la carte ouvre Courses.
+  - Moins d'un an d'historique : comparaison au premier bloc de 12 semaines, signalée sous le titre.
+- **Options écartées** : rayon entre le plus bas et le meilleur bloc de l'historique (P1) ; radar des 8 signaux.
+- **Fichiers modifiés** : `03-composants.md`, `04-metriques.md`.
+- **À valider sur données réelles** : l'amplitude de référence de chaque axe (plus grand écart à un an observé), la stabilité de la Résilience.

@@ -18,18 +18,19 @@
 
 | Question | Où |
 |---|---|
-| Est-ce que j'augmente, je maintiens ou j'allège mon volume cette semaine ? De combien ? | Aujourd'hui, carte Décision volume |
-| Que se passe-t-il si je cours X km la semaine prochaine ? | Aujourd'hui, simulateur |
-| Combien ai-je couru cette année, ce mois-ci, cette semaine ? | Aujourd'hui, volume réalisé |
-| Où en sont ma forme de fond et ma fatigue ? | Charge, Entraînement, forme et fatigue |
-| Mon corps absorbe-t-il la charge ? | Aujourd'hui, carte Récupération ; Charge, Récupération |
-| Mon volume augmente-t-il progressivement ? | Charge, progressivité |
-| Est-ce que je respecte la méthode (part de sous-seuil, footings faciles) ? | Charge, minutes de sous-seuil et discipline NSA |
-| Ai-je progressé par rapport à il y a 12 semaines ou un an ? | Progression, comparer deux périodes |
-| Est-ce que je cours plus vite à FC égale ? | Progression, tendances et allure × FC |
-| Ma dernière séance sous-seuil était-elle bien maîtrisée ? | Progression, dernière séance |
-| Quel est mon niveau actuel sur chaque distance ? | Progression, niveau estimé |
-| Qu'ai-je fait semaine par semaine, saison après saison ? | Historique |
+| Quel est mon niveau, et ai-je progressé en un an ? | Aujourd'hui, Niveau (VDOT et six qualités) |
+| Mon corps absorbe-t-il la charge ? | Aujourd'hui, Récupération ; écran Récupération |
+| Combien ai-je couru cette semaine, ce mois-ci, cette année ? | Aujourd'hui, Volume |
+| Est-ce que j'augmente, je maintiens ou j'allège mon volume ? De combien ? | Aujourd'hui, pastille du Volume ; écran Décision |
+| Que se passe-t-il si je cours X km la semaine prochaine ? | Décision, simulateur |
+| Comment s'est passée ma séance, face à mes séances du même type ? | Aujourd'hui, carte de séance ; écran Séance |
+| Qu'ai-je fait semaine par semaine ? | Aujourd'hui, séances par semaine |
+| Où en sont ma forme de fond et ma fatigue ? Mon volume monte-t-il progressivement ? Est-ce que je respecte la méthode ? | Décision, graphique de chaque signal |
+| Quelles courses ai-je faites, à quel niveau ? | Courses, depuis le Niveau |
+| Ai-je progressé par rapport à il y a 12 semaines ou un an ? | Progrès, comparer deux périodes |
+| Est-ce que je cours plus vite à FC égale ? | Progrès, tendances et allure × FC |
+| Quel est mon niveau actuel sur chaque distance ? | Progrès, niveau estimé |
+| Qu'ai-je fait saison après saison ? | Progrès, saisons |
 
 ## Principes
 
@@ -39,7 +40,7 @@
 4. **Toujours expliquer.** Chaque signal affiche sa valeur, son état et une phrase d'explication. Chaque modèle abstrait (forme, fatigue, fraîcheur) est expliqué en clair à côté de son graphique.
 5. **Des repères, pas des injonctions.** Les repères de l'athlète (FC max, seuil, plafond des footings, cible de sous-seuil) sont réglables. Les seuils du verdict sont fixes et publiés : ce sont des repères de lecture, pas des vérités scientifiques, et ils ne changent que par une décision tracée après retour d'usage. La fourchette de volume est une borne calculée sur le réalisé, pas un plan.
 6. **La tendance prime sur la valeur absolue.** Les courbes sont lissées, et on compare des périodes plutôt que des points.
-7. **Lisibilité avant densité.** Chaque onglet tient en un à deux écrans. On navigue par onglets, pas par un long défilement.
+7. **Lisibilité avant densité.** L'essentiel tient au-dessus du pli. Le défilement ne sert qu'à remonter dans le passé ; le détail s'ouvre depuis le bloc qui le résume ([D-024](decisions.md#d-024--accueil-unique-et-deux-onglets)).
 
 ## Non-objectifs
 

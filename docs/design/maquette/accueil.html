@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jog Accueil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Système Fjord (docs/design/08) : bleus froids d'une seule teinte, chiffres en chasse fixe, vert/orange/rouge réservés aux états. */
+:root{
+  --bg:#f4f7f9;--surface:#fff;--ink:#0f1e2b;--ink-2:#4b5d6c;--ink-3:#7c8b97;--line:#dde5eb;--grid:#e9eef2;
+  --accent:#2a6390;--band:rgba(42,99,144,.13);--z-easy:#93b3c9;--z-mp:#5f8db0;--z-subt:#2a6390;--z-hard:#0f3150;
+  --good:#2f7d4f;--warn:#a66a00;--bad:#b3372f;--warn-bg:rgba(166,106,0,.10);--good-bg:rgba(47,125,79,.10);--bad-bg:rgba(179,55,47,.10);
+  --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b141c;--surface:#0f1a24;--ink:#e6eef4;--ink-2:#a4b4c1;--ink-3:#6f8293;--line:#1f2f3d;--grid:#172532;
+  --accent:#8bb8d9;--band:rgba(139,184,217,.15);--z-easy:#3b5f7a;--z-mp:#5c8bb0;--z-subt:#8bb8d9;--z-hard:#cfe5f4;
+  --good:#5cbf85;--warn:#e0a440;--bad:#ec7a70;--warn-bg:rgba(224,164,64,.12);--good-bg:rgba(92,191,133,.12);--bad-bg:rgba(236,122,112,.12);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b141c;--surface:#0f1a24;--ink:#e6eef4;--ink-2:#a4b4c1;--ink-3:#6f8293;--line:#1f2f3d;--grid:#172532;
+  --accent:#8bb8d9;--band:rgba(139,184,217,.15);--z-easy:#3b5f7a;--z-mp:#5c8bb0;--z-subt:#8bb8d9;--z-hard:#cfe5f4;
+  --good:#5cbf85;--warn:#e0a440;--bad:#ec7a70;--warn-bg:rgba(224,164,64,.12);--good-bg:rgba(92,191,133,.12);--bad-bg:rgba(236,122,112,.12);color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);padding-inline:clamp(16px,4vw,48px);padding-block:32px 64px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:48px}
+h1{font-size:clamp(28px,4vw,44px);line-height:1.05;letter-spacing:-.03em;font-weight:800;margin:0;text-wrap:balance}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--ink-2);margin:0 0 14px}
+h3{font-size:20px;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
+p{margin:0;max-width:70ch}
+.lede{color:var(--ink-2);font-size:16px;margin-top:10px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-2)} .small{font-size:13px}
+section{display:flex;flex-direction:column;gap:16px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:820px;font-size:13.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600;background:var(--bg)}
+td:first-child{font-weight:700;white-space:nowrap}
+.cols2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.note{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.note ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+
+.prop{display:grid;grid-template-columns:320px minmax(0,1fr);gap:32px;align-items:start;padding-top:24px;border-top:1px solid var(--line)}
+@media (max-width:860px){.prop{grid-template-columns:minmax(0,1fr)}}
+.prop .txt{display:flex;flex-direction:column;gap:14px;min-width:0}
+.kicker{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.04em}
+.pc{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.pc ul{margin:4px 0 0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.pc h4{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+.plus h4{color:var(--good)} .moins h4{color:var(--bad)}
+.variants{display:grid;align-items:start;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.variants .card{max-width:300px}
+.vlabel{font:500 11px var(--mono);color:var(--ink-3);margin-bottom:4px}
+
+/* Téléphone */
+.phone{width:300px;max-width:100%;margin:0 auto;border:1px solid var(--line);border-radius:38px;background:var(--bg);padding:10px;box-shadow:0 18px 40px -24px rgba(15,30,43,.35)}
+.screen{border-radius:30px;background:var(--bg);overflow:hidden;position:relative;display:flex;flex-direction:column;height:880px}
+.sbar{display:flex;justify-content:space-between;font:600 12px var(--sans);padding:10px 22px 4px}
+.scroll{flex:1;overflow:hidden;padding:4px 12px 0;display:flex;flex-direction:column;gap:9px;position:relative}
+.ttl{display:flex;justify-content:space-between;align-items:baseline}
+.ttl strong{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.ttl span{font-size:11px;color:var(--ink-3)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;min-width:0}
+.wkh{display:flex;flex-direction:column;gap:3px;padding:6px 2px 0}
+.wkh .top{display:flex;justify-content:space-between;align-items:baseline;font-size:12px}
+.wkh .top b{font-size:12.5px}
+.wkh .sub{font-size:10.5px;color:var(--ink-3);font-family:var(--mono)}
+.split{display:flex;height:4px;border-radius:2px;overflow:hidden;gap:1px}
+.wkh.stick{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);padding:6px 2px 7px;margin:0 -2px}
+.srow{display:grid;grid-template-columns:30px minmax(0,1fr) auto 10px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:12px}
+.srow:first-child{border-top:0;padding-top:0}
+.srow:last-child{padding-bottom:0}
+.srow .d{font:500 10.5px var(--mono);color:var(--ink-3);line-height:1.2}
+.jump{align-self:flex-start;font-size:11px;border:1px solid var(--line);border-radius:99px;padding:2px 9px;color:var(--ink-2);background:var(--surface)}
+.card.hero{gap:4px;position:relative;cursor:pointer}
+.qax{cursor:pointer}
+.qax:focus{outline:none}
+.qax:focus-visible text:first-of-type{text-decoration:underline}
+.qtip{position:absolute;left:8px;right:8px;bottom:8px;background:var(--ink);color:var(--bg);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;font-size:11.5px;line-height:1.35;cursor:default;box-shadow:0 8px 20px -10px rgba(0,0,0,.5)}
+.qtip .row{font-size:12px}
+.qtip button{background:none;border:0;color:inherit;font-size:12px;cursor:pointer;padding:0 2px}
+.qtip .mono{font-size:11px;filter:brightness(1.6)}
+.courses{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;z-index:2}
+.back{align-self:flex-start;background:none;border:0;padding:0;color:var(--accent);font:500 13px var(--sans);cursor:pointer}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.chips span{font-size:11px;border:1px solid var(--line);border-radius:99px;padding:2px 9px;color:var(--ink-2);background:var(--surface)}
+.chips .on{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--ink-2)}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:4px;border-radius:2px}
+.qtip[hidden]{display:none}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.hero .head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card.today{border-color:var(--accent)}
+.lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600}
+.big{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.c-good{color:var(--good)} .c-warn{color:var(--warn)} .c-bad{color:var(--bad)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px}
+.chev{color:var(--ink-3);font-size:14px}
+.pill{font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:99px;white-space:nowrap}
+.p-warn{background:var(--warn-bg);color:var(--warn)} .p-good{background:var(--good-bg);color:var(--good)} .p-neutral{background:var(--grid);color:var(--ink-2)}
+.tiny{font-size:11.5px;color:var(--ink-2);line-height:1.4}
+.tabbar{display:flex;justify-content:space-around;border-top:1px solid var(--line);padding:8px 6px 14px;background:var(--surface);font-size:10.5px;color:var(--ink-3)}
+.tabbar span{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabbar i{width:20px;height:20px;border-radius:6px;border:1.6px solid currentColor;display:block}
+.tabbar .on{color:var(--accent);font-weight:600}
+.fold{position:absolute;left:0;right:0;border-top:1px dashed var(--bad);pointer-events:none}
+.fold span{position:absolute;right:14px;top:-15px;font:500 9.5px var(--mono);color:var(--bad);background:var(--bg);padding:0 4px}
+svg text{font-family:var(--mono)}
+.type{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700}
+.type i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.sess-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sess-meta{font:400 11px var(--mono);color:var(--ink-2)}
+.bul{display:grid;grid-template-columns:78px minmax(0,1fr) 64px;gap:6px;align-items:center;font-size:11.5px}
+.bul .v{font-family:var(--mono);text-align:right;font-size:11px}
+.bl4{display:grid;grid-template-columns:60px minmax(0,1fr) 62px 38px;gap:6px;align-items:center;font-size:11.5px}
+.bl4 .v{font-family:var(--mono);text-align:right;font-size:11px}
+.bl4 .e{font-family:var(--mono);text-align:right;font-size:10.5px;color:var(--ink-3)}
+.bl4 .e.w{color:var(--warn)}
+.bul .r{grid-column:2 / 4;font-size:10px;color:var(--ink-3);margin-top:-6px;font-family:var(--mono)}
+.key{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--ink-2);align-items:center}
+.key svg{vertical-align:middle}
+.duo{display:flex;flex-wrap:wrap;gap:32px;justify-content:center}
+figure{margin:0;display:flex;flex-direction:column;gap:12px;max-width:320px}
+figcaption{font-size:13.5px;color:var(--ink-2)}
+.card.warn{border-color:color-mix(in srgb,var(--warn) 45%,var(--line))}
+ul.plain{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;font-size:14.5px;max-width:70ch}
+td:first-child{white-space:normal;min-width:150px}
+[hidden]{display:none!important}
+body{margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>L'accueil retenu : niveau, récupération, volume, puis toutes les séances</h1>
+  <p class="lede">Aujourd'hui et Journal ne font plus qu'un écran. En tête, le niveau, puis la récupération et le volume. Dessous, les séances de la plus récente à la plus ancienne, regroupées par semaine. Descendre, c'est remonter le temps. Scénario : jeudi 30 octobre, sous-seuil hier, footing ce midi.</p>
+</header>
+
+<section>
+  <h2>Bloc de tête : niveau</h2>
+  <p class="muted">En tête de l'écran, ce qui change lentement : ton niveau et ta progression sur un an. En titre, le VDOT, un seul nombre calculé depuis tes courses et tests. Dessous, six qualités de coureur face à toi il y a un an : l'anneau sombre, c'est toi il y a un an ; au-delà, tu as progressé ; en deçà, tu as reculé. Chaque axe affiche son écart dans son unité.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Qualité</th><th>Mesure, affichée au toucher</th><th>Écart affiché</th><th>Meilleur si</th></tr></thead>
+    <tbody id="qualites"></tbody>
+  </table></div>
+  <div class="duo">
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span>7:10</span><span>●●● 96 %</span></div>
+        <div class="scroll">
+          <div class="ttl"><strong>Aujourd'hui</strong><span>jeu. 30 oct. · ⚙︎</span></div>
+          <div class="card hero" data-niveau="Seuil"></div>
+          <div class="card" id="recN"></div>
+          <div class="card" id="volN"></div>
+          <div data-feed="matin"></div>
+        </div>
+        <div class="tabbar"><span class="on"><i></i>Aujourd'hui</span><span><i></i>Progrès</span></div>
+      </div></div>
+      <figcaption><b>Au toucher d'une qualité</b>, une bulle explique sa mesure (ici Seuil). Essaie : touche un autre axe, puis la carte pour ouvrir la liste des courses.</figcaption>
+    </figure>
+    <figure>
+      <div class="phone"><div class="screen" data-static-courses></div></div>
+      <figcaption><b>Au toucher de la carte : Courses.</b> Toutes les courses et tous les tests, du plus récent au plus ancien, avec le VDOT de chacun. La courbe montre d'où vient le niveau ; les filtres isolent une distance. Toucher une ligne ouvre la séance.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <h2>Un seul écran, trois moments</h2>
+  <div class="duo">
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span>7:10</span><span>●●● 96 %</span></div>
+        <div class="scroll">
+          <div class="ttl"><strong>Aujourd'hui</strong><span>jeu. 30 oct. · ⚙︎</span></div>
+          <div class="card hero" data-niveau=""></div>
+          <div class="card" id="recM"></div>
+          <div class="card" id="volM"></div>
+          <div data-feed="matin"></div>
+          <div class="fold" style="top:540px"><span>pli iPhone 15</span></div>
+        </div>
+        <div class="tabbar"><span class="on"><i></i>Aujourd'hui</span><span><i></i>Progrès</span></div>
+      </div></div>
+      <figcaption><b>7 h 10, avant de courir.</b> Pas encore de séance aujourd'hui. Niveau, récupération et volume en tête, puis la semaine en cours, séance par séance.</figcaption>
+    </figure>
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span>18:40</span><span>●●● 64 %</span></div>
+        <div class="scroll">
+          <div class="ttl"><strong>Aujourd'hui</strong><span>jeu. 30 oct. · ⚙︎</span></div>
+          <div class="card hero" data-niveau=""></div>
+          <div class="card" id="recS"></div>
+          <div class="card" id="volS"></div>
+          <div data-feed="soir"></div>
+          <div class="fold" style="top:540px"><span>pli iPhone 15</span></div>
+        </div>
+        <div class="tabbar"><span class="on"><i></i>Aujourd'hui</span><span><i></i>Progrès</span></div>
+      </div></div>
+      <figcaption><b>18 h 40, après le footing.</b> Le footing du jour ouvre la liste, avec la même carte que les séances passées, cerclée de bleu. Le volume compte déjà ses 10,2 km (D-022).</figcaption>
+    </figure>
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span>18:41</span><span>●●● 64 %</span></div>
+        <div class="scroll">
+          <div class="row"><b style="font-size:15px">Aujourd'hui</b><span class="jump">Octobre ▾</span></div>
+          <div data-feed="loin"></div>
+        </div>
+        <div class="tabbar"><span class="on"><i></i>Aujourd'hui</span><span><i></i>Progrès</span></div>
+      </div></div>
+      <figcaption><b>Plus bas dans la liste.</b> L'en-tête de semaine reste collé en haut et porte le résumé de l'ancien journal. Le sélecteur de mois permet de sauter loin en arrière.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <h2>L'écran, de haut en bas</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Bloc</th><th>Répond à</th><th>Contenu</th><th>Au toucher</th></tr></thead>
+    <tbody>
+      <tr><td>Niveau</td><td>Quel coureur suis-je, ai-je progressé ?</td><td>VDOT et écart à un an. Radar des six qualités face à il y a un an.</td><td>Une qualité : bulle qui explique sa mesure. La carte : liste des courses.</td></tr>
+      <tr><td>Récupération</td><td>Est-ce que j'encaisse ?</td><td>VFC, FC de repos, sommeil sur 7 nuits face à ta norme.</td><td>Charge et récupération : graphiques VFC, FC, sommeil, récupération × charge.</td></tr>
+      <tr><td>Volume</td><td>Combien ai-je couru, où vais-je ?</td><td>Verdict et fourchette en en-tête, puis semaine en cours, 30 jours et année, chacun face à son habitude.</td><td>Décision : 8 signaux, simulateur, progressivité. La ligne 2026 ouvre Progrès › Saisons.</td></tr>
+      <tr><td>Séances, par semaine</td><td>Qu'ai-je fait ?</td><td>En-tête de semaine : km, durée, répartition par intensité, séances de seuil, minutes et part de sous-seuil. Puis une carte par séance, la même que celle du jour : verdict et ses jauges.</td><td>Carte : l'écran Séance. En-tête : le détail de la semaine (ratio 7/30, footings sous le plafond). Sélecteur de mois : saut dans le temps.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted small">Niveau, récupération et volume ne bougent jamais. Le niveau change lentement ; il sert de repère stable. Le volume passe sous le pli une fois la séance du jour affichée. Tout ce qui est dessous est du passé, rangé du plus récent au plus ancien. Les jours de repos n'ont pas de ligne ; l'en-tête de semaine compte les séances. La liste se charge au fil du défilement.</p>
+</section>
+
+<section class="prop" style="border-top:0;padding-top:0">
+  <div class="card" id="volBig" style="max-width:320px;width:100%;margin:0 auto"></div>
+  <div class="txt">
+    <span class="kicker">CARTE VOLUME</span>
+    <h3>Trois horizons, une seule façon de les lire</h3>
+    <p>Même forme que la récupération : libellé, barre, valeur, et une 4ᵉ colonne courte, <b>l'écart du point au trait</b>. Le texte qui était sous les barres se résume à ce chiffre ; la phrase complète passe dans le détail, au toucher de la ligne.</p>
+    <ul class="plain">
+      <li><b>En-tête</b> : le verdict et la fourchette des 7 prochains jours, en une pastille qui ouvre la Décision.</li>
+      <li><b>Semaine</b> · trait = ta semaine habituelle <b>au même jour</b> · écart <span class="mono">+4 %</span>. Détail : « à jeudi soir, d'habitude 32–40 km ».</li>
+      <li><b>30 jours</b> · trait = les 30 jours précédents · écart <span class="mono">+6 %</span>. Détail : « 30 j précédents 234 km, habituel 210–255 ».</li>
+      <li><b>2026</b> · trait = 2025 au même jour · écart <span class="mono">+11 %</span>. Détail : « 2025 à date 1 660 km · 42 km/sem · 117 séances ».</li>
+      <li><b>Récupération</b>, même règle : trait = milieu de ta norme (besoin de sommeil pour le sommeil), écart dans l'unité de la mesure : <span class="mono">−6</span> ms, <span class="mono">+1</span> bpm, <span class="mono">−38′</span>. Orange seulement si le point sort de la bande.</li>
+    </ul>
+    <p class="muted small">Écarts en % pour le volume (les ordres de grandeur diffèrent d'une ligne à l'autre), en unité de mesure pour la récupération (un écart de 6 ms se lit mieux que −13 %). Le libellé « 2026 » suffit : le trait et l'écart disent déjà « à date ».</p>
+  </div>
+</section>
+
+<section>
+  <h2>La carte de séance selon le type</h2>
+  <p class="muted">Une seule carte, la même pour la séance du jour et pour toutes les séances passées. En-tête : type, date, distance, durée. Puis « Verdict » et sa réponse en un mot, quel que soit le type. Puis deux ou trois jauges sur une ligne chacune, comme la récupération et le volume : libellé, barre, valeur, écart au trait. Rien de ce que dit déjà l'en-tête (répétitions, durée) n'est répété en jauge.</p>
+  <div class="tablewrap"><table><thead><tr><th>Type</th><th>Jauges</th><th>Le trait</th></tr></thead><tbody><tr><td>Footing</td><td>FC moyenne · Efficacité</td><td>ta moyenne en footing, 8 semaines</td></tr><tr><td>Sous-seuil</td><td>FC de fin de répétition · Allure à FC de référence</td><td>ta moyenne en sous-seuil, 6 dernières séances</td></tr><tr><td>Sortie longue</td><td>Découplage · D+</td><td>ta moyenne en sortie longue, 8 semaines</td></tr><tr><td>Course</td><td>VDOT de cette perf · FC moyenne · Charge</td><td>VDOT : ton niveau avant la course. FC : tes courses de même distance</td></tr></tbody></table></div>
+  <p class="muted small">La séance du jour se distingue seulement par son contour bleu.</p>
+  <div class="variants">
+    <div data-sc="foot30"></div>
+    <div data-sc="ss22"></div>
+    <div data-sc="lr26"></div>
+    <div data-sc="race12"></div>
+  </div>
+  <div class="key"><span>Chaque ligne :</span>
+    <span><svg width="46" height="14"><rect x="10" y="2" width="22" height="10" rx="2" fill="var(--band)"/></svg> ta norme pour ce type</span>
+    <span><svg width="20" height="14"><line x1="10" y1="0" x2="10" y2="14" stroke="var(--ink-2)" stroke-width="1.6"/></svg> ta moyenne, d'où l'écart chiffré à droite</span>
+    <span><svg width="16" height="14"><circle cx="8" cy="7" r="4" fill="var(--accent)"/></svg> cette séance</span>
+    <span><svg width="16" height="14"><circle cx="8" cy="7" r="4" fill="var(--warn)"/></svg> hors norme</span>
+  </div>
+</section>
+
+<section>
+  <h2>Cas particuliers</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Situation</th><th>Ce qu'affiche l'accueil</th></tr></thead>
+    <tbody>
+      <tr><td>Deux séances aujourd'hui (double seuil)</td><td>Deux cartes cerclées de bleu, la plus récente en haut.</td></tr>
+      <tr><td>Jour de repos</td><td>Pas de ligne. L'en-tête de semaine affiche le nombre de séances.</td></tr>
+      <tr><td>Séance non classée (vélo, marche importée)</td><td>Pas de carte de séance. Les km comptent dans le volume seulement si c'est de la course.</td></tr>
+      <tr><td>Moins de 4 séances du type sur 8 semaines</td><td>Repères sans bande, mention « Norme en cours (2 séances sur 4) ». La réponse en un mot ne s'appuie alors que sur les seuils publiés.</td></tr>
+      <tr><td>Pas assez de nuits</td><td>Bloc récupération en données insuffisantes (D-007), à la même place.</td></tr>
+      <tr><td>Semaine sans séance</td><td>En-tête seul, « aucune séance », pour que les coupures restent visibles.</td></tr>
+      <tr><td>Aucune course ni test</td><td>Titre « Niveau en cours : cours un test 5 km ». Le radar reste, sans VDOT.</td></tr>
+      <tr><td>Moins d'un an d'historique</td><td>Radar face à ton premier bloc de 12 semaines, signalé sous le titre.</td></tr>
+      <tr><td>Moins de 30 jours d'historique</td><td>Pastille « Pas encore de verdict », les trois lignes restent.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Ce que ça change dans la spec</h2>
+  <div class="cols2">
+    <div class="note"><h3>Navigation (02)</h3><ul><li>Deux onglets : Aujourd'hui et Progrès. Paramètres en bouton.</li><li>Journal fusionné dans Aujourd'hui. Graphique des saisons déplacé dans Progrès.</li><li>Onglet Charge supprimé, ses graphiques deviennent des détails ouverts depuis l'accueil.</li><li>Sélecteur Entraînement · Récupération supprimé.</li></ul></div>
+    <div class="note"><h3>Composants (03)</h3><ul><li>A1 à A6 remplacés par les blocs ci-dessus.</li><li>Nouvelle carte de séance (4 formes) et écran Séance, issu de P4.</li><li>Bloc Niveau : VDOT et radar des six qualités. Nouvel écran Courses.</li><li>Carte volume en 3 lignes, avec écart au trait.</li><li>Journal hebdo (H2) remplacé par les en-têtes de semaine de la liste. Compteurs A2 et 7 derniers jours A3 supprimés.</li></ul></div>
+    <div class="note"><h3>Décisions à acter</h3><ul><li><b>D-024</b> normes par type : 8 semaines, 4 séances minimum, mots de réponse (course conforme à ±1 %).</li><li><b>D-025</b> volume au même jour de la semaine.</li><li><b>D-026</b> VDOT (formule de Daniels) depuis les courses et tests marqués (D-014) : meilleur des 12 derniers mois.</li><li><b>D-027</b> six qualités face à il y a un an, nouvelle mesure de Régularité, échelle bornée à ±2 fois le plus grand écart de l'historique.</li><li>Retraits : monotonie, contrainte, charge hebdo brute.</li></ul></div>
+  </div>
+</section>
+</div>
+
+<script>
+const fmt=s=>String(s).replace('-','−');
+/* Ligne de bande de norme : min/max de l'échelle, band [a,b], moyenne m, valeur n, w = hors norme */
+function bul(l,v,min,max,band,m,n,w,ref){
+  const X=x=>(4+(Math.max(min,Math.min(max,x))-min)/(max-min)*112).toFixed(1);
+  let s='<svg viewBox="0 0 120 16" width="100%" height="16" aria-hidden="true"><line x1="4" y1="8" x2="116" y2="8" stroke="var(--grid)" stroke-width="2"/>';
+  if(band)s+='<rect x="'+X(band[0])+'" y="3" width="'+(X(band[1])-X(band[0])).toFixed(1)+'" height="10" rx="2" fill="var(--band)"/>';
+  if(m!=null)s+='<line x1="'+X(m)+'" y1="1" x2="'+X(m)+'" y2="15" stroke="var(--ink-2)" stroke-width="1.6"/>';
+  s+='<circle cx="'+X(n)+'" cy="8" r="3.6" fill="'+(w?'var(--warn)':'var(--accent)')+'"/></svg>';
+  return '<div class="bul"><span>'+l+'</span>'+s+'<span class="v'+(w?' c-warn':'')+'">'+v+'</span>'+(ref?'<span class="r">'+ref+'</span>':'')+'</div>';
+}
+/* ---- Carte de séance : la même aujourd'hui et dans la liste. Jauges sur une ligne : libellé, barre, valeur, écart au trait ---- */
+const C={f:'var(--z-easy)',s:'var(--z-subt)',l:'var(--z-mp)',r:'var(--z-hard)'};
+const S={
+  foot30:{k:'f',n:'Footing',when:'auj. 12:15',meta:'10,2 km · 58 min · 5:41/km',v:'Bien facile',p:'p-good',g:[
+    ['FC moy.','138 bpm','+2',120,160,[120,145],136,138,0],['Efficacité','1,72','+0,03',1.5,1.9,[1.65,1.75],1.69,1.72,0]]},
+  ss29:{k:'s',n:'Sous-seuil 5×8′',when:'mer. 29 · 18:05',meta:'14,8 km · 1 h 07 · rép. 3:52/km',v:'Maîtrisée',p:'p-good',g:[
+    ['FC fin','167 bpm','+1',156,176,[162,170],166,167,0],['Allure','3:54','−2 s',-10,10,[-3,3],0,-2,0]]},
+  foot28:{k:'f',n:'Footing',when:'mar. 28 · 7:30',meta:'12,4 km · 1 h 02 · 5:00/km',v:'Bien facile',p:'p-good',g:[
+    ['FC moy.','141 bpm','+5',120,160,[120,145],136,141,0],['Efficacité','1,69','0',1.5,1.9,[1.65,1.75],1.69,1.69,0]]},
+  lr26:{k:'l',n:'Sortie longue',when:'dim. 26 · 9:30',meta:'24,1 km · 1 h 58 · 4:54/km',v:'Dérive en fin',p:'p-warn',g:[
+    ['Découpl.','6,1 %','+1,9',0,12,[0,5],4.2,6.1,1],['D+','212 m','+40 m',0,400,[110,230],172,212,0]]},
+  foot25:{k:'f',n:'Footing',when:'sam. 25 · 10:00',meta:'8,1 km · 47 min · 5:48/km',v:'Bien facile',p:'p-good',g:[
+    ['FC moy.','135 bpm','−1',120,160,[120,145],136,135,0],['Efficacité','1,70','+0,01',1.5,1.9,[1.65,1.75],1.69,1.70,0]]},
+  ss24:{k:'s',n:'Sous-seuil 4×10′',when:'ven. 24 · 18:10',meta:'15,2 km · 1 h 05 · rép. 3:55/km',v:'Maîtrisée',p:'p-good',g:[
+    ['FC fin','166 bpm','0',156,176,[162,170],166,166,0],['Allure','3:55','−1 s',-10,10,[-3,3],0,-1,0]]},
+  ss22:{k:'s',n:'Sous-seuil 6×6′',when:'mer. 22 · 18:05',meta:'14,0 km · 1 h 01 · rép. 3:47/km',v:'Un peu haut',p:'p-warn',g:[
+    ['FC fin','171 bpm','+5',156,176,[162,170],166,171,1],['Allure','3:53','−3 s',-10,10,[-3,3],0,-3,0]]},
+  race12:{k:'r',n:'Course · 10 km',when:'dim. 12 oct.',meta:'37:40 · 3:46/km',v:'Au-dessus du niveau',p:'p-good',g:[
+    ['VDOT','54,2','+0,3',50,57,[53.4,54.4],53.9,54.2,0],['FC moy.','176 bpm','+2',164,184,[171,177],174,176,0],['Charge','2,1×','',0,3,[0.8,1.2],null,2.1,1]]}
+};
+function sc(key,today){
+  const o=S[key];
+  return '<div class="card'+(today?' today':'')+'"><div class="sess-h"><span class="type"><i style="background:'+C[o.k]+'"></i>'+o.n+'</span><span class="sess-meta">'+o.when+'</span></div>'+
+    '<div class="sess-meta" style="margin-top:-5px">'+o.meta+'</div>'+
+    '<div class="row"><span class="lbl">Verdict</span><span class="pill '+o.p+'">'+o.v+'</span></div>'+
+    o.g.map(x=>bl.apply(null,x)).join('')+'</div>';
+}
+function split(e,m,ss,h){return '<div class="split"><i style="flex:'+e+';background:var(--z-easy)"></i><i style="flex:'+m+';background:var(--z-mp)"></i><i style="flex:'+ss+';background:var(--z-subt)"></i><i style="flex:'+h+';background:var(--z-hard)"></i></div>'}
+function wk(t,km,sub,sp,stick){return '<div class="wkh'+(stick?' stick':'')+'"><div class="top"><b>'+t+'</b><span class="mono">'+km+'</span></div>'+split.apply(null,sp)+'<span class="sub">'+sub+'</span></div>'}
+const F={
+  matin:wk('Cette semaine','27,2 km · 2 h 09','2 séances · 1 seuil · 40′ sous-seuil (31 %)',[62,0,31,7])+sc('ss29')+sc('foot28'),
+  soir:wk('Cette semaine','37,4 km · 3 h 07','3 séances · 1 seuil · 40′ sous-seuil (21 %)',[72,0,21,7])+sc('foot30',1)+sc('ss29')+sc('foot28'),
+  loin:wk('Sem. du 20 oct.','61,4 km · 4 h 51','4 séances · 2 seuils · 76′ sous-seuil (26 %)',[60,4,26,10],1)+sc('lr26')+sc('foot25')+sc('ss24')+sc('ss22')+
+       wk('Sem. du 6 oct.','48,9 km · 4 h 02','dont course 10 km · 37:40',[70,4,12,14])+sc('race12')
+};
+document.querySelectorAll('[data-feed]').forEach(el=>{el.style.display='flex';el.style.flexDirection='column';el.style.gap='7px';el.innerHTML=F[el.dataset.feed]});
+document.querySelectorAll('[data-sc]').forEach(el=>{el.outerHTML=sc(el.dataset.sc,el.dataset.today)});
+
+
+/* Récupération, compacte */
+/* Ligne compacte : libellé, barre, valeur, écart au trait (sans texte dessous) */
+function bl(l,v,e,min,max,band,m,n,w){
+  return bul(l,v,min,max,band,m,n,w).replace('class="bul"','class="bl4"').replace(/<\/div>$/,'<span class="e'+(w?' w':'')+'">'+e+'</span></div>');
+}
+function rec(id){
+  document.getElementById(id).innerHTML='<div class="row"><span class="lbl">Récupération</span><span class="pill p-warn">VFC sous la norme ›</span></div>'+
+    bl('VFC','41 ms','−6',30,70,[44,58],47,41,1)+bl('FC repos','47 bpm','+1',40,54,[44,48],46,47,0)+bl('Sommeil','6 h 52','−38′',5,9,[6.75,7.5],7.5,6.87,0);
+}
+function vol(id,morning,nopill){
+  const wk=morning?['27,2 km',27.2,[24,31],27.5,'−1 %']:['37,4 km',37.4,[32,40],36,'+4 %'];
+  document.getElementById(id).innerHTML='<div class="row"><span class="lbl">Volume</span>'+(nopill?'<span class="chev">›</span>':'<span class="pill p-warn">Maintenir · 62–66 km / 7 j ›</span>')+'</div>'+
+   bl('Semaine',wk[0],wk[4],0,50,wk[2],wk[3],wk[1],0)+
+   bl('30 jours','248 km','+6 %',150,320,[210,255],234,248,0)+
+   bl('2026','1 842 km','+11 %',1300,2100,[1560,1700],1660,1842,0);
+}
+/* ---- Bloc de tête : niveau (VDOT) et six qualités face à il y a un an ---- */
+const QUAL=[
+  {l:'Volume',t:'+14 %',v:.7,c:'var(--good)',m:'km par semaine en moyenne',e:'en %',b:'plus haut'},
+  {l:'Seuil',t:'−9 s/km',v:.78,c:'var(--good)',m:'allure sous-seuil normalisée à ta FC de référence',e:'en s/km',b:'plus rapide'},
+  {l:'Efficacité',t:'+3 %',v:.6,c:'var(--good)',m:'efficacité en footing : vitesse divisée par la FC',e:'en %',b:'plus haut'},
+  {l:'Endurance',t:'+0,8 pt',v:.4,c:'var(--warn)',m:'découplage moyen des sorties longues',e:'en points de %',b:'plus bas'},
+  {l:'Régularité',t:'+8 pt',v:.66,c:'var(--good)',m:'part des semaines avec au moins 4 séances',e:'en points de %',b:'plus haut'},
+  {l:'Résilience',t:'−1 ms',v:.47,c:'var(--ink-2)',m:'VFC de base : milieu de ta norme sur 60 nuits',e:'en ms',b:'plus haut'}
+];
+document.getElementById('qualites').innerHTML=QUAL.map(q=>'<tr><td>'+q.l+'</td><td>'+q.m.charAt(0).toUpperCase()+q.m.slice(1)+' (12 dernières semaines, face aux mêmes semaines il y a un an).</td><td>'+q.e+'</td><td>'+q.b+'</td></tr>').join('');
+function niveau(h,open){
+  const NS='http://www.w3.org/2000/svg',el=(t,a,p,x)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(x!=null)e.textContent=x;p.appendChild(e);return e};
+  h.innerHTML='<div class="head"><span><span class="lbl">Niveau (VDOT)</span><br><span class="big mono">54,2</span></span><span class="tiny" style="text-align:right">il y a un an<br><span class="mono">52,1</span> · <span class="mono c-good">+2,1</span> <span class="chev">›</span></span></div>';
+  const s=el('svg',{viewBox:'0 0 272 190',width:'100%',role:'img','aria-label':'Six qualités face à il y a un an'},h);
+  const cx=136,cy=94,R=60,pt=(a,r)=>[cx+r*Math.cos(a*Math.PI/180),cy+r*Math.sin(a*Math.PI/180)],ang=i=>-90+i*60;
+  [1,.75,.5,.25].forEach(f=>el('polygon',{points:QUAL.map((_,i)=>pt(ang(i),R*f).join(',')).join(' '),fill:f==1?'var(--band)':'none',stroke:'var(--grid)'},s));
+  el('polygon',{points:QUAL.map((_,i)=>pt(ang(i),R*.5).join(',')).join(' '),fill:'none',stroke:'var(--ink-2)','stroke-width':1.4},s);
+  const labels=[];
+  QUAL.forEach((x,i)=>{const[p,q]=pt(ang(i),R);el('line',{x1:cx,y1:cy,x2:p,y2:q,stroke:'var(--grid)'},s);
+    const c=Math.cos(ang(i)*Math.PI/180),sn=Math.sin(ang(i)*Math.PI/180),[lx,ly]=pt(ang(i),R+9),an=c>.3?'start':c<-.3?'end':'middle',dy=sn<-.9?-10:sn>.9?8:0;
+    const g=el('g',{class:'qax',tabindex:0,role:'button','aria-label':x.l},s);
+    el('rect',{x:an==='start'?lx-4:an==='end'?lx-62:lx-34,y:ly+dy-11,width:66,height:26,fill:'transparent'},g);
+    labels.push(el('text',{x:lx,y:ly+dy,'font-size':9,fill:'var(--ink)','text-anchor':an,'font-weight':600,'font-family':'var(--sans)'},g,x.l));
+    el('text',{x:lx,y:ly+dy+10,'font-size':8.5,fill:x.c,'text-anchor':an},g,x.t);
+    const show=e=>{if(e)e.stopPropagation();tip(i)};
+    g.addEventListener('click',show);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(e)}});});
+  const P=QUAL.map((x,i)=>pt(ang(i),x.v*R));
+  el('polygon',{points:P.map(p=>p.join(',')).join(' '),fill:'var(--accent)','fill-opacity':.22,stroke:'var(--accent)','stroke-width':2,'stroke-linejoin':'round','pointer-events':'none'},s);
+  P.forEach(p=>el('circle',{cx:p[0],cy:p[1],r:2.6,fill:'var(--accent)','pointer-events':'none'},s));
+  h.insertAdjacentHTML('beforeend','<div class="legend"><span><i style="background:var(--ink-2)"></i>Il y a un an</span><span><i style="background:var(--accent)"></i>Maintenant</span></div><div class="qtip" hidden></div>');
+  const box=h.querySelector('.qtip');
+  function tip(i){
+    if(i==null){box.hidden=true;labels.forEach(t=>t.setAttribute('fill','var(--ink)'));return}
+    const q=QUAL[i];labels.forEach((t,k)=>t.setAttribute('fill',k===i?'var(--accent)':'var(--ink)'));
+    box.innerHTML='<div class="row"><b>'+q.l+'</b><button type="button" aria-label="Fermer">✕</button></div><span>'+q.m.charAt(0).toUpperCase()+q.m.slice(1)+', sur les 12 dernières semaines.</span><span class="mono" style="color:'+q.c+'">'+q.t+' face à il y a un an</span>';
+    box.hidden=false;box.querySelector('button').addEventListener('click',e=>{e.stopPropagation();tip(null)});
+  }
+  box.addEventListener('click',e=>e.stopPropagation());
+  if(open)tip(QUAL.findIndex(q=>q.l===open));
+  h.addEventListener('click',()=>{const sc=h.closest('.screen');if(!sc)return;let o=sc.querySelector('.courses');if(!o){o=document.createElement('div');o.className='courses';o.innerHTML=coursesHTML(1);sc.appendChild(o);o.querySelector('.back').addEventListener('click',()=>o.remove())}});
+}
+function coursesHTML(back){
+  const R=[
+    ['2026',[['12 oct.','10 km','37:40','3:46/km','54,2',1],['14 sept.','Test 5 km','18:05','3:37/km','53,9'],['21 juin','Semi','1:24:30','4:00/km','53,1',1],['6 avr.','10 km','38:12','3:49/km','53,4']]],
+    ['2025',[['19 oct.','Marathon','3:05:40','4:24/km','51,6',1],['7 sept.','Test 5 km','18:40','3:44/km','52,1',1],['15 juin','10 km','39:05','3:55/km','52,0']]]
+  ];
+  const v=[52.0,52.1,51.6,53.4,53.1,53.9,54.2],W=250,H=46,X=i=>6+i*(W-12)/(v.length-1),Y=x=>H-4-(x-51)/(55-51)*(H-10);
+  const spark='<svg viewBox="0 0 '+W+' '+(H+10)+'" width="100%" aria-label="VDOT de chaque course"><line x1="6" y1="'+Y(52.1)+'" x2="'+(W-6)+'" y2="'+Y(52.1)+'" stroke="var(--ink-3)" stroke-dasharray="2 3"/><polyline points="'+v.map((x,i)=>X(i)+','+Y(x)).join(' ')+'" fill="none" stroke="var(--accent)" stroke-width="2"/>'+v.map((x,i)=>'<circle cx="'+X(i)+'" cy="'+Y(x)+'" r="'+(i==v.length-1?3.6:2.4)+'" fill="var(--accent)"/>').join('')+'<text x="6" y="'+(H+9)+'" font-size="8.5" fill="var(--ink-3)">juin 2025</text><text x="'+(W-6)+'" y="'+(H+9)+'" font-size="8.5" fill="var(--ink-3)" text-anchor="end">oct. 2026</text><text x="'+(W-6)+'" y="'+(Y(52.1)+11)+'" font-size="8.5" fill="var(--ink-3)" text-anchor="end">il y a un an 52,1</text></svg>';
+  return '<div class="sbar"><span>7:11</span><span>●●● 96 %</span></div><div class="scroll">'+
+    (back?'<button type="button" class="back">‹ Aujourd\'hui</button>':'<span class="back">‹ Aujourd\'hui</span>')+
+    '<div class="ttl"><strong>Courses</strong><span>7 courses et tests</span></div>'+
+    '<div class="card"><div class="head"><span><span class="lbl">Niveau (VDOT)</span><br><span class="big mono">54,2</span></span><span class="tiny" style="text-align:right">meilleur récent<br>10 km · 12 oct.</span></div>'+spark+'</div>'+
+    '<div class="chips"><span class="on">Toutes</span><span>5 km</span><span>10 km</span><span>Semi</span><span>Marathon</span></div>'+
+    R.map(y=>'<div class="wkh"><div class="top"><b>'+y[0]+'</b></div></div><div class="card">'+y[1].map(r=>'<div class="srow"><span class="d">'+r[0].replace(' ','<br>')+'</span><span style="min-width:0"><span class="type" style="font-size:12px"><i style="background:var(--z-hard)"></i>'+r[1]+(r[5]?' <span class="pill p-good" style="font-size:9.5px">record</span>':'')+'</span><br><span class="sess-meta">'+r[2]+' · '+r[3]+'</span></span><span class="mono" style="font-size:12px">'+r[4]+'</span><span class="chev">›</span></div>').join('')+'</div>').join('')+
+    '</div><div class="tabbar"><span class="on"><i></i>Aujourd\'hui</span><span><i></i>Progrès</span></div>';
+}
+document.querySelectorAll('[data-static-courses]').forEach(sc=>sc.innerHTML=coursesHTML(0));
+document.querySelectorAll('[data-niveau]').forEach(h=>niveau(h,h.dataset.niveau));
+rec('recN');vol('volN',true);
+vol('volM',true);vol('volS',false);vol('volBig',false);rec('recM');rec('recS');
+</script>
+</body>
+</html>

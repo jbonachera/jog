@@ -140,7 +140,7 @@ monotonie = moyenne(charge quotidienne sur 7 j) ÷ écart-type(charge quotidienn
 contrainte = charge hebdo × monotonie
 ```
 
-Elles sont structurellement élevées en NSA, puisque les semaines se répètent. On les affiche dans le journal et dans la note de discipline, mais elles n'entrent **pas** dans le verdict.
+**Retirées de l'affichage** ([D-024](decisions.md#d-024--accueil-unique-et-deux-onglets)) : structurellement élevées en NSA, puisque les semaines se répètent, elles ne déclenchent aucune action. Elles n'entrent pas dans le verdict.
 
 ## Qualité des répétitions
 
@@ -255,6 +255,79 @@ La source est le **dernier test 5 km** (contre-la-montre ou course de 5 km). On 
 ### Records
 
 C'est le meilleur temps réalisé par distance (5 km, 10 km, semi, marathon), depuis les courses et les tests.
+
+### VDOT et niveau
+
+Règle de [D-027](decisions.md#d-027--niveau-vdot). Pour chaque course ou test marqué (D-014), de distance `D` (m) et de temps `t` (min), avec `v = D ÷ t` (m/min) :
+
+```
+VO2(v)    = −4,60 + 0,182258 × v + 0,000104 × v²
+fraction(t) = 0,8 + 0,1894393 × e^(−0,012778 × t) + 0,2989558 × e^(−0,1932605 × t)
+VDOT      = VO2(v) ÷ fraction(t)                # précision 0,1
+```
+
+- **Niveau** au jour `d` = le meilleur VDOT des courses et tests datés de `d − 364` à `d`. Absent sans course ni test sur la fenêtre.
+- **Écart à un an** = niveau(`A`) − niveau(`A − 365`), affiché signé (« +2,1 »). Sans niveau il y a un an : « – ».
+- La jauge VDOT d'une course compare son VDOT au niveau de la **veille** de la course.
+
+## Accueil
+
+### Ligne de jauge
+
+Règle de [D-026](decisions.md#d-026--lignes-de-jauge-et-volume-au-même-jour). Une ligne porte une **valeur**, un **trait** (la référence), une **bande** (la plage habituelle, facultative) et un **écart** = valeur − trait, arrondi à la précision de la valeur (D-015). Le point et l'écart sont orange si la valeur sort de la bande. Sans bande, pas d'orange.
+
+Bande de norme par défaut : `moyenne ± 0,95 × écart-type de population` de l'échantillon de référence (même largeur que D-023).
+
+### Volume
+
+| Ligne | Valeur | Trait | Bande | Écart |
+|---|---|---|---|---|
+| Semaine | km du lundi de la semaine en cours à aujourd'hui | moyenne, sur les 8 semaines terminées précédentes, des km du lundi au même jour de la semaine | norme de cet échantillon | en % |
+| 30 jours | km de `A − 29` à `A` | km des 30 jours précédents | norme des km glissants sur 30 jours, sur les 365 jours précédents | en % |
+| Année | km du 1er janvier à `A` | km de l'an dernier, du 1er janvier au même jour | aucune | en % |
+
+Écart en % = `(valeur ÷ trait − 1) × 100`, arrondi à l'unité. Trait nul ou absent : « – ».
+
+### Récupération (lignes)
+
+| Ligne | Valeur | Trait | Bande | Écart |
+|---|---|---|---|---|
+| VFC | `vfc7(A)` | milieu de la norme | norme VFC | en ms |
+| FC de repos | `fc7(A)` | milieu de la norme | norme FC | en bpm |
+| Sommeil | moyenne des durées endormies de F7(A) | [besoinSommeil] | besoin − 45 min à besoin | en minutes |
+
+### Carte de séance
+
+Règle de [D-025](decisions.md#d-025--carte-de-séance-par-type-et-normes-par-type).
+
+**Échantillon de référence** d'une séance `s` : les séances du même type datées de `s − 56` à `s − 1` (sous-seuil : les 6 séances sous-seuil précédentes). Au moins 4 séances, sinon la jauge n'a ni trait ni bande et affiche « Norme en cours (n sur 4) ».
+
+| Type | Jauges (trait = moyenne de l'échantillon, sauf mention) | Verdict : OK · À surveiller · Alerte |
+|---|---|---|
+| Footing | FC moyenne (bpm) · EF | FC moy. ≤ [easyCap] : « Bien facile » · ≤ [easyCap] + 5 : « Un peu rapide » · au-delà : « Trop rapide » |
+| Sous-seuil | FC de fin de répétition, moyenne de la séance (bpm) · `allureNorm(séance)` (écart en s/km) | 0 répétition hors sous-seuil : « Maîtrisée » · 1 ou 2 : « Un peu haut » · 3 ou plus : « Au-dessus du seuil » |
+| Sortie longue | Découplage (%) · D+ (m) | découplage ≤ 5 % : « A tenu » · ≤ 8 % : « Dérive en fin » · au-delà : « Forte dérive ». Non utilisable : « Découplage non mesurable », neutre |
+| Course, test | VDOT (trait : niveau la veille, bande ±0,5) · FC moyenne (trait et bande : courses et tests de même distance, au moins 2) · charge (trait : moyenne des séances sous-seuil de l'échantillon) | VDOT − niveau > +0,5 : « Au-dessus du niveau » · de −0,5 à +0,5 : « Conforme » · < −0,5 : « En dessous du niveau » (neutre) |
+
+**D+** = somme des hausses d'altitude entre points successifs du tracé, après lissage sur 30 s, en ignorant les points de précision verticale invalide. Arrondi au mètre.
+
+### Six qualités
+
+Règle de [D-028](decisions.md#d-028--six-qualités-face-à-il-y-a-un-an). Fenêtre `Q` = les 12 semaines terminées les plus récentes ; référence `Q₀` = les mêmes 12 semaines, un an (364 jours) plus tôt.
+
+| Qualité | Mesure sur une fenêtre | Meilleur si | Écart affiché |
+|---|---|---|---|
+| Volume | km ÷ 12 | plus haut | % |
+| Seuil | moyenne des `allureNorm(séance)` sous-seuil | plus bas | s/km |
+| Efficacité | moyenne des EF des footings | plus haut | % |
+| Endurance | moyenne des découplages des sorties longues utilisables | plus bas | points de % |
+| Régularité | part des 12 semaines avec au moins 4 séances | plus haut | points de % |
+| Résilience | milieu de la norme VFC au dernier jour de la fenêtre | plus haut | ms |
+
+- **Écart orienté** `E` = (valeur(Q) − valeur(Q₀)), changé de signe si « meilleur si plus bas ».
+- **Rayon** = `0,5 + 0,5 × borne(E ÷ Emax, −1, 1)`, où `Emax` est le plus grand |écart orienté à un an| observé pour cette qualité sur l'historique (au moins : 5 %, 3 s/km, 2 %, 1 point, 10 points, 3 ms). L'anneau 0,5 est l'an dernier.
+- Sans valeur sur `Q` ou `Q₀`, l'axe affiche « – » et son point est au centre de l'anneau.
+- Moins d'un an d'historique : `Q₀` = les 12 premières semaines terminées, signalé sous le titre.
 
 ## Comparateur de périodes
 

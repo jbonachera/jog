@@ -1,65 +1,73 @@
 # 02 · Navigation et structure
 
-> **Note (2026-10-28)** : le stockage décrit ici (IndexedDB, sauvegarde par fichier, messages « navigateur ») est remplacé par des fichiers JSON sur l'appareil (ADR 0014).
+> **Refonte (2026-10-30, [D-024](decisions.md#d-024--accueil-unique-et-deux-onglets))** : deux onglets, accueil unique qui fusionne l'ancien Aujourd'hui et l'Historique, onglet Charge supprimé. Maquette de référence : [`maquette/accueil.html`](maquette/accueil.html).
 
-## Barre supérieure
+## Barre d'onglets
 
-Barre **fixe** en haut de page, avec un fond semi-opaque flouté et une bordure basse. De gauche à droite :
+Deux onglets, en bas d'écran : **Aujourd'hui** · **Progrès**.
 
-1. **Marque** : « Jog », suivi du nom de l'athlète et de la méthode (« Athlète exemple · NSA »).
-2. **Onglets** : Aujourd'hui · Charge · Progression · Historique · Paramètres.
-3. **Mention d'état** à droite (dans la maquette : « Données d'exemple »). En production, on y affiche la date de la dernière synchronisation.
-
-## Onglets
-
-Navigation **par onglets**, pas par ancres ni par défilement piloté.
-
-- Sémantique ARIA : `role="tablist"` sur le conteneur, `role="tab"` et `aria-selected` sur chaque bouton, `role="tabpanel"` et `aria-labelledby` sur chaque panneau.
-- **Un seul panneau visible à la fois.** Les autres sont masqués avec l'attribut `hidden`, et une règle `[hidden]{display:none!important}` garantit que le CSS ne les réaffiche pas.
-- **Clavier** : flèches gauche et droite pour passer d'un onglet à l'autre, de façon circulaire. Seul l'onglet actif est dans l'ordre de tabulation (`tabindex` 0, les autres −1).
-- **Persistance** : le dernier onglet ouvert est mémorisé localement et rouvert au chargement. On n'utilise pas l'URL.
-- Changer d'onglet ferme l'infobulle ouverte.
+- Les **Paramètres** s'ouvrent depuis un bouton dans la barre de titre d'Aujourd'hui.
+- Le dernier onglet ouvert est rouvert au lancement.
+- Chaque onglet a sa propre pile de navigation. Les écrans de détail s'empilent (retour par glissement ou par le bouton de retour) ; on ne change jamais de contenu par un sélecteur segmenté.
 
 ## Contenu par onglet
 
-| Onglet | Question | Composants, dans l'ordre |
+| Onglet | Question | Contenu, dans l'ordre |
 |---|---|---|
-| **Aujourd'hui** (par défaut) | « Où j'en suis, et qu'est-ce que je fais cette semaine ? » | 1. Décision volume · 2. Récupération (carte, feuille Cette nuit) · 3. Volume réalisé · 4. 7 derniers jours |
-| **Charge** | « Est-ce que je charge bien et progressivement ? » | sélecteur Entraînement · Récupération. Entraînement : Forme et fatigue, Progressivité, Minutes de sous-seuil, Discipline NSA. Récupération : R1 à R7 |
-| **Progression** | « Est-ce que je progresse ? » | 1. Comparer deux périodes · 2. Tendances (3 petits graphiques) · 3. En deux colonnes : Allure × FC par répétition, Dernière séance sous-seuil · 4. Niveau estimé |
-| **Historique** | « Qu'est-ce que j'ai fait au fil des saisons ? » | 1. Saisons et volume hebdomadaire · 2. Journal hebdomadaire |
-| **Paramètres** | « Mes repères sont-ils justes ? » | Formulaire en 6 groupes, enregistrement, réinitialisation |
+| **Aujourd'hui** (par défaut) | « Où j'en suis, et qu'ai-je fait ? » | 1. Niveau (N1) · 2. Récupération (A5) · 3. Volume (A2) · 4. Séances par semaine (S1), de la plus récente à la plus ancienne |
+| **Progrès** | « Est-ce que je progresse ? » | 1. Comparer deux périodes (P1) · 2. Tendances (P2) · 3. Allure × FC (P3) · 4. Niveau estimé (P5) · 5. Saisons et volume hebdomadaire (H1) |
+
+Règles d'Aujourd'hui :
+- **L'ordre ne change jamais.** Niveau, récupération et volume sont toujours en tête ; tout ce qui est dessous est du passé.
+- La récupération est **toujours au-dessus du pli**. Le volume peut passer sous le pli quand une séance du jour s'affiche.
+- La liste des séances se charge au fil du défilement. Toucher un en-tête de semaine ouvre un sélecteur de mois pour sauter dans le temps.
 
 Les fiches détaillées sont dans [03-composants.md](03-composants.md).
 
+## Écrans de détail
+
+| Depuis | Toucher | Ouvre |
+|---|---|---|
+| Niveau (N1) | une qualité du radar | une bulle qui explique sa mesure (sans navigation) |
+| Niveau (N1) | la carte | **Courses** (N2) |
+| Courses (N2) | une course | **Séance** (S3) |
+| Récupération (A5) | la carte | **Récupération** : R1 à R7 |
+| Volume (A2) | la pastille du verdict | **Décision** : A1 (verdict, fourchette, 8 signaux, simulateur) |
+| Décision | un signal | son graphique : Progressivité (C1), Forme et fatigue (A4), Sous-seuil et discipline (C2 + C3), tendance (P2) |
+| Volume (A2) | une ligne | sa phrase de référence, puis la ligne Année ouvre Progrès › Saisons (H1) |
+| Séances (S1) | une carte de séance | **Séance** (S3) |
+| Séances (S1) | un en-tête de semaine | le détail de la semaine (ratio 7 j / 30 j, footings sous le plafond, répartition) |
+
 ## Sélecteurs locaux
 
-Chaque sélecteur agit sur son propre composant, pas sur toute la page.
+Chaque sélecteur agit sur son propre graphique.
 
 | Sélecteur | Valeurs | Agit sur | Mémorisé |
 |---|---|---|---|
 | Fenêtre de la progressivité | 16 semaines (défaut) · 12 mois | Progressivité 7 j / 30 j | Non |
-| Période de l'historique | 12 semaines · 26 semaines · Toutes les saisons (défaut) | Saisons et Journal | Oui |
+| Période des saisons | 12 semaines · 26 semaines · Toutes les saisons (défaut) | Saisons (H1) | Oui |
 | Comparaison allure × FC | vs il y a un an (défaut) · vs 12 semaines précédentes | Allure × FC | Oui |
 | Vue d'un graphique | Graphique (défaut) · Tableau | Ce graphique | Non |
 | Comparateur de périodes | 12 dernières sem. / 12 précédentes (défaut) · 12 dernières sem. / même période il y a un an · Dates personnalisées | Comparer deux périodes | Oui, avec les dates |
-| Partie de Charge | Entraînement (défaut) · Récupération | onglet Charge | Oui |
 | Fenêtre de la récupération | 8 semaines (défaut) · 6 mois | VFC et FC de repos | Non |
+| Filtre des courses | Toutes (défaut) · 5 km · 10 km · Semi · Marathon | Courses (N2) | Non |
 
-## Persistance locale (navigateur)
+Le sélecteur « Partie de Charge » (Entraînement · Récupération) est supprimé.
+
+## Persistance locale
+
+Préférences d'affichage seulement (UserDefaults). Une lecture ou écriture impossible ne doit jamais casser l'affichage.
 
 | Clé | Contenu |
 |---|---|
-| `jog-view` | Onglet actif |
-| `jog-range` | Période de l'historique |
-| `jog-cmp` | Comparaison allure × FC |
-| `jog-cmp-p` | Préréglage et dates du comparateur |
+| onglet actif | Aujourd'hui ou Progrès |
+| période des saisons | 12 sem. · 26 sem. · toutes |
+| comparaison allure × FC | un an · 12 semaines |
+| comparateur | préréglage et dates |
 
-Toute lecture et écriture est protégée : un stockage indisponible ne doit jamais casser l'affichage. Ces clés ne portent que les préférences d'affichage. En production, les **paramètres**, l'historique de leurs modifications et les activités importées sont stockés dans IndexedDB, sur l'appareil, rattachés à l'athlète, avec export et import d'une sauvegarde ([D-012](decisions.md#d-012--stockage-local-dans-le-navigateur)). La maquette, elle, garde les paramètres sous la clé `jog-cfg`.
+La clé `jog-charge-partie` (partie de l'onglet Charge) n'est plus lue ; elle peut être effacée.
 
-## Responsive
+## Tailles d'écran
 
-- **Au-dessus de 980 px** : grilles à deux et trois colonnes, comme dans la maquette.
-- **Jusqu'à 980 px** : toutes les grilles passent en une colonne (décision, sous-grilles, compteurs) et les compteurs s'empilent avec un séparateur horizontal.
-- **Jusqu'à 640 px** : les signaux de décision passent en une colonne. Les onglets passent à la ligne si nécessaire.
-- La page ne défile jamais horizontalement. Seuls les tableaux larges (journal, comparateur, niveau) défilent dans leur propre conteneur.
+- Aujourd'hui doit tenir sans défilement horizontal de 320 à 440 pt de large, avec Dynamic Type jusqu'à la taille « XXL ». Une valeur de jauge n'est jamais tronquée ; le libellé se coupe avant la valeur.
+- Le « pli » de référence est celui d'un iPhone 15 (environ 540 pt de contenu sous le titre).

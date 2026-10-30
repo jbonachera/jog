@@ -2,7 +2,7 @@
 
 Spécification de référence pour l'implémentation du tableau de bord de suivi de course à pied de Jog. Elle décrit ce que le produit doit permettre, comment il est organisé, chaque composant, chaque calcul et le système visuel. La maquette jointe en est l'illustration exécutable.
 
-> **Design de référence de l'app** : `maquette/mobile.html` (iPhone, iOS 26). `maquette/index.html` est la maquette historique du tableau de bord web.
+> **Design de référence de l'app** : `maquette/accueil.html` pour la navigation et l'écran Aujourd'hui (refonte D-024 à D-028, octobre 2026) ; `maquette/mobile.html` (iPhone, iOS 26) pour le système visuel et les écrans de détail. `maquette/index.html` est la maquette historique du tableau de bord web.
 
 > **Statut** : design validé sur maquette (v4, octobre 2026). Les valeurs de la maquette sont des **données d'exemple** générées.
 
@@ -12,6 +12,7 @@ Spécification de référence pour l'implémentation du tableau de bord de suivi
 file:///<chemin du dépôt>/docs/design/maquette/mobile.html
 ```
 
+- `maquette/accueil.html` : l'accueil retenu (Niveau, Récupération, Volume, séances par semaine), l'écran Courses et la carte de séance par type. Ses données sont un scénario fixe : jeudi 30 octobre.
 - `maquette/index.html` : la maquette historique du tableau de bord web (HTML, CSS et JS dans un seul fichier).
 - `maquette/mobile.html` : la maquette iPhone (iOS 26, Liquid Glass, thème Fjord). Mêmes données et mêmes calculs que la maquette bureau. Sur un écran large, elle s'affiche dans un cadre d'iPhone ; sur un téléphone, en plein écran.
 - `maquette/data.js` : le générateur de données d'exemple, déterministe. Il produit un athlète fictif sur 14 mois en méthode NSA.
@@ -31,7 +32,7 @@ La maquette n'a besoin d'aucun serveur. Elle charge seulement les polices depuis
 | [07-donnees.md](07-donnees.md) | Données d'entrée (montre GPS + ceinture cardio), entités dérivées, classification des séances |
 | [08-systeme-visuel.md](08-systeme-visuel.md) | Tokens, typographie, grille, règles des graphiques, accessibilité, rédaction |
 | [09-questions-ouvertes.md](09-questions-ouvertes.md) | Questions tranchées (renvois), points à vérifier sur données réelles, écarts connus de la maquette, backlog priorisé |
-| [decisions.md](decisions.md) | Journal des décisions D-001 à D-015 : règle retenue, options écartées, impacts |
+| [decisions.md](decisions.md) | Journal des décisions D-001 à D-028 : règle retenue, options écartées, impacts |
 
 ## Le produit en une phrase
 
