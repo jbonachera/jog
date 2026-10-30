@@ -623,7 +623,7 @@ enum ModeleNiveau {
 | 1 | fait | 403 tests verts (13 nouveaux) ; relu ; 2 corrections (tolérance de distance dans `ACCUEIL`, borne de 3 % testée sur valeur arrondie) |
 | 2 | fait | 415 tests verts (12 nouveaux) ; relu ; aucune correction |
 | 3 | fait | 433 tests verts (18 nouveaux) ; relu ; 3 corrections (jour A = `vue.J − 1` dans `niveauVDOT` du lot 1, borne A − 364/A − 365, écart % mi-chemin testé au lot 2) |
-| 4 | | |
+| 4 | fait | 449 tests verts (16 nouveaux) ; relu ; 1 correction (FC de repos sans norme testée) |
 | 5 | | |
 | 6 | | |
 | 7 | | |
@@ -649,3 +649,4 @@ enum ModeleNiveau {
 - Lot 2 : l'énumération du côté coloré s'appelle `SensHorsBande` (`Sens` existe déjà dans `progression-types.swift`) ; `LigneJauge.enCours` est reporté au lot 3, premier à s'en servir.
 - Lot 3 : `Vue.J` est la coupure (le lendemain d'aujourd'hui) ; le jour A vaut `vue.J − 1`. Le plan écrivait « A = vue.J » au lot 1, corrigé ; `niveauVDOT` est corrigé dans ce commit.
 - Lot 3 : `LigneJauge.enCours` est une struct `MentionEnCours { n, sur }` (un tuple n'est pas `Equatable`) ; l'écart en % se calcule `(v − t) ÷ t × 100` pour que 209 face à 200 donne bien +5 (D-015).
+- Lot 4 : « Norme en cours (n sur 4) » ne s'affiche que sur la VFC ; `PointRecuperation` ne compte pas les nuits de la norme FC (l'ajouter changerait la forme de la Vue). La semaine de A est « en cours » même quand A est un dimanche.
