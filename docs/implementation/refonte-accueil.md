@@ -621,7 +621,7 @@ enum ModeleNiveau {
 | Lot | État | Vérification |
 |---|---|---|
 | 1 | fait | 403 tests verts (13 nouveaux) ; relu ; 2 corrections (tolérance de distance dans `ACCUEIL`, borne de 3 % testée sur valeur arrondie) |
-| 2 | | |
+| 2 | fait | 415 tests verts (12 nouveaux) ; relu ; aucune correction |
 | 3 | | |
 | 4 | | |
 | 5 | | |
@@ -646,3 +646,4 @@ enum ModeleNiveau {
 - Lot 1 : les VDOT du test 1 du plan (54,2 ; 53,9 ; 53,1) ne suivent pas la formule de Daniels de 04 : elle donne 55,7 (10 km en 37:40), 56,0 (5 km en 18:05), 54,8 (semi en 1:24:30) ; seul le marathon (51,6) concorde. Les tests suivent 04 ; les chiffres de la maquette sont illustratifs.
 - Lot 1 : la tolérance des distances (point 9, ±3 %) est `ACCUEIL.toleranceDistanceCourse` et se compare sur l'écart arrondi à 0,01 km (5,15 km est un 5 km, 5,16 km non).
 - Lot 1 : `.gitignore` contient `tests/`, qui ignore `Tests/` sur un disque insensible à la casse ; les nouveaux fichiers de test sont ajoutés avec `git add -f`, comme les existants.
+- Lot 2 : l'énumération du côté coloré s'appelle `SensHorsBande` (`Sens` existe déjà dans `progression-types.swift`) ; `LigneJauge.enCours` est reporté au lot 3, premier à s'en servir.
