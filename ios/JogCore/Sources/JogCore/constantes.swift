@@ -64,6 +64,8 @@ public enum PRECISION {
     public static let bpm = 1.0, ef = 0.01, allureSkm = 1.0, dPlus = 1.0, charge = 1.0
     /// VDOT (D-015, 04 « VDOT et niveau ») et charge en « × » de la carte de course (point de décision 5).
     public static let vdot = 0.1, ratioCharge = 0.1
+    /// Écarts des six qualités (D-015, 04 « Six qualités ») : % entier (Volume, Efficacité), points de % entiers (Régularité), ms entières (Résilience).
+    public static let qualiteVolumePct = 1.0, qualiteEfficacitePct = 1.0, qualiteRegularitePts = 1.0, qualiteResilienceMs = 1.0
 }
 
 /// Poids de charge par catégorie d'intensité (04, Charge de séance).

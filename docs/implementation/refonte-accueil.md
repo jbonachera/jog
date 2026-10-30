@@ -627,7 +627,7 @@ enum ModeleNiveau {
 | 5 | fait | 460 tests verts (11 nouveaux) ; oracle intact (0 cas avec altitude : l'adaptateur ne retire rien aujourd'hui) ; relu ; 1 correction (décodage d'un cache sans D+ testé) |
 | 6 | fait | 478 tests verts (18 nouveaux) ; relu ; 3 corrections (valeurs précalculées par séance : 3,1 → 2,3 ms en release pour 2 000 séances ; budget testé ; demi-pas du plafond de footing) |
 | 7 | fait | 493 tests verts (16 nouveaux, 1 retiré) ; perf 2,2 ms ; relu ; 2 corrections (carte neutre « Sans VDOT » au lieu d'aucune carte, bornes des 56 jours et échantillons vides) |
-| 8 | | |
+| 8 | fait | 523 tests verts (30 nouveaux) ; perf 0,12 ms ; relu ; 6 corrections (précisions lues dans `PRECISION`, bornes 23/24 semaines, plafonnement du rayon, semaine partielle, mi-chemins D-015, références vides ; écart d'Efficacité arrondi à 1 %) |
 | 9 | | |
 | 10 | | |
 | 11 | | |
@@ -654,3 +654,4 @@ enum ModeleNiveau {
 - Lot 5 : aucun cas d'oracle n'a d'altitude (`alt_m` nul partout) : l'adaptateur `sansDPlusDesGoldens` est en place mais ne retire rien. `dPlus_m` est aussi sur `SeanceIntrinseque` (ce que ②a mémorise), et `VERSION_DENIVELE` entre aussi dans l'empreinte de la Vue (sinon une Vue en cache sans D+ serait servie).
 - Lot 6 : l'allure normalisée lit `refHr` et `paceHrK` dans `parametresEnVigueur.globaux` (globaux selon D-006, absents de `ParamsDates`) ; le plafond et les seuils sous-seuil sont datés. Un sous-seuil sans répétition a un verdict neutre « Répétitions absentes » (point 2). Le minimum de 4 s'applique par jauge (l'EF peut rester « en cours » quand la FC a sa norme).
 - Lot 7 : la FC d'une course se compare aux courses et tests de même distance antérieurs, sans limite de 56 jours, minimum `ACCUEIL.minCoursesMemeDistance`, des deux côtés (non listé au point 4). La charge « × » sans norme n'a pas de valeur (« Norme en cours »). Une course sans VDOT calculable a une carte neutre « Sans VDOT ».
+- Lot 8 : la première semaine partielle de l'historique n'entre ni dans Q ni dans Q₀ ; Emax inclut la fenêtre courante (le rayon reste dans [0, 1]). `PointNormeVFC` est défini provisoirement dans `niveau-qualites.swift`, à déplacer au lot 9.
