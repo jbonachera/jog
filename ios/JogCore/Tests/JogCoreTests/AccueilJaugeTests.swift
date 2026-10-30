@@ -60,6 +60,11 @@ import Testing
     #expect(ligneJauge(valeur: 191, trait: 200, bande: nil, precision: 1, ecartEnPourcent: true).ecart == -5)
 }
 
+@Test func ecartEnPourcentDeQuatreVirgule46ArrondItALUnite() {
+    // 04, « Volume » et D-015 : 104,46 face à 100 vaut +4,46 %, arrondi directement à l'unité : +4 (pas +4,5 puis +5).
+    #expect(ligneJauge(valeur: 104.46, trait: 100, bande: nil, precision: 0.01, ecartEnPourcent: true).ecart == 4)
+}
+
 @Test func ecartAbsentSansTraitOuAvecTraitNul() {
     // 04 : trait nul ou absent, écart « – » (nil).
     #expect(ligneJauge(valeur: 37.4, trait: nil, bande: nil, precision: 0.1, ecartEnPourcent: true).ecart == nil)

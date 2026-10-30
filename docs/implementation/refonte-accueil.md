@@ -631,7 +631,7 @@ enum ModeleNiveau {
 | 9 | fait | 528 tests verts (5 nouveaux) ; relu ; 1 correction (mesure sur 450 nuits, < 1 ms : 0,66 → 0,48 ms par un tableau indexé par jour) |
 | 10 | fait | swift test 528 ; xcodebuild test 130 verts (NavigationTests 3 → 10) ; relu ; 2 corrections (verdict de l'Aperçu ouvre `.decision`, test paramétré signal → destination) |
 | 11 | fait | swift test 528 ; xcodebuild test 130 verts ; relu ; 1 correction (les 8 signaux en ligne sur l'écran Décision, `ListeSignaux` partagée avec la feuille) |
-| 12 | | |
+| 12 | fait | swift test 530 ; xcodebuild test 161 verts (31 nouveaux) ; relu ; 5 corrections (plus de double arrondi de l'écart en %, `point` optionnel, marge d'échelle dans `ACCUEIL`, absence en récupération testée, diff du pbxproj réduit à l'ajout) |
 | 13 | | |
 | 14 | | |
 | 15 | | |
@@ -660,3 +660,4 @@ enum ModeleNiveau {
 - Lot 10 : `xcodebuild` réécrit parfois `project.pbxproj` (ordre, ligne `TEST_HOST`) ; il est restauré après chaque build.
 - Lot 11 : `RecuperationChargeView` citée au plan n'existe pas ; `EcranRecuperation` réutilise `RecuperationView` (R1–R7) sous l'en-tête de la nuit (A6). La feuille « Cette nuit » (`FeuilleNuitView`) est retirée : son contenu est l'en-tête de l'écran. Aucun test nouveau : la destination de chaque signal est testée au lot 10.
 - À faire par l'utilisateur (lot 11) : captures des écrans Décision et Récupération, clair et sombre.
+- Lot 12 : `LigneJaugeModele.point` est `Double?` (nil sans valeur, la vue n'a rien à tester) au lieu de `Double`. Les milliers gardent l'espace insécable U+00A0 des formateurs existants (`ModeleApercu`), pas l'espace fine. Phrases non écrites au plan : « norme 44–58 ms », « besoin 7 h 30 », « Norme en cours (n sur 21) » pour la VFC (minimum de 21 nuits). Le lien « Saisons › » (point 11) est porté par la vue.

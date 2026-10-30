@@ -215,6 +215,9 @@ public enum ACCUEIL {
     public static let semainesVolume = 8              // semaines terminées comparées au même jour
     public static let joursFenetre30 = 30, joursNorme30 = 365
     public static let minEchantillonVolume = 4        // point de décision 3
+    /// Échelle de la barre d'une ligne de jauge (ModeleJauges) : marge de chaque côté, en fraction de l'étendue des
+    /// valeurs affichées, et marge minimale en unités affichées. Valeurs de maquette, à valider (bl).
+    public static let margeEchelleJauge = 0.5, etendueMinEchelleJauge = 1.0
     // D-025 · carte de séance
     public static let joursEchantillonSeance = 56, seancesEchantillonSousSeuil = 6, minEchantillonSeance = 4
     public static let margeFootingUnPeuRapide_bpm = 5.0

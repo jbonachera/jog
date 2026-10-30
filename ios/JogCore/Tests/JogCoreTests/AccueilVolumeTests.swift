@@ -246,6 +246,16 @@ private func vueAvec(_ seances: [SeanceIntrinseque], J: DateCivile) throws -> Vu
     #expect(annee.ecart == nil)
 }
 
+@Test func lEcartEnPourcentDeQuatreVirgule46VautQuatre() throws {
+    // 04, « Volume » et D-015 : 234 face à 224 vaut +4,46 %, arrondi à l'unité directement : +4.
+    let A = "2026-10-29"
+    let annee = try lignesVolume(try vueAvec([
+        seance("2025-01-01", "2025-01-01", km: 224),
+        seance("2026-01-01", "2026-01-01", km: 234),
+    ], J: try ajouterJours(A, 1))).annee
+    #expect(annee.ecart == 4)
+}
+
 @Test func lEcartEnPourcentSArrondisAlUniteMiCheminLoinDeZero() throws {
     // 04 : écart = (valeur ÷ trait − 1) × 100, arrondi à l'unité, mi-chemin loin de zéro (D-015) : +4,5 → +5 ; −4,5 → −5.
     let A = "2026-10-29"
