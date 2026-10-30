@@ -9,18 +9,6 @@ public enum Qualite: CaseIterable, Hashable, Sendable {
     case volume, seuil, efficacite, endurance, regularite, resilience
 }
 
-/// Un point de la norme VFC : son milieu (ms) au dimanche `date`. Fourni par le lot 9 (norme hebdomadaire) ; sans lui, la
-/// Résilience est à « – ».
-public struct PointNormeVFC: Sendable, Equatable {
-    public var date: DateCivile
-    public var milieu_ms: Double
-
-    public init(date: DateCivile, milieu_ms: Double) {
-        self.date = date
-        self.milieu_ms = milieu_ms
-    }
-}
-
 /// Un axe du radar (04, « Six qualités ») : valeurs sur Q et Q₀, écart orienté (plus = progrès), écart affiché dans son
 /// unité, et rayon de l'anneau (0,5 = l'an dernier).
 public struct AxeQualite: Sendable, Equatable {
@@ -41,8 +29,8 @@ public struct SixQualites: Sendable {
     public var Q0: (DateCivile, DateCivile)?
 }
 
-/// Calcule les six qualités de la Vue (04, « Six qualités » ; D-028). `milieuxNormeVFC` porte la norme VFC par dimanche
-/// (lot 9) ; nil, la Résilience est à « – ».
+/// Calcule les six qualités de la Vue (04, « Six qualités » ; D-028). La Résilience lit la norme VFC par dimanche de
+/// `vue.recuperation` (lot 9), sauf `milieuxNormeVFC` explicite ; sans série, elle est à « – ».
 public func sixQualites(_ vue: Vue, milieuxNormeVFC: [PointNormeVFC]? = nil) throws -> SixQualites {
     guard let premier = vue.premierJour else {
         return SixQualites(axes: axesVides(), referencePremieresSemaines: false, Q: nil, Q0: nil)
@@ -52,7 +40,7 @@ public func sixQualites(_ vue: Vue, milieuxNormeVFC: [PointNormeVFC]? = nil) thr
     // Semaines terminées : celles d'indice 0 … n − 1, la plus ancienne d'abord. La semaine de A (indice n) n'est pas close.
     let n = max(0, (lundiA - l0) / 7)
     let cumuls = try Cumuls(vue, l0: l0, n: n)
-    let vfc = try milieuxParJour(milieuxNormeVFC)
+    let vfc = try milieuxParJour(milieuxNormeVFC ?? vue.recuperation?.milieuxNormeVFC)
     let taille = ACCUEIL.semainesQualites
     let decalage = ACCUEIL.joursDecalageQualites / 7   // 364 jours = 52 semaines entières
 

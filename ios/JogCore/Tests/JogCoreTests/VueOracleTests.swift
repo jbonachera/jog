@@ -1,9 +1,9 @@
 import Testing
 @testable import JogCore
 
-/// Format des goldens `vue` : figé à 5 par le moteur TypeScript (D-019). Le moteur Swift produit FORMAT_VUE (6, D-023) ;
-/// la sortie est ramenée à ce format avant comparaison. Les JSON de l'oracle ne changent pas, et le format 6 est testé
-/// dans RecuperationVueTests.
+/// Format des goldens `vue` : figé à 5 par le moteur TypeScript (D-019). Le moteur Swift produit FORMAT_VUE (7, lot 9) ;
+/// la sortie est ramenée à ce format avant comparaison. Les JSON de l'oracle ne changent pas, et le format courant est
+/// testé dans RecuperationVueTests.
 private let FORMAT_VUE_DES_GOLDENS = 5
 
 private func auFormatDesGoldens(_ valeur: JSONValue) -> JSONValue {

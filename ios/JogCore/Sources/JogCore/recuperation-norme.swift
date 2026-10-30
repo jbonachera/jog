@@ -68,26 +68,34 @@ public func serieRecuperation(_ nuits: [NuitResumee], du: DateCivile, au: DateCi
         throw RangeError("intervalle inversé : \(du) après \(au)")
     }
 
-    var parJour: [NumeroJour: NuitResumee] = [:]
+    // Les nuits hors de la fenêtre N60 du premier point (premier−66…dernier) ne servent à rien : seules les dates
+    // figurant dans la fenêtre sont rangées, par numéro de jour, dans un tableau (pas de dictionnaire à chaque lecture).
+    let base = premier - 66
+    var parJour = [NuitResumee?](repeating: nil, count: dernier - base + 1)
+    var vues = Set<NumeroJour>()
     for nuit in nuits {
-        guard parJour.updateValue(nuit, forKey: try numeroJour(nuit.date)) == nil else {
+        let n = try numeroJour(nuit.date)
+        guard vues.insert(n).inserted else {
             throw ErreurFusionNuits(raison: .dateEnDouble)
+        }
+        if n >= base {
+            parJour[n - base] = nuit
         }
     }
 
     return try (premier...dernier).map { n in
-        try pointRecuperation(n, parJour)
+        try pointRecuperation(n, parJour, base: base)
     }
 }
 
-/// Le point du jour `n`, avec ses fenêtres F7 (n−6…n) et N60 (n−66…n−7).
-private func pointRecuperation(_ n: NumeroJour, _ parJour: [NumeroJour: NuitResumee]) throws -> PointRecuperation {
+/// Le point du jour `n`, avec ses fenêtres F7 (n−6…n) et N60 (n−66…n−7). `parJour[k − base]` est la nuit du jour `k`.
+private func pointRecuperation(_ n: NumeroJour, _ parJour: [NuitResumee?], base: NumeroJour) throws -> PointRecuperation {
     // Fenêtre courte : les nuits présentes pour le sommeil, les mesurées pour la VFC et la FC.
     var sommeilF7: [Double] = []
     var lnVfcF7: [Double] = []
     var fcF7: [Double] = []
     for k in (n - 6)...n {
-        guard let nuit = parJour[k] else { continue }
+        guard let nuit = parJour[k - base] else { continue }
         sommeilF7.append(nuit.sommeil_min)
         if let ln = nuit.vfcLn { lnVfcF7.append(ln) }
         if let fc = nuit.fcSommeil { fcF7.append(fc) }
@@ -97,13 +105,13 @@ private func pointRecuperation(_ n: NumeroJour, _ parJour: [NumeroJour: NuitResu
     var lnVfcN60: [Double] = []
     var fcN60: [Double] = []
     for k in (n - 66)...(n - 7) {
-        guard let nuit = parJour[k] else { continue }
+        guard let nuit = parJour[k - base] else { continue }
         if let ln = nuit.vfcLn { lnVfcN60.append(ln) }
         if let fc = nuit.fcSommeil { fcN60.append(fc) }
     }
 
     var point = PointRecuperation(date: try dateDepuisNumero(n))
-    if let nuit = parJour[n] {
+    if let nuit = parJour[n - base] {
         point.vfc_ms = nuit.vfc_ms
         point.fc = nuit.fcSommeil
         point.sommeil_min = nuit.sommeil_min

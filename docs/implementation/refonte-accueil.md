@@ -628,7 +628,7 @@ enum ModeleNiveau {
 | 6 | fait | 478 tests verts (18 nouveaux) ; relu ; 3 corrections (valeurs précalculées par séance : 3,1 → 2,3 ms en release pour 2 000 séances ; budget testé ; demi-pas du plafond de footing) |
 | 7 | fait | 493 tests verts (16 nouveaux, 1 retiré) ; perf 2,2 ms ; relu ; 2 corrections (carte neutre « Sans VDOT » au lieu d'aucune carte, bornes des 56 jours et échantillons vides) |
 | 8 | fait | 523 tests verts (30 nouveaux) ; perf 0,12 ms ; relu ; 6 corrections (précisions lues dans `PRECISION`, bornes 23/24 semaines, plafonnement du rayon, semaine partielle, mi-chemins D-015, références vides ; écart d'Efficacité arrondi à 1 %) |
-| 9 | | |
+| 9 | fait | 528 tests verts (5 nouveaux) ; relu ; 1 correction (mesure sur 450 nuits, < 1 ms : 0,66 → 0,48 ms par un tableau indexé par jour) |
 | 10 | | |
 | 11 | | |
 | 12 | | |
@@ -655,3 +655,4 @@ enum ModeleNiveau {
 - Lot 6 : l'allure normalisée lit `refHr` et `paceHrK` dans `parametresEnVigueur.globaux` (globaux selon D-006, absents de `ParamsDates`) ; le plafond et les seuils sous-seuil sont datés. Un sous-seuil sans répétition a un verdict neutre « Répétitions absentes » (point 2). Le minimum de 4 s'applique par jauge (l'EF peut rester « en cours » quand la FC a sa norme).
 - Lot 7 : la FC d'une course se compare aux courses et tests de même distance antérieurs, sans limite de 56 jours, minimum `ACCUEIL.minCoursesMemeDistance`, des deux côtés (non listé au point 4). La charge « × » sans norme n'a pas de valeur (« Norme en cours »). Une course sans VDOT calculable a une carte neutre « Sans VDOT ».
 - Lot 8 : la première semaine partielle de l'historique n'entre ni dans Q ni dans Q₀ ; Emax inclut la fenêtre courante (le rayon reste dans [0, 1]). `PointNormeVFC` est défini provisoirement dans `niveau-qualites.swift`, à déplacer au lot 9.
+- Lot 9 : `VERSION_RECUPERATION` passe à 2 pour qu'un relevé de 250 nuits soit relu une fois à 450 (sinon il ne se rattraperait jamais). `charger()` rejette une Vue d'un autre `formatVersion` (recalcul une fois). `milieuxNormeVFC` est un tableau non optionnel (vide sans norme).

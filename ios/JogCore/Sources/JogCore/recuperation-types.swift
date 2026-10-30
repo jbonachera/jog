@@ -2,6 +2,17 @@
 // instants sont en millisecondes depuis l'époque, les dates civiles en « AAAA-MM-JJ » (ADR 0007).
 import Foundation
 
+/// Un point de la norme VFC : son milieu (ms) au dimanche `date` (lot 9, D-023). Sert à la Résilience de `sixQualites`.
+public struct PointNormeVFC: Codable, Sendable, Equatable {
+    public var date: DateCivile
+    public var milieu_ms: Double
+
+    public init(date: DateCivile, milieu_ms: Double) {
+        self.date = date
+        self.milieu_ms = milieu_ms
+    }
+}
+
 /// Phase du sommeil, aux valeurs de l'app (D-023).
 public enum PhaseSommeil: String, Codable, Sendable, Equatable, CaseIterable {
     case eveille, paradoxal, leger, profond

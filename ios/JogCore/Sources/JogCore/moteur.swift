@@ -66,10 +66,10 @@ public actor Moteur {
         self.lireFlux = lireFlux
     }
 
-    /// La dernière Vue persistée, pour un affichage instantané au lancement. nil avant le premier calcul, ou si elle
-    /// est illisible ou ne peut pas être lue.
+    /// La dernière Vue persistée, pour un affichage instantané au lancement. nil avant le premier calcul, si elle
+    /// est illisible, ou si elle n'est pas au format courant (`FORMAT_VUE` : elle est alors recalculée, lot 9).
     public func charger() -> Vue? {
-        if case .valeur(let vue)? = try? stockage.lireVue() {
+        if case .valeur(let vue)? = try? stockage.lireVue(), vue.formatVersion == FORMAT_VUE {
             return vue
         }
         return nil

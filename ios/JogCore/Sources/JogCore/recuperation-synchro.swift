@@ -1,7 +1,7 @@
 // Synchronisation des nuits de la récupération (D-023 ; docs/implementation/recuperation.md, lot 7). Lit le sommeil, la
 // VFC, la respiration et la FC de chaque session depuis une source (HealthKit dans l'app, un faux dans les tests), résume
-// les nuits, les fusionne avec celles déjà mémorisées et les range dans le moteur. Lecture bornée : jusqu'à 250 nuits
-// la première fois, puis les 3 dernières à chaque synchronisation. La FC moyenne se lit par session, jamais sur la plage.
+// les nuits, les fusionne avec celles déjà mémorisées et les range dans le moteur. Lecture bornée : jusqu'à 450 nuits
+// la première fois (lot 9), puis les 3 dernières à chaque synchronisation. La FC moyenne se lit par session, jamais sur la plage.
 import Foundation
 
 /// Requêtes de FC moyenne en parallèle, au plus.
@@ -65,7 +65,7 @@ public actor SynchroniseurNuits {
         ))
     }
 
-    /// Premier jour lu : A−249 sans relevé valide, sinon la dernière nuit mémorisée − 2, sans jamais passer avant A−249.
+    /// Premier jour lu : A−449 sans relevé valide, sinon la dernière nuit mémorisée − 2, sans jamais passer avant A−449.
     private func debutFenetre(_ releve: ReleveNuits?, aujourdhui: DateCivile) throws -> DateCivile {
         let plusAncien = try ajouterJours(aujourdhui, -(RECUPERATION.nuitsLues - 1))
         guard let derniere = releve?.nuits.last?.date else { return plusAncien }

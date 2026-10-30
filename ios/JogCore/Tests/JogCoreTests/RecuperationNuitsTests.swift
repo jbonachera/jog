@@ -168,16 +168,16 @@ private func proche(_ valeur: Double?, _ attendu: Double, tolerance: Double = 1e
         #expect(fusion.first { $0.date == "2026-10-01" }?.sommeil_min == 400)
     }
 
-    @Test func d023LaFusionGardeLes250NuitsLesPlusRecentes() throws {
-        // D-023 et recuperation.md : au plus 250 nuits (RECUPERATION.nuitsLues). 260 entrées : il en reste 250, les plus
-        // récentes, du 11e au 260e jour.
-        let dates = try jours("2026-01-01", 260)
+    @Test func d023LaFusionGardeLes450NuitsLesPlusRecentes() throws {
+        // D-023 et recuperation.md : au plus 450 nuits (RECUPERATION.nuitsLues, lot 9). 460 entrées : il en reste 450, les plus
+        // récentes, du 11e au 460e jour.
+        let dates = try jours("2025-01-01", 460)
         let anciennes = dates.map { nuit($0) }
         let fusion = try fusionnerNuits(anciennes, [], depuis: "2026-12-31", aujourdhui: "2026-12-31")
         #expect(fusion.count == RECUPERATION.nuitsLues)
-        #expect(fusion.count == 250)
+        #expect(fusion.count == 450)
         #expect(fusion.first?.date == dates[10])
-        #expect(fusion.last?.date == dates[259])
+        #expect(fusion.last?.date == dates[459])
     }
 
     @Test func d023UneFusionDepuisPosterieureAAujourdhuiLeve() {

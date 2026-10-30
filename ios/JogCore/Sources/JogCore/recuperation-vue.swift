@@ -24,10 +24,14 @@ public struct VueRecuperation: Codable, Sendable, Equatable {
     public var derniereSession: SessionSommeil?
     /// 16 semaines, de la plus ancienne à la semaine de A.
     public var semaines: [SemaineRecuperation]
+    /// Milieu de la norme VFC à chaque dimanche de la fenêtre des 450 nuits qui a une norme (lot 9 ; 04, « Six qualités » :
+    /// la Résilience). Vide sans norme.
+    public var milieuxNormeVFC: [PointNormeVFC]
 
     public init(
         aujourdhui: DateCivile, etat: EtatRecuperation, titre: String, phrase: String, point: PointRecuperation,
-        serie: [PointRecuperation], nuits: [NuitResumee], derniereSession: SessionSommeil?, semaines: [SemaineRecuperation]
+        serie: [PointRecuperation], nuits: [NuitResumee], derniereSession: SessionSommeil?, semaines: [SemaineRecuperation],
+        milieuxNormeVFC: [PointNormeVFC]
     ) {
         self.aujourdhui = aujourdhui
         self.etat = etat
@@ -38,6 +42,7 @@ public struct VueRecuperation: Codable, Sendable, Equatable {
         self.nuits = nuits
         self.derniereSession = derniereSession
         self.semaines = semaines
+        self.milieuxNormeVFC = milieuxNormeVFC
     }
 }
 
@@ -56,10 +61,17 @@ public func calculerRecuperation(
     }
     guard mesurees else { return nil }
 
-    let serie = try serieRecuperation(
-        nuits, du: try ajouterJours(aujourdhui, -(RECUPERATION.nuitsSerie - 1)), au: aujourdhui
+    // La série des 450 nuits lues ; les 182 derniers jours en forment `serie` (chaque point ne dépend que de son jour).
+    let serieLue = try serieRecuperation(
+        nuits, du: try ajouterJours(aujourdhui, -(RECUPERATION.nuitsLues - 1)), au: aujourdhui
     )
+    let serie = Array(serieLue.suffix(RECUPERATION.nuitsSerie))
     guard let point = serie.last else { return nil }
+    // Résilience (04, « Six qualités ») : le milieu de la norme à chaque dimanche qui en a une (lot 9).
+    let milieux = try serieLue.compactMap { jour -> PointNormeVFC? in
+        guard let milieu = jour.vfcMilieu, try jourDeSemaine(jour.date) == 6 else { return nil }
+        return PointNormeVFC(date: jour.date, milieu_ms: milieu)
+    }
     let etat = try etatRecuperation(point)
 
     let debutNuits = try ajouterJours(aujourdhui, -(NUITS_VUE_JOURS - 1))
@@ -74,6 +86,7 @@ public func calculerRecuperation(
         serie: serie,
         nuits: nuitsVue,
         derniereSession: derniereSession?.date == aujourdhui ? derniereSession : nil,
-        semaines: try semainesRecuperation(serie, aujourdhui: aujourdhui)
+        semaines: try semainesRecuperation(serie, aujourdhui: aujourdhui),
+        milieuxNormeVFC: milieux
     )
 }

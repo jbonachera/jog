@@ -484,3 +484,24 @@ func mesureSixQualites() throws {
     print(String(format: "sixQualites (2 000 séances, 4 ans, moyenne sur 20 itérations) : %.3f ms", moyenne))
     #expect(moyenne < 5)
 }
+
+// MARK: - 04, Six qualités : Résilience et norme VFC du lot 9
+
+@Test func laResilienceSeLitDansLaSerieVFCDeLaVue() throws {
+    // Lot 9 : 450 nuits donnent un milieu de norme au dimanche de fin de Q₀ (la semaine k = 53, lundi de A − 365), donc
+    // la Résilience a une valeur sur Q et sur Q₀, et un écart, sans série passée à `sixQualites`.
+    let nuits = try nuitsExemple(.normal, aujourdhui: A, nombre: RECUPERATION.nuitsLues)
+    var vue = try calculerVue(EntreeVue(
+        intrinseques: [], parametres: parametresDefaut(), J: try ajouterJours(A, 1), derniereSynchro: nil, nuits: nuits
+    ))
+    vue.seances = try footingParSemaine(70, km: { _ in 10 })
+    vue.premierJour = try ajouterJours(lundiA, -7 * 70)
+
+    let dimancheDeQ0 = try jourDeLaSemaine(53, 6)
+    #expect(vue.recuperation?.milieuxNormeVFC.contains { $0.date == dimancheDeQ0 } == true)
+
+    let resilience = try axe(try sixQualites(vue), .resilience)
+    #expect(resilience.maintenant != nil)
+    #expect(resilience.reference != nil)
+    #expect(resilience.ecartAffiche != nil)
+}

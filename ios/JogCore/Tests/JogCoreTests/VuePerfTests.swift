@@ -27,13 +27,13 @@ func mesureCalculerVue() throws {
     print(String(format: "calculerVue (maquette 14 mois, moyenne sur 20 itérations) : %.3f ms", moyenne))
 }
 
-/// Mesure de `serieRecuperation` (D-023, recuperation.md lot 3) : 250 nuits, 182 points. Budget : moins de 5 ms en release.
+/// Mesure de `serieRecuperation` (D-023, recuperation.md lot 3, lot 9) : 450 nuits, 450 points. Budget : moins de 1 ms en release.
 /// Lancement : JOG_PERF=1 swift test -c release --disable-sandbox --scratch-path /tmp/jogcore-R --filter mesure
 @Test(.enabled(if: ProcessInfo.processInfo.environment["JOG_PERF"] == "1"))
 func mesureSerieRecuperation() throws {
     let aujourdhui: DateCivile = "2026-10-29"
     let nuits = try nuitsExemple(.normal, aujourdhui: aujourdhui, nombre: RECUPERATION.nuitsLues)
-    let du = try ajouterJours(aujourdhui, -(RECUPERATION.nuitsSerie - 1))
+    let du = try ajouterJours(aujourdhui, -(RECUPERATION.nuitsLues - 1))
 
     for _ in 0..<3 {
         _ = try serieRecuperation(nuits, du: du, au: aujourdhui)
@@ -43,6 +43,6 @@ func mesureSerieRecuperation() throws {
         _ = try serieRecuperation(nuits, du: du, au: aujourdhui)
     }
     let moyenne = millisecondes(ContinuousClock.now - debut) / 20
-    print(String(format: "serieRecuperation (250 nuits, 182 points, moyenne sur 20 itérations) : %.3f ms", moyenne))
-    #expect(moyenne < 5)
+    print(String(format: "serieRecuperation (450 nuits, 450 points, moyenne sur 20 itérations) : %.3f ms", moyenne))
+    #expect(moyenne < 1)
 }

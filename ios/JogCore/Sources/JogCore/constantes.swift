@@ -15,8 +15,9 @@ public let FORMAT_SEANCE = 3
 /// à chaque changement de son résultat.
 public let VERSION_ESTIMATION = 2  // 2 : les répétitions estimées classent les minutes (2026-10-28)
 /// FORMAT_VUE : `vue.formatVersion`, à monter à chaque changement de forme de la Vue.
-/// Historique : 6 : bloc `recuperation` (D-023) ; 5 : suggestion hrMax (D-019).
-public let FORMAT_VUE = 6
+/// Historique : 7 : `recuperation.milieuxNormeVFC` (lot 9, Résilience) ; 6 : bloc `recuperation` (D-023) ; 5 : suggestion
+/// hrMax (D-019).
+public let FORMAT_VUE = 7
 
 /// Seuils du verdict (05, « Seuils du verdict », D-008).
 public enum SEUILS {
@@ -189,7 +190,8 @@ public let ECART_VOLUME_SIGNALE = 0.3
 // Récupération nocturne (D-023 ; docs/design/04-metriques.md, « Récupération »).
 /// VERSION_RECUPERATION : version des règles de sommeil et de VFC nocturne, à monter à chaque changement de leur résultat.
 /// Distincte de REGLES_VERSION, pour ne pas relire les flux de séances (docs/implementation/recuperation.md).
-public let VERSION_RECUPERATION = 1
+/// Historique : 2 : 450 nuits lues au lieu de 250 (lot 9) ; le relevé de 1 est relu en entier une fois.
+public let VERSION_RECUPERATION = 2
 
 /// Seuils et tailles de fenêtres de la récupération (D-023). Durées en minutes, sauf mention.
 public enum RECUPERATION {
@@ -201,7 +203,7 @@ public enum RECUPERATION {
     public static let sommeilSurveiller_min = 45.0, regulariteSurveiller_min = 45.0
     public static let ecartHebdoSignale_pct = -8.0
     public static let besoinDefaut_min = 450.0, besoinMin_min = 240.0, besoinMax_min = 720.0, besoinPas_min = 15.0
-    public static let nuitsLues = 250, nuitsRelues = 3, nuitsSerie = 182, semainesCharge = 16
+    public static let nuitsLues = 450, nuitsRelues = 3, nuitsSerie = 182, semainesCharge = 16
 }
 
 // Accueil (D-024 à D-028 ; docs/implementation/refonte-accueil.md, « Architecture »). Tous les seuils et fenêtres de

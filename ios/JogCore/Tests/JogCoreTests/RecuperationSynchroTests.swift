@@ -93,14 +93,14 @@ actor FauxSourceNuits: SourceNuits {
 
 // MARK: - Synchronisation des nuits
 
-@Test func d023LePremierPassageLitDepuisA249EtLeSuivantDepuisLaDerniereNuitMoins2() async throws {
+@Test func d023LePremierPassageLitDepuisA449EtLeSuivantDepuisLaDerniereNuitMoins2() async throws {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }
     let moteur = moteurSansFlux(dossier)
     let source = FauxSourceNuits(echantillons: try echantillonsNuits(["2026-10-27", "2026-10-28", "2026-10-29"]))
     let synchro = SynchroniseurNuits(source: source, moteur: moteur)
-    // Premier passage : rien de stocké, donc A−249 (250 nuits), lues depuis 18 h la veille.
-    let premiere = local(try ajouterJours(aujourdhui, -250), "18:00")
+    // Premier passage : rien de stocké, donc A−449 (450 nuits), lues depuis 18 h la veille.
+    let premiere = local(try ajouterJours(aujourdhui, -450), "18:00")
     // Second passage : la dernière nuit stockée est le 29 ; on relit depuis le 27, donc 18 h le 26.
     let seconde = local(try ajouterJours("2026-10-27", -1), "18:00")
 
@@ -164,18 +164,37 @@ actor FauxSourceNuits: SourceNuits {
     #expect(appels.allSatisfy { $0.au.timeIntervalSince($0.du) < 24 * 3600 })
 }
 
-// MARK: - Bornes de la fenêtre et du relevé
-
-@Test func d023LaFenetreNeRemonteJamaisAvantA249() async throws {
+@Test func lot9UnStockDUneVersionPrecedenteEstRelu450NuitsUneFoisPuisTroisNuits() async throws {
     let dossier = try dossierTemporaire()
     defer { try? FileManager.default.removeItem(at: dossier) }
-    // Une dernière nuit à A−300 : « dernière nuit − 2 » serait antérieur à A−249, donc on reste à A−249.
+    // Installation d'avant le lot 9 : 250 nuits en stock, relevé de la version précédente (donc traité comme absent).
+    let stock = try (0..<250).map { nuitResumee(try ajouterJours(aujourdhui, -249 + $0)) }
     try Stockage(racine: dossier).ecrireNuits(ReleveNuits(
-        version: VERSION_RECUPERATION, nuits: [nuitResumee(try ajouterJours(aujourdhui, -300))], derniereSession: nil
+        version: VERSION_RECUPERATION - 1, nuits: stock, derniereSession: nil
+    ))
+    let source = FauxSourceNuits(echantillons: try echantillonsNuits(["2026-10-27", "2026-10-28", "2026-10-29"]))
+    let synchro = SynchroniseurNuits(source: source, moteur: moteurSansFlux(dossier))
+    // Première lecture : 450 nuits, depuis 18 h la veille de A−449.
+    _ = try await synchro.synchroniser(maintenant: maintenant, fuseau: paris)
+    #expect(await source.debutsSommeil.first == local(try ajouterJours(aujourdhui, -450), "18:00"))
+
+    // Lectures suivantes : le relevé est de la version courante, donc seules les 3 dernières nuits sont relues.
+    _ = try await synchro.synchroniser(maintenant: maintenant, fuseau: paris)
+    #expect(await source.debutsSommeil.last == local(try ajouterJours("2026-10-27", -1), "18:00"))
+}
+
+// MARK: - Bornes de la fenêtre et du relevé
+
+@Test func d023LaFenetreNeRemonteJamaisAvantA449() async throws {
+    let dossier = try dossierTemporaire()
+    defer { try? FileManager.default.removeItem(at: dossier) }
+    // Une dernière nuit à A−460 : « dernière nuit − 2 » serait antérieur à A−449, donc on reste à A−449.
+    try Stockage(racine: dossier).ecrireNuits(ReleveNuits(
+        version: VERSION_RECUPERATION, nuits: [nuitResumee(try ajouterJours(aujourdhui, -460))], derniereSession: nil
     ))
     let source = FauxSourceNuits(echantillons: [])
     let synchro = SynchroniseurNuits(source: source, moteur: moteurSansFlux(dossier))
-    let plusAncienne = local(try ajouterJours(aujourdhui, -250), "18:00")
+    let plusAncienne = local(try ajouterJours(aujourdhui, -450), "18:00")
 
     _ = try await synchro.synchroniser(maintenant: maintenant, fuseau: paris)
 
@@ -192,7 +211,7 @@ actor FauxSourceNuits: SourceNuits {
     let source = FauxSourceNuits(echantillons: try echantillonsNuits(["2026-10-28"]))
     let moteur = moteurSansFlux(dossier)
     let synchro = SynchroniseurNuits(source: source, moteur: moteur)
-    let plusAncienne = local(try ajouterJours(aujourdhui, -250), "18:00")
+    let plusAncienne = local(try ajouterJours(aujourdhui, -450), "18:00")
 
     _ = try await synchro.synchroniser(maintenant: maintenant, fuseau: paris)
 
@@ -206,7 +225,7 @@ actor FauxSourceNuits: SourceNuits {
     try Data("}{".utf8).write(to: dossier.appendingPathComponent("nuits.json"))
     let source = FauxSourceNuits(echantillons: try echantillonsNuits(["2026-10-28"]))
     let synchro = SynchroniseurNuits(source: source, moteur: moteurSansFlux(dossier))
-    let plusAncienne = local(try ajouterJours(aujourdhui, -250), "18:00")
+    let plusAncienne = local(try ajouterJours(aujourdhui, -450), "18:00")
 
     _ = try await synchro.synchroniser(maintenant: maintenant, fuseau: paris)
 

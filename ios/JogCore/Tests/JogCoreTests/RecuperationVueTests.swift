@@ -169,4 +169,45 @@ private func arrondiNuit(_ n: NuitResumee) throws -> NuitResumee {
         #expect(finale.semaines.map(\.lundi) == brute.semaines.map(\.lundi))
         #expect(try finale.semaines.map(\.ecartVfc_pct) == brute.semaines.map { try a4($0.ecartVfc_pct) })
     }
+
+    // MARK: Lot 9 : norme VFC par dimanche (04, « Six qualités » ; D-023)
+
+    @Test func lot9UnPointParDimancheAvecNormeEgalAlaSerie() throws {
+        // 04, « Six qualités » : la Résilience lit le milieu de la norme au dimanche. Un point par dimanche qui a une
+        // norme, à la valeur que `serieRecuperation` donne ce jour-là, sur les 450 nuits lues.
+        let nuits = try nuitsExemple(.normal, aujourdhui: jourA, nombre: RECUPERATION.nuitsLues)
+        let recup = try #require(try calculerRecuperation(nuits, derniereSession: nil, aujourdhui: jourA))
+        let du = try ajouterJours(jourA, -(RECUPERATION.nuitsLues - 1))
+        let attendus = try serieRecuperation(nuits, du: du, au: jourA).filter {
+            try jourDeSemaine($0.date) == 6 && $0.vfcMilieu != nil
+        }
+
+        #expect(!attendus.isEmpty)
+        #expect(recup.milieuxNormeVFC.map(\.date) == attendus.map(\.date))
+        #expect(recup.milieuxNormeVFC.map(\.milieu_ms) == attendus.compactMap(\.vfcMilieu))
+    }
+
+    @Test func lot9UnDimancheSansNormeNAPasDePoint() throws {
+        // 04, « Récupération » : une norme exige au moins 21 nuits mesurées. Avec 15 nuits, aucun dimanche n'a de point.
+        let nuits = try nuitsExemple(.normal, aujourdhui: jourA, nombre: 15)
+        let recup = try #require(try calculerRecuperation(nuits, derniereSession: nil, aujourdhui: jourA))
+
+        #expect(recup.milieuxNormeVFC.isEmpty)
+    }
+
+    @Test func lot9UneVueAuFormatPrecedentEstRejeteeDuCache() async throws {
+        // Une Vue en cache d'avant le lot 9 (format 6) n'a pas de série VFC : `charger` ne la sert pas, la Vue est
+        // recalculée. Une Vue au format courant, elle, est servie.
+        let dossier = try dossierTemporaire()
+        defer { try? FileManager.default.removeItem(at: dossier) }
+        let stockage = Stockage(racine: dossier)
+        var ancienne = try calculerVue(try entreeAvec(nuits: try nuitsExemple(.normal, aujourdhui: jourA), derniereSession: session(jourA)))
+        ancienne.formatVersion = 6
+        try stockage.ecrireVue(ancienne)
+        #expect(await Moteur(stockage: stockage, lireFlux: { _ in nil }).charger() == nil)
+
+        let courante = try calculerVue(try entreeAvec(nuits: nil))
+        try stockage.ecrireVue(courante)
+        #expect(await Moteur(stockage: stockage, lireFlux: { _ in nil }).charger() == courante)
+    }
 }
