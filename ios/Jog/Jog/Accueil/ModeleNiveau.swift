@@ -87,12 +87,36 @@ enum ModeleNiveau {
     /// Sommets du radar : le premier en haut, puis un pas régulier dans le sens horaire. `rayon` est celui de l'anneau
     /// extérieur ; chaque axe se place à `rayon × axe.rayon` (0,5 = l'anneau du milieu).
     static func sommets(_ axes: [Axe], centre: CGPoint, rayon: Double) -> [CGPoint] {
-        let pas = 360.0 / Double(max(axes.count, 1))
-        return axes.enumerated().map { i, axe in
-            let angle = (-90.0 + Double(i) * pas) * .pi / 180
-            let distance = rayon * axe.rayon
-            return CGPoint(x: centre.x + distance * cos(angle), y: centre.y + distance * sin(angle))
+        axes.enumerated().map { i, axe in
+            point(centre, direction(i, sur: axes.count), rayon * axe.rayon)
         }
+    }
+
+    /// Un anneau du radar : polygone régulier à `fraction × rayon` (25, 50, 75 ou 100 % de l'anneau extérieur).
+    static func anneau(_ fraction: Double, centre: CGPoint, rayon: Double, nombre: Int) -> [CGPoint] {
+        (0..<max(nombre, 0)).map { i in point(centre, direction(i, sur: nombre), rayon * fraction) }
+    }
+
+    /// Direction unitaire du sommet `i` sur `n` : le premier en haut (−90°), puis un pas de 360°/n dans le sens horaire.
+    static func direction(_ i: Int, sur n: Int) -> CGVector {
+        let angle = (-90.0 + Double(i) * 360.0 / Double(max(n, 1))) * .pi / 180
+        return CGVector(dx: cos(angle), dy: sin(angle))
+    }
+
+    private static func point(_ centre: CGPoint, _ direction: CGVector, _ distance: Double) -> CGPoint {
+        CGPoint(x: centre.x + distance * direction.dx, y: centre.y + distance * direction.dy)
+    }
+
+    /// Ce que la carte Niveau affiche, calculé une fois par Vue (`CacheNiveau`) : en-tête et six axes.
+    struct Calculs: Equatable {
+        let enTete: EnTete
+        let axes: [Axe]
+    }
+
+    /// Les calculs de JogCore (niveau VDOT, six qualités) mis en forme ; nil si l'un des deux ne se calcule pas.
+    static func calculs(_ vue: Vue) -> Calculs? {
+        guard let niveau = try? niveauVDOT(vue), let six = try? sixQualites(vue) else { return nil }
+        return Calculs(enTete: enTete(niveau, six), axes: axes(six))
     }
 
     private static func nomQualite(_ q: Qualite) -> String {

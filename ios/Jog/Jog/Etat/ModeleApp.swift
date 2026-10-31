@@ -25,6 +25,8 @@ final class ModeleApp {
     private(set) var etat: EtatApp = .chargement
     /// Cartes de séance de l'app (lot 16) : une seule construction par Vue, lue par l'écran Séance et l'accueil.
     let cartes = CacheCartes()
+    /// Carte Niveau (lot 17) : niveau VDOT et six qualités, calculés une fois par Vue.
+    let niveau = CacheNiveau()
 
     #if DEBUG
     /// Affiche la maquette à la place des données réelles (Paramètres > Développement). Non persisté.
