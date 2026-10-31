@@ -25,6 +25,7 @@
 		00000000000000000000A0F0 /* AccueilJaugesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F1 /* AccueilJaugesTests.swift */; };
 		00000000000000000000A0F2 /* AccueilSeancesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F3 /* AccueilSeancesTests.swift */; };
 		00000000000000000000A0F6 /* AccueilNiveauTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F7 /* AccueilNiveauTests.swift */; };
+		00000000000000000000A0F8 /* AccueilEcranTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F9 /* AccueilEcranTests.swift */; };
 		00000000000000000000A0F4 /* AccueilLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F5 /* AccueilLayoutTests.swift */; };
 		00000000000000000000A08C /* RecuperationLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A08D /* RecuperationLayoutTests.swift */; };
 		00000000000000000000A08E /* RecuperationGrapheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A08F /* RecuperationGrapheTests.swift */; };
@@ -59,6 +60,7 @@
 		00000000000000000000A0F1 /* AccueilJaugesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilJaugesTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A0F3 /* AccueilSeancesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilSeancesTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A0F7 /* AccueilNiveauTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilNiveauTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A0F9 /* AccueilEcranTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilEcranTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A0F5 /* AccueilLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilLayoutTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A08D /* RecuperationLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecuperationLayoutTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A08F /* RecuperationGrapheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecuperationGrapheTests.swift; sourceTree = "<group>"; };
@@ -142,6 +144,7 @@
 				00000000000000000000A0F1 /* AccueilJaugesTests.swift */,
 				00000000000000000000A0F3 /* AccueilSeancesTests.swift */,
 				00000000000000000000A0F7 /* AccueilNiveauTests.swift */,
+				00000000000000000000A0F9 /* AccueilEcranTests.swift */,
 				00000000000000000000A0F5 /* AccueilLayoutTests.swift */,
 				00000000000000000000A08D /* RecuperationLayoutTests.swift */,
 				00000000000000000000A08F /* RecuperationGrapheTests.swift */,
@@ -273,6 +276,7 @@
 				00000000000000000000A0F0 /* AccueilJaugesTests.swift in Sources */,
 				00000000000000000000A0F2 /* AccueilSeancesTests.swift in Sources */,
 				00000000000000000000A0F6 /* AccueilNiveauTests.swift in Sources */,
+				00000000000000000000A0F8 /* AccueilEcranTests.swift in Sources */,
 				00000000000000000000A0F4 /* AccueilLayoutTests.swift in Sources */,
 				00000000000000000000A08C /* RecuperationLayoutTests.swift in Sources */,
 				00000000000000000000A08E /* RecuperationGrapheTests.swift in Sources */,

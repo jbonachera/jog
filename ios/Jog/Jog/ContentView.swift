@@ -83,7 +83,9 @@ struct ContentView: View {
 
     /// L'écran d'une destination empilée, avec la Vue de l'app (ou la maquette de DEBUG).
     private func destinationVue(_ destination: Destination) -> DestinationView {
-        DestinationView(destination: destination, vue: vueCourante, ouvrir: ouvrir)
+        DestinationView(
+            destination: destination, vue: vueCourante, ouvrir: ouvrir, surMarquage: surMarquage, cartes: modele.cartes
+        )
     }
 
     /// Marquage d'une séance (D-020), relayé au modèle qui recalcule la Vue.

@@ -635,7 +635,7 @@ enum ModeleNiveau {
 | 13 | fait | swift test 531 ; xcodebuild test 189 verts (35 nouveaux) ; relu ; 4 corrections (`LigneJauge.n` pour « {n} footings des 8 dernières semaines », formats de toutes les jauges testés, borne 365/366 jours, résumé sans sous-seuil testé) |
 | 14 | fait | swift test 531 ; xcodebuild test 194 verts (5 fonctions nouvelles) ; relu ; 4 corrections (toucher de la ligne seulement si dépliable, trait bouton explicite, tolérance retirée du test, colonne du libellé compressible : débordement de 0,33 pt corrigé) |
 | 15 | fait | swift test 534 ; xcodebuild test 215 verts (21 nouveaux) ; relu ; 3 corrections (records par distance calculés dans JogCore par `recordsParDistance`, sans dépendre d'un 5 km ; bornes D-015 du ton d'un axe ; rayon 0,5 sans écart testé) |
-| 16 | | |
+| 16 | fait | swift test 534 ; xcodebuild test 225 verts (10 nouveaux) ; relu ; 3 corrections (cartes mémorisées une fois par Vue dans `ModeleApp.cartes` au lieu d'un index complet par séance ouverte, menu de marquage pur et testé, bornes du tableau et des segments) |
 | 17 | | |
 | 18 | | |
 | 19 | | |
@@ -666,3 +666,5 @@ enum ModeleNiveau {
 - Lot 14 : VoiceOver vérifié par la lecture composée (`lecture`), pas par l'arbre d'accessibilité (non observable depuis l'hôte de test) ; le trait bouton est posé explicitement.
 - À faire par l'utilisateur (lot 14) : relire les composants dans les `#Preview` (clair, sombre, XXL) et à VoiceOver.
 - Lot 15 : le record de Courses (point 14) vient de `recordsParDistance` (JogCore, meilleur temps par distance, la plus ancienne à égalité), et non du `NiveauEstime` de P5, qui n'existe qu'avec un 5 km. L'en-tête porte un `ton` (écart nul neutre) au lieu de `ecartPositif` ; chaque axe porte `comparaison` et `accessibilite`.
+- Lot 16 : S3 v1 (point 7) montre la carte S2, le tableau des répétitions (même calcul que P4, par `seanceSousSeuil` extraite de `derniereSeanceSousSeuil` sans changer son comportement) et les segments en texte, sans sucettes ni courbes. Le marquage (D-020) est un menu dans la barre de S3. Un `mp_min` entre 0 et 0,5 s'afficherait « 0 min à allure marathon » (non corrigé, cas rare).
+- À faire par l'utilisateur (lot 16) : captures de S3 et de N2, clair, sombre et XXL.

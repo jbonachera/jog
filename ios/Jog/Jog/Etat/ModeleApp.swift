@@ -23,6 +23,8 @@ func retirerPreferences(_ defaults: UserDefaults) {
 @Observable
 final class ModeleApp {
     private(set) var etat: EtatApp = .chargement
+    /// Cartes de séance de l'app (lot 16) : une seule construction par Vue, lue par l'écran Séance et l'accueil.
+    let cartes = CacheCartes()
 
     #if DEBUG
     /// Affiche la maquette à la place des données réelles (Paramètres > Développement). Non persisté.

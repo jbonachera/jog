@@ -73,6 +73,37 @@ enum ModeleSeances {
         }
     }
 
+    // MARK: - Écran Séance (S3)
+
+    /// L'écran Séance (S3) : la carte S2 en tête, le tableau des répétitions (P4) pour une séance sous-seuil ou qualité, et
+    /// les segments écrits en texte (03 S3 : v1 sans courbes).
+    struct Ecran: Equatable {
+        let carte: Carte
+        let tableau: TableauAffiche?
+        let segments: [String]
+    }
+
+    /// L'écran de la séance `s`, avec sa carte `c` (JogCore) et les paramètres datés (D-006) pour le tableau de P4.
+    static func ecran(_ s: SeanceVue, _ c: CarteSeance, _ paramsAuJour: ParamsAuJour, J: DateCivile, fuseau: TimeZone) -> Ecran {
+        let repetitions = s.type == .sousSeuil || s.type == .seanceQualite
+        let tableau = repetitions && !s.repetitions.isEmpty
+            ? ModeleProgression.tableauDerniere(seanceSousSeuil(s, paramsAuJour))
+            : nil
+        return Ecran(carte: carte(s, c, J: J, fuseau: fuseau), tableau: tableau, segments: segments(s))
+    }
+
+    /// Les segments de la séance, en texte : minutes à allure marathon (sortie longue), lignes droites (footing).
+    static func segments(_ s: SeanceVue) -> [String] {
+        var segments: [String] = []
+        if s.mp_min.isFinite, s.mp_min > 0 {
+            segments.append("\(duree(s.mp_min)) à allure marathon")
+        }
+        if s.lignesDroites {
+            segments.append("Lignes droites")
+        }
+        return segments
+    }
+
     // MARK: - En-têtes de semaine
 
     /// L'en-tête de la semaine `s` (S1). `seances` sert à nommer la course de la semaine (point de décision 15) ; J est la
@@ -366,6 +397,24 @@ enum ModeleSeances {
         case .course: return [test, retirer]
         case .test: return [course, retirer]
         case .aucun, .inconnu: return [course, test]
+        }
+    }
+
+    /// Une entrée du menu de marquage de S3 (D-020) : son titre, le marquage transmis, et l'action qui le relaie avec la clé
+    /// de la séance.
+    struct ActionMarquage {
+        let titre: String
+        let valeur: MarquageUtilisateur?
+        let action: () -> Void
+    }
+
+    /// Les entrées du menu de marquage de S3 pour la séance `cleSource`, selon son marquage courant (`optionsMarquage`).
+    /// Chaque action appelle `surMarquage(cleSource, valeur)`.
+    static func menuMarquage(
+        cleSource: String, courant: Marquage, surMarquage: @escaping (String, MarquageUtilisateur?) -> Void
+    ) -> [ActionMarquage] {
+        optionsMarquage(courant).map { option in
+            ActionMarquage(titre: option.titre, valeur: option.valeur, action: { surMarquage(cleSource, option.valeur) })
         }
     }
 

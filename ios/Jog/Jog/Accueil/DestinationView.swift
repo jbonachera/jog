@@ -3,12 +3,16 @@ import JogCore
 
 /// Les écrans de détail empilés par `Navigation` (02, « Écrans de détail »). Chaque destination réutilise la vue
 /// existante de son sujet.
-/// `courses`, `seance` et `semaine` n'ont pas encore d'appelant : leur écran arrive avec leur lot (16 et 14).
+/// `semaine` n'a pas encore d'appelant : son écran arrive avec son lot (18).
 struct DestinationView: View {
     let destination: Destination
     let vue: Vue?
     /// Empile une autre destination (depuis la feuille d'un signal, par exemple).
     let ouvrir: (Destination) -> Void
+    /// Marquage d'une séance (D-020), relayé au modèle qui recalcule la Vue.
+    let surMarquage: (String, MarquageUtilisateur?) -> Void
+    /// Cartes de séance de l'app (lot 16).
+    let cartes: CacheCartes
     @AppStorage(CLE_BESOIN_SOMMEIL) private var besoinSommeil_min: Double = BesoinSommeil.defaut
 
     var body: some View {
@@ -30,7 +34,15 @@ struct DestinationView: View {
             }
         case let .signal(cle):
             signal(Navigation.destination(du: cle), vue)
-        case .courses, .seance, .semaine:
+        case .courses:
+            page("Courses") {
+                EcranCourses(vue: vue, ouvrir: ouvrir)
+            }
+        case let .seance(cleSource):
+            page("Séance") {
+                EcranSeance(vue: vue, cleSource: cleSource, surMarquage: surMarquage, cartes: cartes)
+            }
+        case .semaine:
             ContentUnavailableView("Bientôt disponible", systemImage: "hourglass")
         }
     }

@@ -13,6 +13,12 @@ public func derniereSeanceSousSeuil(_ vue: Vue, _ paramsAuJour: ParamsAuJour) ->
         derniere = s
     }
     guard let derniere else { return nil }
+    return seanceSousSeuil(derniere, paramsAuJour)
+}
+
+/// La séance `derniere` au format de P4 (répétitions, moyenne, bande, seuil à sa date). Public pour l'écran Séance (S3) :
+/// la même fonction sert à la dernière séance (P4) et à une séance quelconque.
+public func seanceSousSeuil(_ derniere: SeanceVue, _ paramsAuJour: ParamsAuJour) -> DerniereSeance {
     let estimees: Bool? = derniere.repetitionsEstimees == true ? true : nil
 
     let p = paramsAuJour(derniere.date)

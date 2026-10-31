@@ -5,11 +5,7 @@ extension CalculsProgression {
     /// Les calculs de l'onglet, lus dans la Vue par JogCore. Les paramètres du jour de chaque séance viennent des
     /// modifications de la Vue (D-006) : le même index sert au dérivé des séances et au comparateur.
     init(vue: Vue) throws {
-        let index = try indexerParametres(Parametres(
-            globaux: vue.parametresEnVigueur.globaux,
-            modifs: vue.parametresEnVigueur.modifs
-        ))
-        let paramsAuJour: ParamsAuJour = { index.auJour($0) }
+        let paramsAuJour = try paramsAuJourDe(vue)
         let dates = vue.parametresEnVigueur.datesAJm1
 
         self.init(
@@ -25,4 +21,14 @@ extension CalculsProgression {
             cle: vue
         )
     }
+}
+
+/// Les paramètres datés en vigueur à chaque jour de la Vue (D-006), indexés une seule fois. Partagé par P4, le comparateur
+/// et l'écran Séance (S3).
+func paramsAuJourDe(_ vue: Vue) throws -> ParamsAuJour {
+    let index = try indexerParametres(Parametres(
+        globaux: vue.parametresEnVigueur.globaux,
+        modifs: vue.parametresEnVigueur.modifs
+    ))
+    return { index.auJour($0) }
 }
