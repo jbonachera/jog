@@ -637,7 +637,7 @@ enum ModeleNiveau {
 | 15 | fait | swift test 534 ; xcodebuild test 215 verts (21 nouveaux) ; relu ; 3 corrections (records par distance calculés dans JogCore par `recordsParDistance`, sans dépendre d'un 5 km ; bornes D-015 du ton d'un axe ; rayon 0,5 sans écart testé) |
 | 16 | fait | swift test 534 ; xcodebuild test 225 verts (10 nouveaux) ; relu ; 3 corrections (cartes mémorisées une fois par Vue dans `ModeleApp.cartes` au lieu d'un index complet par séance ouverte, menu de marquage pur et testé, bornes du tableau et des segments) |
 | 17 | fait | swift test 534 ; xcodebuild test 232 verts (14 cas nouveaux) ; relu ; 4 corrections (la bulle ne capte plus les touchers du radar, mesures en `@ScaledMetric`, cadres des étiquettes testés sans recouvrement, trait « sélectionné ») |
-| 18 | | |
+| 18 | fait | swift test 534 ; xcodebuild test 243 verts (11 nouveaux) ; relu ; 4 corrections (détail d'une semaine vide, semaines mémorisées par Vue, ordre des blocs lu dans `ModeleAccueil`, `lienSaisons` décidé par le modèle, Vue vide testée) ; 2 essais d'implémentation (le premier n'a rien écrit) |
 | 19 | | |
 | 20 | | |
 
@@ -670,3 +670,6 @@ enum ModeleNiveau {
 - À faire par l'utilisateur (lot 16) : captures de S3 et de N2, clair, sombre et XXL.
 - Lot 17 : le radar tient jusqu'à XXL (limite de Dynamic Type de 02) ; aux tailles d'accessibilité, les étiquettes se recoupent (non testé au-delà de XXL). Le toucher de la bulle n'est pas testé (geste SwiftUI non observable en test unitaire).
 - À faire par l'utilisateur (lot 17) : captures de la carte Niveau à 320 et 440 pt, en XXL, clair et sombre ; vérifier au doigt bulle, étiquettes et ouverture de Courses.
+- Lot 18 : l'ancien `AccueilView` (écran de première ouverture) devient `PremiereOuvertureView` pour libérer le nom. `ApercuView` et `CarteRecuperationView` sont retirées (point 10) ; `TuilesRecuperation` en est extraite (encore utilisée par les tests de récupération). Le bouton « Tendances » de l'ancienne carte de récupération n'est pas repris (absent de 03 A5).
+- Lot 18 : sans séance, la semaine en cours apparaît quand même (« aucune séance ») ; le détail d'une semaine vide est une ligne vide. Le sélecteur de mois (point 8) est un menu derrière un bouton calendrier dans la barre de titre.
+- À faire par l'utilisateur (lot 18) : captures d'Aujourd'hui à 320, 393 et 440 pt, clair et sombre ; vérifier le pli (N1 + A5 visibles) sur iPhone, le défilement de S1 et VoiceOver.

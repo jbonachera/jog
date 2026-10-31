@@ -405,3 +405,111 @@ private func jaugeMain(
     )
     #expect(entete.resume == "2 séances")
 }
+
+// MARK: - Accueil (lot 18) : ordre des blocs, sections par semaine, sélecteur de mois, destinations
+
+// 02, « Contenu par onglet » ; 03 : l'ordre est N1, A5, A2, puis S1, avec ou sans séance du jour, avec ou sans nuit.
+// Seule l'absence totale de séance ajoute le message d'accueil, en tête.
+@Test func lOrdreDesBlocsNeChangePasAvecLaSeanceOuLaNuit() throws {
+    let nuits = try nuitsExemple(.normal, aujourdhui: aujourdhui)
+    let recuperation = try #require(try calculerRecuperation(nuits, derniereSession: nil, aujourdhui: aujourdhui))
+    let seanceDuJour = seance("a", "2026-10-30", .footing, fcMoy: 134, ef: 1.66)
+    for seances in [[], [seanceDuJour]] {
+        for avecNuit in [false, true] {
+            var vue = vueAvec(seances)
+            if avecNuit {
+                vue.recuperation = recuperation
+            }
+            let blocs = ModeleAccueil.blocs(sansDonnees: vue.seances.isEmpty)
+            #expect(blocs == (seances.isEmpty ? [.sansDonnees] : []) + ModeleAccueil.ordre)
+        }
+    }
+}
+
+// 03, S1 : une semaine sans séance (en cours, ou absente de l'historique) garde sa feuille : une ligne vide à son lundi,
+// avec zéro kilomètre et sans type ni course, au lieu de « Pas de semaine ».
+@Test func laSemaineSansSeanceAUneLigneVideAMonLundi() {
+    let ligne = ModeleHistorique.semaine([:], vue: vueAvec([]), lundi: "2026-10-26")
+    #expect(ligne.id == "2026-10-26")
+    #expect(ligne.enCours)
+    #expect(ligne.km == 0)
+    #expect(ligne.types.isEmpty)
+    #expect(ligne.courses.isEmpty)
+}
+
+// 03, Accueil : sans aucune donnée, A2 dit « Pas encore de verdict », A5 n'a aucune ligne, et S1 ne garde que la semaine
+// en cours, qui dit « aucune séance ».
+@MainActor @Test func laVueVideDonneUnAccueilSansLignes() {
+    let calculs = CacheAccueil().calculs(Vue.vide(J: aujourdhui), besoin_min: BesoinSommeil.defaut, cartes: CacheCartes())
+    #expect(calculs.verdict.texte == "Pas encore de verdict")
+    #expect(calculs.recuperation.isEmpty)
+    #expect(calculs.etatRecuperation == nil)
+    #expect(calculs.sections.map(\.id) == ["2026-10-26"])
+    #expect(calculs.sections[0].entete.resume == "aucune séance")
+    #expect(calculs.sections[0].cartes.isEmpty)
+}
+
+// 03, S1 : une section par semaine, la plus récente en premier ; chaque section porte les cartes de sa semaine, dans
+// l'ordre de la semaine. La séance de la veille (A) porte le contour du jour (S2).
+@Test func chaqueSemaineAUneSectionAvecSesCartes() throws {
+    let seances = [
+        seance("a", "2026-10-29", .footing, fcMoy: 134, ef: 1.66),
+        seance("b", "2026-10-27", .footing, fcMoy: 136, ef: 1.68),
+        seance("c", "2026-10-21", .footing, fcMoy: 138, ef: 1.70),
+    ]
+    let cartes = try cartesSeances(vueAvec(seances), parDefaut)
+    var courante = semaine(lundi: "2026-10-26", enCours: true)
+    courante.seances = ["a", "b"]
+    var precedente = semaine(lundi: "2026-10-19", enCours: false)
+    precedente.seances = ["c"]
+
+    let sections = ModeleAccueil.sections(
+        semaines: [courante, precedente], seances: seances, cartes: cartes, J: aujourdhui, fuseau: paris
+    )
+
+    #expect(sections.map(\.id) == ["2026-10-26", "2026-10-19"])
+    #expect(sections[0].entete.titre == "Cette semaine")
+    #expect(sections[0].cartes.map(\.id) == ["a", "b"])
+    #expect(sections[0].cartes.map(\.estDuJour) == [true, false])
+    #expect(sections[1].cartes.map(\.id) == ["c"])
+}
+
+// 03, S1 : sans aucune séance, la semaine en cours reste seule, avec « aucune séance ».
+@Test func sansSeanceLaSemaineEnCoursResteAvecAucuneSeance() {
+    let semaines = ModeleAccueil.semainesAffichees([], lundiDeA: "2026-10-26")
+    #expect(semaines.map(\.lundi) == ["2026-10-26"])
+    #expect(semaines[0].enCours)
+
+    let sections = ModeleAccueil.sections(semaines: semaines, seances: [], cartes: [:], J: aujourdhui, fuseau: paris)
+    #expect(sections[0].entete.titre == "Cette semaine")
+    #expect(sections[0].entete.resume == "aucune séance")
+    #expect(sections[0].cartes.isEmpty)
+}
+
+// 03, S1 : quand la Vue a des semaines, elles sont gardées telles quelles.
+@Test func lesSemainesCalculeesNeSontPasChangees() {
+    let existantes = [semaine(lundi: "2026-10-26")]
+    #expect(ModeleAccueil.semainesAffichees(existantes, lundiDeA: "2026-10-26") == existantes)
+}
+
+// 02, « Règles d'Aujourd'hui » et point de décision 8 : le sélecteur de mois liste chaque mois une fois, du plus récent,
+// et saute à la semaine la plus récente de ce mois.
+@Test func leSelecteurDeMoisSauteALaSemaineLaPlusRecenteDuMois() {
+    let semaines = ["2026-10-26", "2026-10-19", "2026-09-28", "2026-09-21"].map { semaine(lundi: $0, enCours: false) }
+    let sections = ModeleAccueil.sections(semaines: semaines, seances: [], cartes: [:], J: aujourdhui, fuseau: paris)
+
+    let mois = ModeleAccueil.mois(sections)
+
+    #expect(mois.map(\.titre) == ["Octobre 2026", "Septembre 2026"])
+    #expect(mois.map(\.cible) == ["2026-10-26", "2026-09-28"])
+}
+
+// 03, Accueil : chaque élément ouvre son écran (02, « Écrans de détail ») ; la pastille du verdict empile Décision, la
+// carte Récupération Récupération, une carte de séance Séance, un en-tête la semaine (point de décision 8).
+@Test func chaqueElementDeLAccueilOuvreSonEcran() {
+    #expect(ModeleAccueil.destination(de: .niveau) == .courses)
+    #expect(ModeleAccueil.destination(de: .recuperation) == .recuperation)
+    #expect(ModeleAccueil.destination(de: .verdict) == .decision)
+    #expect(ModeleAccueil.destination(de: .entete("2026-10-26")) == .semaine(lundi: "2026-10-26"))
+    #expect(ModeleAccueil.destination(de: .seance("a")) == .seance(cleSource: "a"))
+}

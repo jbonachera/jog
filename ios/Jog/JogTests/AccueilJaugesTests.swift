@@ -331,6 +331,14 @@ private func vueRecuperation() throws -> VueRecuperation {
     #expect(ModeleJauges.pastilleVerdict(alleger).ton == .mauvais)
 }
 
+// 03, Accueil › Volume (point de décision 11) : seule la ligne Année porte le lien « Saisons › ».
+@Test func seulLaLigneAnneePorteLeLienSaisons() throws {
+    let lignes = ModeleJauges.volume(exempleVolume, annee: 2026)
+    #expect(try ligne(lignes, "annee").lienSaisons)
+    #expect(try ligne(lignes, "semaine").lienSaisons == false)
+    #expect(try ligne(lignes, "trenteJours").lienSaisons == false)
+}
+
 // 03 A5 : la pastille de récupération porte les cinq états, la couleur ne portant jamais seule l'état (08).
 @Test func laPastilleDeRecuperationDitLEtatEnCinqFormes() throws {
     let base = try vueRecuperation()

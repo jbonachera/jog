@@ -18,6 +18,8 @@ enum ModeleJauges {
         let bande: ClosedRange<Double>?
         let phrase: String?
         let accessibilite: String
+        /// Le lien « Saisons › » de la phrase (point de décision 11) : seule la ligne Année le porte.
+        var lienSaisons = false
     }
 
     // MARK: - Lignes
@@ -37,7 +39,7 @@ enum ModeleJauges {
         let annee = ligne(
             id: "annee", libelle: String(annee), jauge: l.annee,
             gabarit: kilometres(0, reference: "l’an dernier"),
-            phrase: phraseAnnee(r)
+            phrase: phraseAnnee(r), lienSaisons: true
         )
         return [semaine, trenteJours, annee]
     }
@@ -99,7 +101,7 @@ enum ModeleJauges {
 
     // MARK: - Textes
 
-    private static let messageSansNuit = "Aucune nuit mesurée dans Santé. Porte l’Apple Watch la nuit, avec le suivi du sommeil activé."
+    static let messageSansNuit = "Aucune nuit mesurée dans Santé. Porte l’Apple Watch la nuit, avec le suivi du sommeil activé."
     private static let jours = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
 
     /// Volume en kilomètres, avec l'écart en pourcentage face à la référence.
@@ -140,7 +142,9 @@ enum ModeleJauges {
         var uniteBande = ""
     }
 
-    static func ligne(id: String, libelle: String, jauge: LigneJauge, gabarit: Gabarit, phrase: String?) -> Ligne {
+    static func ligne(
+        id: String, libelle: String, jauge: LigneJauge, gabarit: Gabarit, phrase: String?, lienSaisons: Bool = false
+    ) -> Ligne {
         let echelle = echelle(jauge)
         let valeur = jauge.valeurAffichee.map(gabarit.texte) ?? ModeleApercu.tiret
         let valeurLue = jauge.valeurAffichee.map(gabarit.lue) ?? "valeur absente"
@@ -149,7 +153,8 @@ enum ModeleJauges {
             ecart: jauge.ecart.map { ModeleApercu.signe($0, gabarit.decimalesEcart, unite: gabarit.suffixeEcart) } ?? "",
             horsBande: jauge.horsBande, echelle: echelle, point: jauge.valeurAffichee,
             trait: jauge.trait, bande: jauge.bande, phrase: phrase,
-            accessibilite: accessibilite(libelle: libelle, valeurLue: valeurLue, jauge: jauge, gabarit: gabarit)
+            accessibilite: accessibilite(libelle: libelle, valeurLue: valeurLue, jauge: jauge, gabarit: gabarit),
+            lienSaisons: lienSaisons
         )
     }
 

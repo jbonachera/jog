@@ -3,7 +3,7 @@ import JogCore
 
 /// Les écrans de détail empilés par `Navigation` (02, « Écrans de détail »). Chaque destination réutilise la vue
 /// existante de son sujet.
-/// `semaine` n'a pas encore d'appelant : son écran arrive avec son lot (18).
+/// `semaine` ouvre le détail d'une semaine de S1 (`ContenuSemaine`, la feuille de Historique sans barre de fermeture).
 struct DestinationView: View {
     let destination: Destination
     let vue: Vue?
@@ -13,6 +13,8 @@ struct DestinationView: View {
     let surMarquage: (String, MarquageUtilisateur?) -> Void
     /// Cartes de séance de l'app (lot 16).
     let cartes: CacheCartes
+    /// Lignes des semaines par lundi (lot 18), lues par la feuille de semaine (S1).
+    let accueil: CacheAccueil
     @AppStorage(CLE_BESOIN_SOMMEIL) private var besoinSommeil_min: Double = BesoinSommeil.defaut
 
     var body: some View {
@@ -42,8 +44,11 @@ struct DestinationView: View {
             page("Séance") {
                 EcranSeance(vue: vue, cleSource: cleSource, surMarquage: surMarquage, cartes: cartes)
             }
-        case .semaine:
-            ContentUnavailableView("Bientôt disponible", systemImage: "hourglass")
+        case let .semaine(lundi):
+            ContenuSemaine(
+                ligne: ModeleHistorique.semaine(accueil.lignesSemaines(vue), vue: vue, lundi: lundi),
+                seances: ModeleHistorique.seances(vue, lundi: lundi), surMarquage: surMarquage
+            )
         }
     }
 

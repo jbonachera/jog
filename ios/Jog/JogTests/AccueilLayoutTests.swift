@@ -257,3 +257,27 @@ func uneBulleNiveauNeDeborditPas(largeur: CGFloat, taille: DynamicTypeSize) {
     #expect(fond.navigue && fond.bulle == nil, "toucher ailleurs ouvre Courses, sans bulle")
     #expect(GesteNiveau.effet(.toucheFond, bulle: .seuil).navigue, "avec une bulle ouverte, toucher ailleurs navigue aussi")
 }
+
+// MARK: - Accueil (lot 18)
+
+// 03, Accueil, règle 1 : à 393 pt, N1 et A5 tiennent dans 540 pt, la récupération est au-dessus du pli.
+@MainActor @Test func leNiveauEtLaRecuperationTiennentAuPliA393() {
+    let accueil = VStack(spacing: 16) {
+        CarteNiveauView(calculs: calculsNiveauFixture(), ouvrir: { _ in })
+        CarteRecuperationAccueilView(
+            lignes: [ligneFixture(libelle: "VFC"), ligneFixture(libelle: "FC de repos"), ligneFixture(libelle: "Sommeil")],
+            etat: ("Dans ta norme", .bon), ouvrir: {}
+        )
+    }
+    #expect(tailleRendue(accueil, largeur: 393, taille: .large).height <= 540)
+}
+
+// 03, A2 : à 320 pt et en Dynamic Type XXL, la carte Volume (pastille et trois lignes) ne déborde pas de l'écran.
+@MainActor @Test(arguments: renduLargeursEcran, [DynamicTypeSize.xxLarge, .accessibility1])
+func laCarteDeVolumeNeDeborditPas(largeur: CGFloat, taille: DynamicTypeSize) {
+    let carte = CarteVolumeView(
+        lignes: [ligneFixture(libelle: "Semaine"), ligneFixture(libelle: "30 jours"), ligneFixture(libelle: "2025")],
+        verdict: ("Maintenir · 62–66 km / 7 j", .bon), ouvrirDecision: {}, ouvrirSaisons: {}
+    )
+    #expect(tailleRendue(carte, largeur: largeur, taille: taille).width <= largeur)
+}

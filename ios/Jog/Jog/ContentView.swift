@@ -14,7 +14,7 @@ struct ContentView: View {
         TabView(selection: $navigation.onglet) {
             Tab("Aujourd’hui", systemImage: "gauge.with.dots.needle.33percent", value: Onglet.aujourdhui) {
                 NavigationStack(path: $navigation.pileAujourdhui) {
-                    contenuApercu
+                    contenuAccueil
                         .toolbar { boutonParametres }
                         .navigationDestination(for: Destination.self) { destinationVue($0) }
                 }
@@ -81,10 +81,21 @@ struct ContentView: View {
         { navigation.ouvrir($0) }
     }
 
+    /// Ouvre Progrès › Saisons (lien de la ligne Année de A2).
+    private var ouvrirSaisons: () -> Void {
+        { navigation.ouvrirSaisons() }
+    }
+
+    /// L'accueil (N1, A5, A2, S1) pour une Vue, avec ses liens vers les écrans de détail.
+    private func accueil(_ vue: Vue) -> AccueilView {
+        AccueilView(vue: vue, modele: modele, ouvrir: ouvrir, ouvrirSaisons: ouvrirSaisons)
+    }
+
     /// L'écran d'une destination empilée, avec la Vue de l'app (ou la maquette de DEBUG).
     private func destinationVue(_ destination: Destination) -> DestinationView {
         DestinationView(
-            destination: destination, vue: vueCourante, ouvrir: ouvrir, surMarquage: surMarquage, cartes: modele.cartes
+            destination: destination, vue: vueCourante, ouvrir: ouvrir, surMarquage: surMarquage, cartes: modele.cartes,
+            accueil: modele.accueil
         )
     }
 
@@ -132,10 +143,10 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    private var contenuApercu: some View {
+    private var contenuAccueil: some View {
         #if DEBUG
         if let maquette = modele.maquette {
-            ApercuView(vue: maquette, surMarquage: surMarquage, ouvrir: ouvrir)
+            accueil(maquette)
         } else {
             contenuEtat
         }
@@ -152,17 +163,17 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.fond.ignoresSafeArea())
         case .premiereOuverture:
-            AccueilView(modele: modele)
+            PremiereOuvertureView(modele: modele)
         case let .importEnCours(traitees, total):
             ImportView(traitees: traitees, total: total)
         case let .pret(vue):
-            ApercuView(vue: vue, surMarquage: surMarquage, ouvrir: ouvrir)
+            accueil(vue)
         case let .erreur(message, nil):
             ErreurView(message: message, modele: modele)
         case let .erreur(message, vue?):
             VStack(spacing: 0) {
                 BandeauErreur(message: message, modele: modele)
-                ApercuView(vue: vue, surMarquage: surMarquage, ouvrir: ouvrir)
+                accueil(vue)
             }
         }
     }

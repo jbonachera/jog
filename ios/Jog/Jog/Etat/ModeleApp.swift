@@ -27,6 +27,8 @@ final class ModeleApp {
     let cartes = CacheCartes()
     /// Carte Niveau (lot 17) : niveau VDOT et six qualités, calculés une fois par Vue.
     let niveau = CacheNiveau()
+    /// Accueil (lot 18) : volume, récupération, semaines et leurs cartes, calculés une fois par Vue.
+    let accueil = CacheAccueil()
 
     #if DEBUG
     /// Affiche la maquette à la place des données réelles (Paramètres > Développement). Non persisté.

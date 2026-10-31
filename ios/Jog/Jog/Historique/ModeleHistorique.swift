@@ -257,6 +257,30 @@ enum ModeleHistorique {
         return sections
     }
 
+    /// Les lignes de toutes les semaines de l'historique, par lundi. Calculées une fois par Vue (`CacheAccueil`) : la
+    /// feuille de semaine (S1) les lit sans refaire l'historique à chaque rendu.
+    static func lignesParLundi(_ vue: Vue) -> [DateCivile: LigneSemaine] {
+        guard let chronologique = donnees(vue, .toutes)?.chronologique else { return [:] }
+        return Dictionary(chronologique.map { ($0.id, $0) }, uniquingKeysWith: { premiere, _ in premiere })
+    }
+
+    /// La ligne de la semaine du lundi `lundi`, pour sa feuille (S1). Une semaine sans ligne (aucune séance) reçoit une
+    /// ligne vide, avec les mêmes libellés que les autres.
+    static func semaine(_ lignes: [DateCivile: LigneSemaine], vue: Vue, lundi: DateCivile) -> LigneSemaine {
+        lignes[lundi] ?? ligneVide(vue, lundi: lundi)
+    }
+
+    /// Une semaine sans séance : tous les chiffres à zéro, aucun type, aucune course.
+    static func ligneVide(_ vue: Vue, lundi: DateCivile) -> LigneSemaine {
+        let zero = Minutes(easy: 0, mp: 0, subt: 0, hard: 0)
+        let vide = SemaineHistorique(
+            lundi: lundi, enCours: (try? lundiISO(vue.J)) == lundi, km: 0, min: 0, minutes: zero, kmParIntensite: zero,
+            partSSPct: nil, etatCible: nil, nbSS: 0, charge: 0, ratioDimanche: nil, etatRatio: nil, monotonie: nil,
+            contrainte: nil, conformitePct: nil, etatFootings: nil, courses: []
+        )
+        return ligne(vide, types: [], plafond: vue.parametresEnVigueur.datesAJm1.easyCap)
+    }
+
     /// Les séances d'une semaine, dans l'ordre de la Vue (chronologique).
     static func seances(_ vue: Vue, lundi: DateCivile) -> [SeanceSemaine] {
         var resultat: [SeanceSemaine] = []

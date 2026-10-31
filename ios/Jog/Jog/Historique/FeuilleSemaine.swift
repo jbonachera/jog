@@ -12,7 +12,27 @@ struct FeuilleSemaine: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ContenuSemaine(ligne: ligne, seances: seances, surMarquage: surMarquage)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Fermer") {
+                            fermer()
+                        }
+                    }
+                }
+        }
+    }
+}
+
+/// Le contenu de la feuille d'une semaine, sans barre de fermeture : la feuille (`FeuilleSemaine`) la place dans une
+/// `NavigationStack` ; l'accueil (S1) la pousse dans sa pile.
+struct ContenuSemaine: View {
+    let ligne: ModeleHistorique.LigneSemaine
+    let seances: [ModeleHistorique.SeanceSemaine]
+    let surMarquage: (String, MarquageUtilisateur?) -> Void
+
+    var body: some View {
+        ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     VStack(alignment: .leading, spacing: 12) {
                         TitreSection(titre: "Indicateurs")
@@ -62,17 +82,9 @@ struct FeuilleSemaine: View {
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .background(Color.fond.ignoresSafeArea())
-            .navigationTitle(ligne.titre)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Fermer") {
-                        fermer()
-                    }
-                }
-            }
-        }
+        .background(Color.fond.ignoresSafeArea())
+        .navigationTitle(ligne.titre)
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     private var indicateurs: [IndicateurFeuille] {

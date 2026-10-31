@@ -7,7 +7,15 @@ struct LigneJaugeView: View {
     /// A2 : toucher la ligne déplie sa phrase de référence. Faux (A5, S2) : la ligne n'est pas interactive, la phrase est
     /// lue par VoiceOver et visible dans l'écran de détail.
     var depliable = false
+    /// Lien de la phrase dépliée (A2 · Année : « Saisons › »). Il porte aussi une action VoiceOver de même nom.
+    var lien: Lien?
     @State private var phraseOuverte = false
+
+    /// Un lien à la fin de la phrase : son titre et l'action qu'il déclenche.
+    struct Lien {
+        let titre: String
+        let action: () -> Void
+    }
 
     /// Ce que VoiceOver lit d'une ligne : sa lecture (libellé, valeur, écart ou mention), puis sa phrase de référence.
     nonisolated static func lecture(_ ligne: ModeleJauges.Ligne) -> String {
@@ -35,10 +43,18 @@ struct LigneJaugeView: View {
             }
 
             if depliable, phraseOuverte, let phrase = ligne.phrase {
-                Text(phrase)
-                    .font(.caption)
-                    .foregroundStyle(.encre2)
-                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(phrase)
+                        .font(.caption)
+                        .foregroundStyle(.encre2)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let lien {
+                        Button(lien.titre, action: lien.action)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.accentFjord)
+                            .buttonStyle(.plain)
+                    }
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -46,6 +62,11 @@ struct LigneJaugeView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Self.lecture(ligne))
         .accessibilityAddTraits(depliable ? .isButton : [])
+        .accessibilityActions {
+            if let lien {
+                Button(lien.titre, action: lien.action)
+            }
+        }
 
         // Le geste n'est posé que si la ligne est dépliable : sinon il capterait le toucher du Button de la carte parente.
         if depliable {
