@@ -639,7 +639,7 @@ enum ModeleNiveau {
 | 17 | fait | swift test 534 ; xcodebuild test 232 verts (14 cas nouveaux) ; relu ; 4 corrections (la bulle ne capte plus les touchers du radar, mesures en `@ScaledMetric`, cadres des étiquettes testés sans recouvrement, trait « sélectionné ») |
 | 18 | fait | swift test 534 ; xcodebuild test 243 verts (11 nouveaux) ; relu ; 4 corrections (détail d'une semaine vide, semaines mémorisées par Vue, ordre des blocs lu dans `ModeleAccueil`, `lienSaisons` décidé par le modèle, Vue vide testée) ; 2 essais d'implémentation (le premier n'a rien écrit) |
 | 19 | fait | swift test 534 ; xcodebuild test 239 verts (tests des vues retirées supprimés, onglets et Progrès ajoutés) ; relu ; 2 corrections (H1 mesurée dans Progrès, ancienne valeur « progression » rouvre Progrès) |
-| 20 | | |
+| 20 | fait | swift test 536 ; xcodebuild test 244 verts (5 nouveaux) ; perf release : accueil complet 2,4 ms (budget 10), cartes 2,3, qualités 0,11, volume 0,01, semaines 0,28, `calculerVue` 0,73 ; ②a 0,59 ms par séance d'1 h ; relu ; 1 correction (maquette au `formatVersion` courant, testé) |
 
 ## Écarts proposés
 
@@ -675,3 +675,6 @@ enum ModeleNiveau {
 - À faire par l'utilisateur (lot 18) : captures d'Aujourd'hui à 320, 393 et 440 pt, clair et sombre ; vérifier le pli (N1 + A5 visibles) sur iPhone, le défilement de S1 et VoiceOver.
 - Lot 19 : retirés `ChargeView`, `HistoriqueView`, `JournalView`, `SeptDerniersJoursView`, `VolumeRealiseView`, `DerniereSeanceView` (P4 : son tableau vit dans S3), l'affichage de la monotonie et de la contrainte. Progrès : P1, P2, P3, P5 puis Saisons (H1), vers laquelle l'ancre défile. Une valeur d'onglet persistée inconnue rouvre Aujourd'hui, l'ancienne « progression » rouvre Progrès ; `jog-charge-partie` est effacée au lancement.
 - À faire par l'utilisateur (lot 19) : vérifier sur iPhone le défilement vers Saisons depuis « Saisons › », et les captures de Progrès.
+- Lot 20 : la maquette n'a pas de générateur dans le dépôt ; elle est enrichie depuis la version précédente (D+ partout, deux tests et une course, une séance qualité, `formatVersion` 7) et lit 450 nuits. Elle couvre 14 mois : la ligne Année n'a pas de bande (pas de norme annuelle, lot 3), le test n'exige la bande que pour la semaine et les 30 jours.
+- Lot 20 : premier lancement après mise à jour (relecture ②a, `VERSION_DENIVELE`) estimé à ≈ 1,2 s pour 2 000 séances d'1 h (0,59 ms par séance, sans lecture ni décodage des fichiers) ; à mesurer sur iPhone.
+- À faire par l'utilisateur (lot 20, iPhone) : durée de la première relecture des séances ; rattrapage des nuits à 450 ; défilement de S1 sur tout l'historique ; VoiceOver sur le radar ; captures finales de l'accueil (maquette DEBUG), clair et sombre.

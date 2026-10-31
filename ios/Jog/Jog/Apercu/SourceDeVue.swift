@@ -30,7 +30,8 @@ extension ScenarioRecuperation {
 /// A = J−1 comme dans `calculerVue` (D-023). Fonction pure, sans fichier.
 func recuperationMaquette(_ scenario: ScenarioRecuperation, J: DateCivile) throws -> VueRecuperation? {
     let veille = try ajouterJours(J, -1)
-    let nuits = try nuitsExemple(scenario, aujourdhui: veille)
+    // Lot 20 : 450 nuits (RECUPERATION.nuitsLues), assez pour la norme VFC de la période de référence de la Résilience.
+    let nuits = try nuitsExemple(scenario, aujourdhui: veille, nombre: RECUPERATION.nuitsLues)
     return try calculerRecuperation(nuits, derniereSession: nil, aujourdhui: veille)
 }
 
