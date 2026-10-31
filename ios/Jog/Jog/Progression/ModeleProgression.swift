@@ -115,7 +115,7 @@ struct PointNuage: Identifiable, Equatable, Sendable {
     let libelle: String
 }
 
-/// Une répétition de la dernière séance (P4), prête à tracer.
+/// Une répétition de la dernière séance (P4 devenu S3), prête à afficher.
 struct RepetitionAffichee: Identifiable, Equatable, Sendable {
     let id: Int
     let n: Int
@@ -446,30 +446,6 @@ enum ModeleProgression {
                 libelleAccessible: "Répétition \(Int(rep.n)), \(formatAllure(rep.allure_skm)) par km, écart à la moyenne \(ecart), FC de fin \(ModeleApercu.nombre(rep.fcFin)) bpm, \(statut)"
             )
         }
-    }
-
-    /// La répétition sous le doigt. Sa position est un réel de l'axe : elle s'arrondit au numéro entier et se borne à la
-    /// séance (D-015, comme `ModeleCharge.rang`). Sans position, nil.
-    static func repetitionLue(_ repetitions: [RepetitionAffichee], position: Double?) -> RepetitionAffichee? {
-        guard let position, position.isFinite, let premiere = repetitions.map(\.n).min(), let derniere = repetitions.map(\.n).max() else {
-            return nil
-        }
-        let numero = min(max(Int(position.rounded()), premiere), derniere)
-        return repetitions.min { abs($0.n - numero) < abs($1.n - numero) }
-    }
-
-    /// Le sous-titre : date, format et récupération (03, P4).
-    static func sousTitreDerniere(_ seance: DerniereSeance) -> String {
-        var morceaux = [formatDate(seance.date)]
-        if let format = seance.format { morceaux.append(format) }
-        if let recup = seance.recup_s, recup.isFinite {
-            let minutes = Int(recup) / 60
-            let secondes = Int(recup) % 60
-            morceaux.append(secondes == 0 ? "récup. \(minutes) min" : "récup. \(minutes) min \(secondes) s")
-        }
-        // D-021 : des répétitions estimées sur la vitesse et la FC, non détaillées par un format.
-        if seance.estimees == true { morceaux.append("répétitions estimées sur la vitesse et la FC") }
-        return morceaux.joined(separator: " · ")
     }
 
     static func tableauDerniere(_ seance: DerniereSeance) -> TableauAffiche {

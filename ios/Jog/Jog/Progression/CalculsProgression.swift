@@ -13,7 +13,6 @@ extension CalculsProgression {
             bandeFC: (lo: dates.subtHrLo, hi: dates.subtHrHi),
             bornes: ModeleProgression.bornes(premierJour: vue.premierJour, J: vue.J),
             tendances: try JogCore.tendances(vue),
-            derniere: derniereSeanceSousSeuil(vue, paramsAuJour),
             niveau: try niveauEstime(vue),
             prereglage: { nom in try JogCore.prereglage(vue, nom) },
             comparer: { a, b in try JogCore.comparer(vue, a, b, paramsAuJour) },

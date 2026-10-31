@@ -285,7 +285,6 @@ final class Memo<Cle: Equatable, Valeur> {
 enum DimensionsGraphique {
     static let tendance: CGFloat = 150
     static let nuage: CGFloat = 250
-    static let derniereSeance: CGFloat = 190
     static let formeFatigue: CGFloat = 200
     static let fraicheurForme: CGFloat = 130
     static let saisons: CGFloat = 220

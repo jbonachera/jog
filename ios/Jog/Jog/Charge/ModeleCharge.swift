@@ -260,7 +260,6 @@ enum ModeleCharge {
         /// Positions des semaines étiquetées, une toutes les 5 semaines, en partant de la plus récente.
         let etiquettes: [Double]
         let footings: String
-        let monotonie: String
     }
 
     /// Nil si le sélecteur échoue.
@@ -277,17 +276,13 @@ enum ModeleCharge {
         let lo = selection.cible.lo
         let hi = selection.cible.hi
         let note = selection.note
-        let monotonie = note.monotonieMoyenne.map {
-            "Monotonie de Foster moyenne \(ModeleApercu.nombre($0, 1)) : élevée par construction en NSA, à lire avec la charge et non comme une alerte isolée."
-        } ?? "Monotonie de Foster : pas encore de valeur."
         return Discipline(
             semaines: semaines,
             cibleLo: lo,
             cibleHi: hi,
             domaine: domaineDiscipline(parts: semaines.compactMap(\.partPct), cibleLo: lo, cibleHi: hi),
             etiquettes: indicesEtiquettesSemaines(semaines.count).map { Double($0) },
-            footings: "Footings sous \(ModeleApercu.nombre(note.plafondBpm)) bpm : \(ModeleApercu.pourcentageOuTiret(note.footingsSousPlafondPct)) sur \(ModeleApercu.pluriel(Int(note.semaines.rounded()), "semaine", "semaines")).",
-            monotonie: monotonie
+            footings: "Footings sous \(ModeleApercu.nombre(note.plafondBpm)) bpm : \(ModeleApercu.pourcentageOuTiret(note.footingsSousPlafondPct)) sur \(ModeleApercu.pluriel(Int(note.semaines.rounded()), "semaine", "semaines"))."
         )
     }
 

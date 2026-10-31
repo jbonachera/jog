@@ -1,18 +1,12 @@
-// Navigation de la racine : onglet affiché, piles de destinations par onglet (02, « Écrans de détail »), ancre demandée
-// (Saisons) et partie de l'onglet Charge (Entraînement ou Récupération). L'onglet et la partie sont mémorisés dans
-// UserDefaults pour survivre aux lancements. Aucune dépendance à SwiftUI ni à HealthKit.
+// Navigation de la racine : onglet affiché (deux onglets, 02 « Barre d'onglets »), piles de destinations par onglet
+// (02, « Écrans de détail ») et ancre demandée (Saisons). L'onglet est mémorisé dans UserDefaults pour survivre aux
+// lancements. Aucune dépendance à SwiftUI ni à HealthKit.
 import Foundation
 import JogCore
 import Observation
 
 enum Onglet: String, Hashable, CaseIterable {
-    case aujourdhui, charge, progression, historique
-}
-
-enum PartieCharge: String, Hashable, CaseIterable {
-    case entrainement, recuperation
-
-    var titre: String { self == .entrainement ? "Entraînement" : "Récupération" }
+    case aujourdhui, progres
 }
 
 /// Un écran de détail empilé par-dessus un onglet (02, « Écrans de détail »).
@@ -31,10 +25,10 @@ enum Ancre: Hashable {
 }
 
 @MainActor @Observable final class Navigation {
-    /// Clé UserDefaults de la partie de l'onglet Charge.
-    static let cleDefaults = "jog-charge-partie"
     /// Clé UserDefaults de l'onglet affiché (02 : le dernier onglet ouvert est rouvert au lancement).
     static let cleOnglet = "jog-onglet"
+    /// Clé de l'ancienne partie de l'onglet Charge (D-024) : effacée à chaque lancement, elle ne sert plus.
+    static let cleChargePartie = "jog-charge-partie"
 
     var onglet: Onglet {
         didSet { defaults.set(onglet.rawValue, forKey: Self.cleOnglet) }
@@ -43,34 +37,30 @@ enum Ancre: Hashable {
     var pileProgres: [Destination] = []
     /// Section à atteindre dans Progrès, consommée par l'écran qui la porte.
     var ancre: Ancre?
-    var partieCharge: PartieCharge {
-        didSet { defaults.set(partieCharge.rawValue, forKey: Self.cleDefaults) }
-    }
     @ObservationIgnored private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        onglet = defaults.string(forKey: Self.cleOnglet).flatMap(Onglet.init(rawValue:)) ?? .aujourdhui
-        partieCharge = defaults.string(forKey: Self.cleDefaults).flatMap(PartieCharge.init(rawValue:)) ?? .entrainement
+        defaults.removeObject(forKey: Self.cleChargePartie)
+        let persiste = defaults.string(forKey: Self.cleOnglet)
+        // Lot 19 : Progrès avait pour rawValue « progression » (HEAD) ; cette valeur persistée reste lue comme Progrès.
+        onglet = persiste == Self.ancienOngletProgression ? .progres : persiste.flatMap(Onglet.init(rawValue:)) ?? .aujourdhui
     }
 
-    /// Empile un écran dans la pile de l'onglet courant. Charge et Historique n'ont pas de pile à ce lot (retirés au
-    /// lot 19) : l'écran s'ouvre alors dans Aujourd'hui.
+    /// Ancienne rawValue de Progrès, persistée avant le lot 19.
+    static let ancienOngletProgression = "progression"
+
+    /// Empile un écran dans la pile de l'onglet courant.
     func ouvrir(_ destination: Destination) {
         switch onglet {
-        case .progression:
-            pileProgres.append(destination)
-        case .aujourdhui, .charge, .historique:
-            if onglet != .aujourdhui {
-                onglet = .aujourdhui
-            }
-            pileAujourdhui.append(destination)
+        case .aujourdhui: pileAujourdhui.append(destination)
+        case .progres: pileProgres.append(destination)
         }
     }
 
     /// Ouvre Progrès › Saisons (H1) : l'onglet Progrès, ancre Saisons.
     func ouvrirSaisons() {
-        onglet = .progression
+        onglet = .progres
         ancre = .saisons
     }
 

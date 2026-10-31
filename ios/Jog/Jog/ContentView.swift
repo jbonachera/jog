@@ -1,9 +1,10 @@
 import SwiftUI
 import JogCore
 
-/// Racine de l'app : quatre onglets, chacun dans sa pile de navigation, avec le bouton Paramètres dans la barre (maquette).
-/// La sélection d'onglet et la partie de Charge vivent dans `Navigation`. Aujourd’hui suit `EtatApp` (accueil, import, Vue, erreur) ; les autres onglets lisent la Vue, ou montrent l'état en attente
-/// (chargement, import, erreur). En DEBUG, la maquette peut remplacer les données réelles (Paramètres > Développement).
+/// Racine de l'app : deux onglets, Aujourd’hui et Progrès, chacun dans sa pile de navigation (02). Le bouton Paramètres
+/// est dans la barre d'Aujourd’hui seulement. La sélection d'onglet vit dans `Navigation`. Aujourd’hui suit `EtatApp`
+/// (accueil, import, Vue, erreur) ; Progrès lit la Vue, ou montre l'état en attente (chargement, import, erreur). En DEBUG,
+/// la maquette peut remplacer les données réelles (Paramètres > Développement).
 struct ContentView: View {
     let modele: ModeleApp
     @Environment(\.scenePhase) private var phase
@@ -19,37 +20,16 @@ struct ContentView: View {
                         .navigationDestination(for: Destination.self) { destinationVue($0) }
                 }
             }
-            Tab("Charge", systemImage: "chart.bar.xaxis", value: Onglet.charge) {
-                NavigationStack {
-                    if let vue = vueCourante {
-                        ChargeView(vue: vue, partie: $navigation.partieCharge)
-                            .toolbar { boutonParametres }
-                    } else {
-                        sansVue("Charge", icone: "chart.bar.xaxis")
-                    }
-                }
-            }
-            Tab("Progression", systemImage: "chart.line.uptrend.xyaxis", value: Onglet.progression) {
+            Tab("Progrès", systemImage: "chart.line.uptrend.xyaxis", value: Onglet.progres) {
                 NavigationStack(path: $navigation.pileProgres) {
                     Group {
                         if let vue = vueCourante {
-                            ProgressionView(vue: vue)
-                                .toolbar { boutonParametres }
+                            ProgressionView(vue: vue, ancre: $navigation.ancre)
                         } else {
-                            sansVue("Progression", icone: "chart.line.uptrend.xyaxis")
+                            sansVue("Progrès", icone: "chart.line.uptrend.xyaxis")
                         }
                     }
                     .navigationDestination(for: Destination.self) { destinationVue($0) }
-                }
-            }
-            Tab("Historique", systemImage: "calendar", value: Onglet.historique) {
-                NavigationStack {
-                    if let vue = vueCourante {
-                        HistoriqueView(vue: vue, surMarquage: surMarquage)
-                            .toolbar { boutonParametres }
-                    } else {
-                        sansVue("Historique", icone: "calendar")
-                    }
                 }
             }
         }
@@ -67,7 +47,7 @@ struct ContentView: View {
         }
     }
 
-    /// Le bouton Paramètres, dans la barre de chaque onglet (maquette : « Les Paramètres passent dans le bouton en haut à droite »).
+    /// Le bouton Paramètres, dans la barre d'Aujourd’hui (02, « Barre d'onglets »).
     private var boutonParametres: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Button("Paramètres", systemImage: "slider.horizontal.3") {

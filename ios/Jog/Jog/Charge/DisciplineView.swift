@@ -4,7 +4,7 @@ import Charts
 import JogCore
 
 /// C3 · Discipline NSA (03, C3) : part du temps en sous-seuil sur les 30 dernières semaines terminées, avec la bande
-/// cible ; une note sur les footings sous le plafond et la monotonie de Foster. Lecture au doigt et vue tableau (D-011).
+/// cible ; une note sur les footings sous le plafond. Lecture au doigt et vue tableau (D-011).
 struct DisciplineView: View {
     @Environment(\.dynamicTypeSize) private var tailleTexte
     private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
@@ -79,7 +79,6 @@ struct DisciplineView: View {
                     .frame(width: 2)
                 VStack(alignment: .leading, spacing: 8) {
                     Text(modele.footings)
-                    Text(modele.monotonie)
                 }
                 .font(.footnote)
                 .foregroundStyle(.encre2)

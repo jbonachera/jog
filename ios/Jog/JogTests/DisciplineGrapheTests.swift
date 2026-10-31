@@ -28,6 +28,13 @@ struct DisciplineGrapheTests {
         #expect(pointsGraphique == lignesAvecPart(tableau), "points du graphique : \(pointsGraphique), lignes du tableau avec une part : \(lignesAvecPart(tableau))")
     }
 
+    // 03, C3 · D-024 : la note de discipline ne donne que les footings ; la monotonie de Foster n'est plus affichée.
+    @Test func laNoteDeDisciplineNeContientPlusLaMonotonie() throws {
+        let modele = try #require(ModeleCharge.discipline(try chargerMaquette()))
+        #expect(modele.footings.hasPrefix("Footings sous "))
+        #expect(!modele.footings.localizedCaseInsensitiveContains("monotonie"))
+    }
+
     /// Mesure à l'écran : chaque ligne du tableau avec une part doit traverser au moins une colonne de l'image.
     @Test(arguments: renduLargeursEcran, [false, true])
     func leGraphiqueRendDesBarresQuandLeTableauALesDonnees(largeur: CGFloat, sombre: Bool) async throws {

@@ -1,5 +1,5 @@
 // Graduations lisibles sur les axes de la Progression et de l'aperçu forme/fatigue.
-// Le test appelle les fonctions pures de repères de chaque vue (TendancesView, NuageView, DerniereSeanceView,
+// Le test appelle les fonctions pures de repères de chaque vue (TendancesView, NuageView, SaisonsView,
 // FormeFatigueView) avec les mêmes domaines que la vue, et vérifie le contrat du résultat :
 // - sous-ensemble des repères du domaine, dans l'ordre croissant ;
 // - au moins deux repères quand deux repères tiennent aux deux extrémités de l'axe ;
@@ -22,8 +22,6 @@ private let gouttiere: CGFloat = 16
 private let paddingCarte: CGFloat = 16
 /// Espace exigé entre deux repères retenus, au-delà de la taille du libellé.
 private let margeEspacement: CGFloat = 4
-private let seuilSeance: Double = 296
-private let bandeSeance: (lo: Double, hi: Double) = (299, 305)
 private let bandeFC: (lo: Double, hi: Double) = (158, 170)
 
 /// Calendrier explicite : grégorien, Europe/Paris, français. Le test ne dépend pas du réglage du simulateur.
@@ -43,13 +41,12 @@ private func datesHebdomadaires(_ nombre: Int) -> [Date] {
     }
 }
 
-/// Un jeu de données de Progression et de forme. Allures et répétitions en s/km, FC en bpm, forme en points.
+/// Un jeu de données de Progression et de forme. Allures en s/km, FC en bpm, forme en points.
 struct Scenario: Sendable, CustomTestStringConvertible {
     let nom: String
     let dates: [Date]
     let allures: [Double]
     let fc: [Double]
-    let repetitions: [Double]
     /// Forme de fond par date (la fatigue suit la forme de 6 points dans le test).
     let formes: [Double]
 
@@ -60,34 +57,31 @@ struct Scenario: Sendable, CustomTestStringConvertible {
     static let allureExtreme = (0..<190).map { (i: Int) -> Double in 210 + Double((i * 37) % 221) }
     static let fcRealiste = (0..<40).map { (i: Int) -> Double in 150 + Double((i * 7) % 26) }
     static let fcExtreme = (0..<40).map { (i: Int) -> Double in 120 + Double((i * 29) % 81) }
-    static let repetitionsRealistes = (0..<20).map { (i: Int) -> Double in 296 + Double((i * 7) % 11 - 5) }
-    static let repetitionsExtremes: [Double] = [240, 420, 300, 360, 250, 410, 330, 280, 390, 260, 240, 420, 300, 360, 250, 410, 330, 280, 390, 260]
     static let formesRealistes = (0..<190).map { (i: Int) -> Double in 40 + Double((i * 5) % 13) }
     static let formesExtremes = (0..<190).map { (i: Int) -> Double in -120 + Double((i * 41) % 260) }
 
     static let realisteTroisAns = Scenario(
         nom: "réaliste, 3,5 ans", dates: longue, allures: allureRealiste, fc: fcRealiste,
-        repetitions: repetitionsRealistes, formes: formesRealistes
+        formes: formesRealistes
     )
     static let extremeTroisAns = Scenario(
         nom: "extrême, 3,5 ans", dates: longue, allures: allureExtreme, fc: fcExtreme,
-        repetitions: repetitionsExtremes, formes: formesExtremes
+        formes: formesExtremes
     )
     static let domainePlat = Scenario(
         nom: "domaine plat", dates: longue, allures: Array(repeating: 300, count: 190),
-        fc: Array(repeating: 160, count: 40), repetitions: Array(repeating: 300, count: 20), formes: Array(repeating: 40, count: 190)
+        fc: Array(repeating: 160, count: 40), formes: Array(repeating: 40, count: 190)
     )
-    static let vingtRepetitions = Scenario(nom: "vingt répétitions extrêmes", dates: [], allures: [], fc: [], repetitions: repetitionsExtremes, formes: [])
-    static let zeroPoint = Scenario(nom: "zéro point", dates: [], allures: [], fc: [], repetitions: [], formes: [])
+    static let zeroPoint = Scenario(nom: "zéro point", dates: [], allures: [], fc: [], formes: [])
     static let unPoint = Scenario(
-        nom: "un point", dates: Array(longue.prefix(1)), allures: [318], fc: [160], repetitions: [300], formes: [40]
+        nom: "un point", dates: Array(longue.prefix(1)), allures: [318], fc: [160], formes: [40]
     )
     static let deuxPoints = Scenario(
-        nom: "deux points", dates: Array(longue.prefix(2)), allures: [318, 305], fc: [160, 165], repetitions: [300, 302], formes: [40, 42]
+        nom: "deux points", dates: Array(longue.prefix(2)), allures: [318, 305], fc: [160, 165], formes: [40, 42]
     )
 
     /// Tous les scénarios du contrat.
-    static let tous: [Scenario] = [realisteTroisAns, extremeTroisAns, domainePlat, vingtRepetitions, zeroPoint, unPoint, deuxPoints]
+    static let tous: [Scenario] = [realisteTroisAns, extremeTroisAns, domainePlat, zeroPoint, unPoint, deuxPoints]
     /// Peu de données : le test positif ne vérifie que les cas où les libellés tiennent.
     static let peuDeDonnees: [Scenario] = [zeroPoint, unPoint, deuxPoints]
 }
@@ -216,29 +210,6 @@ private func axesMesures(_ scenario: Scenario, largeur: CGFloat, categorie: UICo
             retenus: NuageView.reperesAxeX(domaine: domaineX, longueur: longueurX, categorie: categorie),
             domaine: domaineX, longueur: longueurX,
             taille: largeurMaxLibelles(totalX.map { formatAllure($0) }, categorie: categorie)
-        ))
-    }
-
-    // Dernière séance : Y (allures, pas 5 s/km) et X (numéros de répétition, sur l'étendue de la vue).
-    if !scenario.repetitions.isEmpty {
-        let n = scenario.repetitions.count
-        let domaineY = ModeleProgression.domaineAllure(scenario.repetitions, reperes: [seuilSeance, bandeSeance.lo, bandeSeance.hi])
-        let totalY = Axes.graduations(domaineY, pas: 5)
-        let largeurSeanceY = largeurMaxLibelles(totalY.map { formatAllure($0) }, categorie: categorie)
-        let longueurY = DimensionsGraphique.hauteurAxeY(DimensionsGraphique.derniereSeance, categorie: categorie, lignesX: 2)
-        mesures.append(AxeMesure(
-            nom: "dernière séance Y", total: totalY,
-            retenus: DerniereSeanceView.reperesAxeY(domaine: domaineY, longueur: longueurY, categorie: categorie),
-            domaine: domaineY, longueur: longueurY, taille: hauteurX
-        ))
-
-        let numeros = Array(1...n)
-        let longueurX = DimensionsGraphique.longueurAxeX(largeurGraphique: largeurAxeX, largeurAxeY: largeurSeanceY)
-        mesures.append(AxeMesure(
-            nom: "dernière séance X", total: numeros.map(Double.init),
-            retenus: DerniereSeanceView.reperesAxeX(numeros: numeros, longueur: longueurX, categorie: categorie),
-            domaine: DerniereSeanceView.etendueX(nombre: n), longueur: longueurX,
-            taille: largeurMaxLibelles(numeros.map { "#\($0)" }, categorie: categorie)
         ))
     }
 

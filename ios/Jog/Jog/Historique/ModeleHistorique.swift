@@ -42,7 +42,7 @@ enum ModeleHistorique {
         let libelle: String
     }
 
-    /// Une semaine du journal (H2) et de la vue tableau (H1).
+    /// Une semaine de la vue tableau (H1), de la feuille de semaine (S1) et de ses détails.
     struct LigneSemaine: Identifiable, Equatable, Sendable {
         let id: DateCivile
         let date: Date?
@@ -58,19 +58,11 @@ enum ModeleHistorique {
         let seancesSousSeuil: String
         let charge: String
         let ratio: Indicateur
-        let monotonie: String
-        let contrainte: String
         let conformite: Indicateur
         let libelleFootings: String
         let types: [TypeSeance]
         let courses: [CourseAffichee]
         let resume: String
-    }
-
-    struct SectionMois: Identifiable, Equatable, Sendable {
-        let id: String
-        let titre: String
-        var semaines: [LigneSemaine]
     }
 
     /// Une part de barre empilée : une semaine et une intensité (H1).
@@ -94,8 +86,6 @@ enum ModeleHistorique {
         let periode: PeriodeHistorique
         /// Les semaines de la période, de la plus ancienne à la plus récente (aucune semaine future).
         let chronologique: [LigneSemaine]
-        /// Le journal : une section par mois, la semaine la plus récente en premier.
-        let sections: [SectionMois]
         let barres: [BarreSemaine]
         let courses: [CourseAffichee]
         let domaineKm: ClosedRange<Double>
@@ -138,7 +128,6 @@ enum ModeleHistorique {
         return Donnees(
             periode: periode,
             chronologique: lignes,
-            sections: sections(lignes),
             barres: barres,
             courses: lignes.flatMap(\.courses),
             domaineKm: domaineKm(maxKm: maxKm),
@@ -173,8 +162,6 @@ enum ModeleHistorique {
                 ton: ton(s.etatRatio),
                 qualificatif: nil
             ),
-            monotonie: s.monotonie.map { ModeleApercu.nombre($0, 2) } ?? tiret,
-            contrainte: s.contrainte.map { ModeleApercu.nombre($0) } ?? tiret,
             conformite: Indicateur(
                 texte: ModeleApercu.pourcentageOuTiret(s.conformitePct),
                 ton: ton(s.etatFootings),
@@ -241,20 +228,6 @@ enum ModeleHistorique {
             parSemaine[lundi] = types
         }
         return parSemaine
-    }
-
-    /// Une section par mois, la plus récente en premier. Une semaine appartient au mois de son lundi.
-    private static func sections(_ lignes: [LigneSemaine]) -> [SectionMois] {
-        var sections: [SectionMois] = []
-        for ligne in lignes.reversed() {
-            let cle = String(ligne.id.prefix(7))
-            if let dernier = sections.last, dernier.id == cle {
-                sections[sections.count - 1].semaines.append(ligne)
-            } else {
-                sections.append(SectionMois(id: cle, titre: ligne.mois, semaines: [ligne]))
-            }
-        }
-        return sections
     }
 
     /// Les lignes de toutes les semaines de l'historique, par lundi. Calculées une fois par Vue (`CacheAccueil`) : la
@@ -331,7 +304,7 @@ enum ModeleHistorique {
             .0
     }
 
-    /// Titre des sections du journal : « Octobre 2026 ».
+    /// Titre d'un mois, en-tête de section de S1 : « Octobre 2026».
     static func titreMois(_ lundi: DateCivile) -> String {
         guard let date = ModeleApercu.date(lundi) else { return lundi }
         let texte = date.formatted(.dateTime.month(.wide).year().locale(Locale(identifier: "fr_FR")))

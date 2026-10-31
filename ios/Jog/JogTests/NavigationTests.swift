@@ -1,6 +1,6 @@
-// Tests de la navigation (app, dossier Etat) : destinations empilées par onglet, onglet mémorisé, ancre des Saisons,
-// et correspondance signal → destination (02, « Écrans de détail »). La partie de Charge reste testée tant que
-// `PartieCharge` existe (lot 19). Chaque test utilise sa propre suite UserDefaults, nettoyée à la fin : aucun test ne touche à `.standard`.
+// Tests de la navigation (app, dossier Etat) : deux onglets (02, « Barre d'onglets »), destinations empilées par onglet,
+// onglet mémorisé, ancre des Saisons, correspondance signal → destination (02, « Écrans de détail »), et retrait de la
+// partie de Charge (D-024). Chaque test utilise sa propre suite UserDefaults, nettoyée à la fin : aucun test ne touche à `.standard`.
 import Foundation
 import JogCore
 import Testing
@@ -9,6 +9,11 @@ import Testing
 private func defaultsDedies() -> (UserDefaults, String) {
     let suite = "jog.tests.navigation.\(UUID().uuidString)"
     return (UserDefaults(suiteName: suite)!, suite)
+}
+
+// 02, Barre d'onglets : deux onglets exactement, Aujourd'hui puis Progrès.
+@Test func lAppADeuxOngletsAujourdhuiEtProgres() {
+    #expect(Onglet.allCases == [.aujourdhui, .progres])
 }
 
 // 02, Écrans de détail : un écran de détail s'empile dans l'onglet courant ; l'onglet ne change pas.
@@ -32,7 +37,7 @@ private func defaultsDedies() -> (UserDefaults, String) {
     let (defaults, suite) = defaultsDedies()
     defer { defaults.removePersistentDomain(forName: suite) }
     let navigation = Navigation(defaults: defaults)
-    navigation.onglet = .progression
+    navigation.onglet = .progres
 
     navigation.ouvrir(.signal(.reponse))
 
@@ -60,23 +65,52 @@ private func defaultsDedies() -> (UserDefaults, String) {
     defer { defaults.removePersistentDomain(forName: suite) }
 
     let premierLancement = Navigation(defaults: defaults)
-    premierLancement.onglet = .progression
+    premierLancement.onglet = .progres
 
     let deuxiemeLancement = Navigation(defaults: defaults)
-    #expect(deuxiemeLancement.onglet == .progression)
+    #expect(deuxiemeLancement.onglet == .progres)
 }
 
-// 02, Persistance locale : une valeur inconnue (ou absente) ramène à Aujourd'hui.
+// 02, Persistance locale : une valeur absente ramène à Aujourd'hui.
 @MainActor
-@Test func unOngletInconnuOuAbsentRevientAAujourdhui() {
+@Test func unOngletAbsentRevientAAujourdhui() {
     let (defaults, suite) = defaultsDedies()
     defer { defaults.removePersistentDomain(forName: suite) }
-    defaults.set("inconnu", forKey: Navigation.cleOnglet)
 
     #expect(Navigation(defaults: defaults).onglet == .aujourdhui)
+}
 
-    defaults.removeObject(forKey: Navigation.cleOnglet)
-    #expect(Navigation(defaults: defaults).onglet == .aujourdhui)
+// D-024 : un onglet persisté qui n'existe plus (Charge, Historique) retombe sur Aujourd'hui.
+@MainActor
+@Test(arguments: ["charge", "historique", "inconnu"])
+func unOngletPersisteInconnuRevientAAujourdhui(valeur: String) {
+    let (defaults, suite) = defaultsDedies()
+    defer { defaults.removePersistentDomain(forName: suite) }
+    defaults.set(valeur, forKey: Navigation.cleOnglet)
+
+    #expect(Navigation(defaults: defaults).onglet == .aujourdhui, "valeur persistée « \(valeur) »")
+}
+
+// Lot 19 : l'ancienne valeur « progression » (Progrès avant le lot 19) retombe sur Progrès, pas sur Aujourd'hui.
+@MainActor
+@Test func lAncienneValeurProgressionOuvreProgres() {
+    let (defaults, suite) = defaultsDedies()
+    defer { defaults.removePersistentDomain(forName: suite) }
+    defaults.set("progression", forKey: Navigation.cleOnglet)
+
+    #expect(Navigation(defaults: defaults).onglet == .progres)
+}
+
+// D-024 : la partie de Charge n'existe plus ; sa clé est effacée au lancement.
+@MainActor
+@Test func laCleDeLaPartieDeChargeEstEffaceeAuLancement() {
+    let (defaults, suite) = defaultsDedies()
+    defer { defaults.removePersistentDomain(forName: suite) }
+    defaults.set("recuperation", forKey: "jog-charge-partie")
+
+    _ = Navigation(defaults: defaults)
+
+    #expect(defaults.object(forKey: "jog-charge-partie") == nil)
 }
 
 // 03, A2 · Année : la ligne Année ouvre Progrès › Saisons (H1), ancre comprise.
@@ -88,7 +122,7 @@ private func defaultsDedies() -> (UserDefaults, String) {
 
     navigation.ouvrirSaisons()
 
-    #expect(navigation.onglet == .progression)
+    #expect(navigation.onglet == .progres)
     #expect(navigation.ancre == .saisons)
 }
 
@@ -109,42 +143,4 @@ private func defaultsDedies() -> (UserDefaults, String) {
 func chaqueSignalOuvreSaDestination(_ paire: (CleSignal, DestinationSignal)) {
     let (cle, attendue) = paire
     #expect(Navigation.destination(du: cle) == attendue, "signal \(cle.rawValue)")
-}
-
-// Les quatre onglets restent accessibles pendant la refonte : Charge et Historique (retirés au lot 19) ouvrent Aujourd'hui.
-@MainActor
-@Test func ouvrirDepuisUnOngletSansPileBasculeSurAujourdhui() {
-    let (defaults, suite) = defaultsDedies()
-    defer { defaults.removePersistentDomain(forName: suite) }
-    let navigation = Navigation(defaults: defaults)
-    navigation.onglet = .historique
-
-    navigation.ouvrir(.recuperation)
-
-    #expect(navigation.onglet == .aujourdhui)
-    #expect(navigation.pileAujourdhui == [.recuperation])
-}
-
-// Charge : la partie choisie persiste tant que `PartieCharge` existe (lot 19).
-@MainActor
-@Test func laPartieChargeChoisieePersisteEntreDeuxLancements() {
-    let (defaults, suite) = defaultsDedies()
-    defer { defaults.removePersistentDomain(forName: suite) }
-
-    let premierLancement = Navigation(defaults: defaults)
-    premierLancement.partieCharge = .recuperation
-
-    let deuxiemeLancement = Navigation(defaults: defaults)
-    #expect(deuxiemeLancement.partieCharge == .recuperation)
-}
-
-@MainActor
-@Test func laPartieChargeParDefautEstEntrainement() {
-    let (defaults, suite) = defaultsDedies()
-    defer { defaults.removePersistentDomain(forName: suite) }
-
-    let navigation = Navigation(defaults: defaults)
-
-    #expect(navigation.onglet == .aujourdhui)
-    #expect(navigation.partieCharge == .entrainement)
 }

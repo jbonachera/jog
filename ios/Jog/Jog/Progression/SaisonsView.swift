@@ -4,7 +4,7 @@ import Charts
 import JogCore
 
 /// H1 · Saisons et volume hebdomadaire (03, H1) : barres empilées par intensité, résultats de course, aujourd'hui.
-/// Bascule Graphique · Tableau (D-011) ; le choix n'est pas mémorisé.
+/// Bascule Graphique · Tableau (D-011) ; le choix n'est pas mémorisé. Dernière section de Progrès (lot 19).
 struct SaisonsView: View {
     @Environment(\.dynamicTypeSize) private var tailleTexte
     private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
@@ -190,6 +190,39 @@ struct SaisonsView: View {
     }
 }
 
+/// H1 dans Progrès : le sélecteur de période (12 · 26 · toutes, mémorisé dans `jog-range`) et les saisons de la période.
+/// Les données sont calculées une fois par Vue et par période.
+struct SaisonsSectionView: View {
+    let vue: Vue
+    @AppStorage("jog-range") private var periode: PeriodeHistorique = .toutes
+    @State private var memo = Memo<CleSaisons, ModeleHistorique.Donnees?>()
+
+    private struct CleSaisons: Equatable {
+        let vue: Vue
+        let periode: PeriodeHistorique
+    }
+
+    var body: some View {
+        let donnees = memo.valeur(pour: CleSaisons(vue: vue, periode: periode)) {
+            ModeleHistorique.donnees(vue, periode)
+        }
+        VStack(alignment: .leading, spacing: 14) {
+            Picker("Période", selection: $periode) {
+                ForEach(ModeleHistorique.periodes, id: \.self) { choix in
+                    Text(ModeleHistorique.libelleSegment(choix)).tag(choix)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            if let donnees, !donnees.estVide {
+                SaisonsView(donnees: donnees)
+            } else {
+                EtatVide(texte: "Pas encore d’historique. Les semaines apparaîtront ici après le premier import.")
+            }
+        }
+    }
+}
+
 #Preview("Clair") {
     NavigationStack {
         ScrollView {
@@ -218,7 +251,6 @@ private var previewDonnees: ModeleHistorique.Donnees {
         ?? ModeleHistorique.Donnees(
             periode: .douze,
             chronologique: [],
-            sections: [],
             barres: [],
             courses: [],
             domaineKm: 0...20,

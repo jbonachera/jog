@@ -17,7 +17,6 @@ struct CalculsProgression {
     /// Dates saisissables : du premier jour de l'historique à hier. Nil sans historique.
     let bornes: ClosedRange<Date>?
     let tendances: Tendances
-    let derniere: DerniereSeance?
     let niveau: NiveauEstime
     let prereglage: (Prereglage) throws -> (a: PeriodeDates, b: PeriodeDates)
     let comparer: (PeriodeDates, PeriodeDates) throws -> Comparaison
@@ -27,31 +26,45 @@ struct CalculsProgression {
     var cle: Vue? = nil
 }
 
-/// L'onglet Progression (02, 03) : comparateur, tendances, nuage et dernière séance en deux colonnes sur grand écran,
-/// puis le niveau estimé. Un grand titre, une seule page défilante. Les calculs viennent de JogCore, lus dans la Vue.
+/// Les sections de l'onglet Progrès, dans l'ordre de l'écran (03 : P1, P2, P3, P5, puis H1). P4 vit dans l'écran Séance (S3).
+enum SectionProgres: CaseIterable, Hashable {
+    case comparateur, tendances, nuage, niveau, saisons
+
+    static let ordre: [SectionProgres] = allCases
+}
+
+/// L'onglet Progrès (02, 03) : comparateur (P1), tendances (P2), nuage (P3), niveau estimé (P5), puis les saisons (H1).
+/// Un grand titre, une seule page défilante. Les calculs viennent de JogCore, lus dans la Vue. L'ancre `saisons`
+/// (Navigation.ouvrirSaisons) fait défiler jusqu'à H1, puis elle est consommée.
 struct ProgressionView: View {
     /// La Vue lue par JogCore, ou nil pour l'aperçu (`calculs`).
     private let vue: Vue?
     private let exemple: CalculsProgression?
+    @Binding private var ancre: Ancre?
     @State private var memo = Memo<Vue, Result<CalculsProgression, Error>>()
-    @Environment(\.horizontalSizeClass) private var tailleHorizontale
 
-    init(vue: Vue) {
+    init(vue: Vue, ancre: Binding<Ancre?> = .constant(nil)) {
         self.vue = vue
         exemple = nil
+        _ancre = ancre
     }
 
-    init(calculs: CalculsProgression) {
+    init(calculs: CalculsProgression, ancre: Binding<Ancre?> = .constant(nil)) {
         vue = nil
         exemple = calculs
+        _ancre = ancre
     }
 
     var body: some View {
         Group {
             switch resultat {
             case let .success(calculs):
-                ScrollView {
-                    corps(calculs)
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        corps(calculs)
+                    }
+                    .onAppear { consommerAncre(proxy) }
+                    .onChange(of: ancre) { _, _ in consommerAncre(proxy) }
                 }
             case .failure:
                 ContentUnavailableView(
@@ -62,7 +75,7 @@ struct ProgressionView: View {
             }
         }
         .background(Color.fond.ignoresSafeArea())
-        .navigationTitle("Progression")
+        .navigationTitle("Progrès")
     }
 
     /// Les calculs de l'écran, faits une fois par Vue : une réévaluation de l'écran parent ne les refait pas.
@@ -76,34 +89,38 @@ struct ProgressionView: View {
         return memo.valeur(pour: vue) { Result { try CalculsProgression(vue: vue) } }
     }
 
+    /// Défile jusqu'à la section demandée par l'ancre, puis la consomme pour qu'elle ne rejoue pas.
+    private func consommerAncre(_ proxy: ScrollViewProxy) {
+        guard ancre == .saisons else { return }
+        ancre = nil
+        withAnimation {
+            proxy.scrollTo(SectionProgres.saisons, anchor: .top)
+        }
+    }
+
     private func corps(_ calculs: CalculsProgression) -> some View {
         VStack(alignment: .leading, spacing: 36) {
-            ComparateurView(calculs: calculs)
-            TendancesView(tendances: calculs.tendances, refHr: calculs.refHr)
-            deuxColonnes(calculs)
-            NiveauView(niveau: calculs.niveau)
+            ForEach(SectionProgres.ordre, id: \.self) { section in
+                switch section {
+                case .comparateur:
+                    ComparateurView(calculs: calculs)
+                case .tendances:
+                    TendancesView(tendances: calculs.tendances, refHr: calculs.refHr)
+                case .nuage:
+                    NuageView(calculs: calculs)
+                case .niveau:
+                    NiveauView(niveau: calculs.niveau)
+                case .saisons:
+                    if let vue {
+                        SaisonsSectionView(vue: vue)
+                            .id(SectionProgres.saisons)
+                    }
+                }
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    /// Le nuage et la dernière séance côte à côte sur grand écran, l'un sous l'autre sur iPhone.
-    @ViewBuilder
-    private func deuxColonnes(_ calculs: CalculsProgression) -> some View {
-        if tailleHorizontale == .regular {
-            HStack(alignment: .top, spacing: 32) {
-                NuageView(calculs: calculs)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                DerniereSeanceView(seance: calculs.derniere)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        } else {
-            VStack(alignment: .leading, spacing: 36) {
-                NuageView(calculs: calculs)
-                DerniereSeanceView(seance: calculs.derniere)
-            }
-        }
     }
 }
 
@@ -117,7 +134,6 @@ extension CalculsProgression {
             bandeFC: (lo: 158, hi: 170),
             bornes: nil,
             tendances: exempleTendances,
-            derniere: exempleDerniere,
             niveau: exempleNiveau,
             prereglage: { _ in
                 (a: PeriodeDates(debut: "2026-06-03", fin: "2026-08-25"), b: PeriodeDates(debut: "2026-08-26", fin: "2026-11-18"))
@@ -138,25 +154,6 @@ extension CalculsProgression {
             allure: Tendance(points: semaines, derniere: 317, ecart: -11, bonSens: true),
             ef: Tendance(points: semaines, derniere: 1.42, ecart: 0.06, bonSens: true),
             decouplage: Tendance(points: sorties, derniere: 4.1, ecart: -1.4, bonSens: true)
-        )
-    }
-
-    private static var exempleDerniere: DerniereSeance {
-        DerniereSeance(
-            date: "2026-10-20",
-            format: "5×8'",
-            recup_s: 90,
-            allureMoy_skm: 302,
-            bande: Bande(lo: 299, hi: 305),
-            seuil_skm: 296,
-            subtHrHi: 170,
-            repetitions: [
-                RepetitionDerniere(n: 1, allure_skm: 303, fcFin: 161, ecartMoyenne_skm: 1, horsSousSeuil: false, raisons: []),
-                RepetitionDerniere(n: 2, allure_skm: 301, fcFin: 163, ecartMoyenne_skm: -1, horsSousSeuil: false, raisons: []),
-                RepetitionDerniere(n: 3, allure_skm: 294, fcFin: 166, ecartMoyenne_skm: -8, horsSousSeuil: true, raisons: ["plus rapide que l’allure seuil"]),
-                RepetitionDerniere(n: 4, allure_skm: 302, fcFin: 168, ecartMoyenne_skm: 0, horsSousSeuil: false, raisons: []),
-                RepetitionDerniere(n: 5, allure_skm: 304, fcFin: 166, ecartMoyenne_skm: 2, horsSousSeuil: false, raisons: []),
-            ]
         )
     }
 

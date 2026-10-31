@@ -638,7 +638,7 @@ enum ModeleNiveau {
 | 16 | fait | swift test 534 ; xcodebuild test 225 verts (10 nouveaux) ; relu ; 3 corrections (cartes mémorisées une fois par Vue dans `ModeleApp.cartes` au lieu d'un index complet par séance ouverte, menu de marquage pur et testé, bornes du tableau et des segments) |
 | 17 | fait | swift test 534 ; xcodebuild test 232 verts (14 cas nouveaux) ; relu ; 4 corrections (la bulle ne capte plus les touchers du radar, mesures en `@ScaledMetric`, cadres des étiquettes testés sans recouvrement, trait « sélectionné ») |
 | 18 | fait | swift test 534 ; xcodebuild test 243 verts (11 nouveaux) ; relu ; 4 corrections (détail d'une semaine vide, semaines mémorisées par Vue, ordre des blocs lu dans `ModeleAccueil`, `lienSaisons` décidé par le modèle, Vue vide testée) ; 2 essais d'implémentation (le premier n'a rien écrit) |
-| 19 | | |
+| 19 | fait | swift test 534 ; xcodebuild test 239 verts (tests des vues retirées supprimés, onglets et Progrès ajoutés) ; relu ; 2 corrections (H1 mesurée dans Progrès, ancienne valeur « progression » rouvre Progrès) |
 | 20 | | |
 
 ## Écarts proposés
@@ -673,3 +673,5 @@ enum ModeleNiveau {
 - Lot 18 : l'ancien `AccueilView` (écran de première ouverture) devient `PremiereOuvertureView` pour libérer le nom. `ApercuView` et `CarteRecuperationView` sont retirées (point 10) ; `TuilesRecuperation` en est extraite (encore utilisée par les tests de récupération). Le bouton « Tendances » de l'ancienne carte de récupération n'est pas repris (absent de 03 A5).
 - Lot 18 : sans séance, la semaine en cours apparaît quand même (« aucune séance ») ; le détail d'une semaine vide est une ligne vide. Le sélecteur de mois (point 8) est un menu derrière un bouton calendrier dans la barre de titre.
 - À faire par l'utilisateur (lot 18) : captures d'Aujourd'hui à 320, 393 et 440 pt, clair et sombre ; vérifier le pli (N1 + A5 visibles) sur iPhone, le défilement de S1 et VoiceOver.
+- Lot 19 : retirés `ChargeView`, `HistoriqueView`, `JournalView`, `SeptDerniersJoursView`, `VolumeRealiseView`, `DerniereSeanceView` (P4 : son tableau vit dans S3), l'affichage de la monotonie et de la contrainte. Progrès : P1, P2, P3, P5 puis Saisons (H1), vers laquelle l'ancre défile. Une valeur d'onglet persistée inconnue rouvre Aujourd'hui, l'ancienne « progression » rouvre Progrès ; `jog-charge-partie` est effacée au lancement.
+- À faire par l'utilisateur (lot 19) : vérifier sur iPhone le défilement vers Saisons depuis « Saisons › », et les captures de Progrès.

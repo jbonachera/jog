@@ -1,4 +1,4 @@
-// Largeur d'un iPhone 15 Pro (393 pt) pour l'onglet Progression : aucune section ne dépasse de l'écran.
+// Largeur d'un iPhone 15 Pro (393 pt) pour l'onglet Progrès : aucune section ne dépasse de l'écran.
 // La mesure est faite côté SwiftUI : chaque section est hébergée dans un UIHostingController, dans le même conteneur que
 // ProgressionView.corps (padding horizontal de 16 pt), et on lit la largeur que SwiftUI lui donne à 393 pt de proposition.
 // Une section qui ne tient pas rend une largeur supérieure à 393 pt, même si ses vues SwiftUI ne sont pas des UIView.
@@ -25,7 +25,6 @@ private func calculsAvecHistorique() throws -> CalculsProgression {
         bandeFC: base.bandeFC,
         bornes: premierJour...hier,
         tendances: base.tendances,
-        derniere: base.derniere,
         niveau: base.niveau,
         prereglage: base.prereglage,
         comparer: base.comparer,
@@ -46,7 +45,6 @@ private func calculsAuxGrandsNombres() throws -> CalculsProgression {
             ef: Tendance(points: [], derniere: 1_234.56, ecart: 123.45, bonSens: false),
             decouplage: Tendance(points: [], derniere: 14.1, ecart: -11.4, bonSens: true)
         ),
-        derniere: base.derniere,
         niveau: base.niveau,
         prereglage: base.prereglage,
         comparer: base.comparer,
@@ -54,7 +52,7 @@ private func calculsAuxGrandsNombres() throws -> CalculsProgression {
     )
 }
 
-/// Les mêmes calculs, avec des libellés longs dans le tableau du comparateur et dans la dernière séance.
+/// Les mêmes calculs, avec des libellés longs dans le tableau du comparateur.
 @MainActor
 private func calculsAuxLibellesLongs() throws -> CalculsProgression {
     let base = try calculsAvecHistorique()
@@ -71,29 +69,40 @@ private func calculsAuxLibellesLongs() throws -> CalculsProgression {
             Mesure(cle: .decouplage, groupe: .endurance, nom: "découplage cardiaque sur la sortie longue du dimanche", sens: .plusBas, a: 6.2, b: 4.1, ecart: -2.1, ecartAffiche: -2.1, etat: .mieux),
         ]
     )
-    let seance = DerniereSeance(
-        date: "2026-10-20",
-        format: "dix répétitions de mille mètres à allure seuil avec récupération active",
-        recup_s: 120,
-        allureMoy_skm: 302,
-        bande: Bande(lo: 299, hi: 305),
-        seuil_skm: 296,
-        subtHrHi: 170,
-        repetitions: [
-            RepetitionDerniere(n: 1, allure_skm: 303, fcFin: 161, ecartMoyenne_skm: 1, horsSousSeuil: true, raisons: ["allure plus rapide que la bande de régularité prévue pour cette répétition"]),
-        ]
-    )
     return CalculsProgression(
         refHr: base.refHr,
         bandeFC: base.bandeFC,
         bornes: try #require(base.bornes),
         tendances: base.tendances,
-        derniere: seance,
         niveau: base.niveau,
         prereglage: base.prereglage,
         comparer: { _, _ in comparaison },
         nuage: base.nuage
     )
+}
+
+/// Dates des séances de la Vue par code (une par semaine, en remontant depuis la veille de J).
+private let datesSeancesExemple: [DateCivile] = [
+    "2026-10-24", "2026-10-17", "2026-10-10", "2026-10-03", "2026-09-26", "2026-09-19", "2026-09-12", "2026-09-05",
+]
+
+/// Vue construite par code, avec une sortie longue par semaine de `km` kilomètres (fixtures de AccueilSeancesTests).
+/// Les Saisons (H1) la lisent. Fixture construite par code, sans donnée d'export.
+@MainActor
+private func vueAvecHistorique(km: Double) -> Vue {
+    var vue = Vue.vide(J: "2026-10-28")
+    vue.seances = datesSeancesExemple.enumerated().map { indice, date in
+        SeanceVue(seance: Seance(
+            intrinseque: SeanceIntrinseque(
+                cleSource: "saisons-\(indice)", date: date, debutUtc: 0, nom: nil, marquage: .aucun, duree_min: 60, km: km,
+                fcMoy: nil, allureMoy_skm: nil, minutes: Minutes(easy: 0, mp: 0, subt: 0, hard: 0), charge: 0, mp_min: 0,
+                segmentsMp: [], repetitions: [], format: nil, recup_s: nil, ef: nil, fcPic: nil, decouplage: nil,
+                lignesDroites: false, distanceRef_km: nil, temps_s: nil
+            ),
+            type: .sortieLongue
+        ))
+    }
+    return vue
 }
 
 /// Largeur que SwiftUI donne à la section, dans le conteneur réel (padding horizontal de 16 pt), proposée à 393 pt.
@@ -111,20 +120,25 @@ private func largeurRendue<Contenu: View>(_ section: Contenu) -> CGFloat {
     return hote.view.sizeThatFits(CGSize(width: largeurEcran, height: .greatestFiniteMagnitude)).width
 }
 
+// 03, Progrès : P1, P2, P3, P5, puis H1 (Saisons). P4 n'y est plus (lot 19, il vit dans S3).
+@Test func laProgressionSuitLOrdreDuPlan() {
+    #expect(SectionProgres.ordre == [.comparateur, .tendances, .nuage, .niveau, .saisons])
+}
+
 @MainActor
 @Test func lesSectionsDeLaProgressionTiennentDansLEcranDUnIPhone() throws {
-    let scenarios = [
-        ("historique réaliste", try calculsAvecHistorique()),
-        ("grands nombres", try calculsAuxGrandsNombres()),
-        ("libellés longs", try calculsAuxLibellesLongs()),
+    let scenarios: [(scenario: String, calculs: CalculsProgression, vue: Vue)] = [
+        ("historique réaliste", try calculsAvecHistorique(), vueAvecHistorique(km: 40)),
+        ("grands nombres", try calculsAuxGrandsNombres(), vueAvecHistorique(km: 1_234.5)),
+        ("libellés longs", try calculsAuxLibellesLongs(), vueAvecHistorique(km: 40)),
     ]
-    for (scenario, calculs) in scenarios {
+    for (scenario, calculs, vue) in scenarios {
         let largeurs: [(section: String, largeur: CGFloat)] = [
             ("comparateur", largeurRendue(ComparateurView(calculs: calculs))),
             ("tendances", largeurRendue(TendancesView(tendances: calculs.tendances, refHr: calculs.refHr))),
             ("nuage", largeurRendue(NuageView(calculs: calculs))),
-            ("dernière séance", largeurRendue(DerniereSeanceView(seance: calculs.derniere))),
             ("niveau", largeurRendue(NiveauView(niveau: calculs.niveau))),
+            ("saisons", largeurRendue(SaisonsSectionView(vue: vue))),
         ]
         for (section, largeur) in largeurs {
             #expect(

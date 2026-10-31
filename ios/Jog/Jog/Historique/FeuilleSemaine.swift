@@ -1,7 +1,7 @@
 import SwiftUI
 import JogCore
 
-/// Feuille d'une semaine (03, H2 ; maquette « Semaine du … ») : ses indicateurs, puis ses séances. Un appui long sur
+/// Feuille d'une semaine (03, S1 ; maquette « Semaine du … ») : ses indicateurs, puis ses séances. Un appui long sur
 /// une séance propose le marquage D-020 (course, test, ou retrait) ; la décision revient à `surMarquage`.
 struct FeuilleSemaine: View {
     let ligne: ModeleHistorique.LigneSemaine
@@ -94,8 +94,6 @@ struct ContenuSemaine: View {
             IndicateurFeuille(nom: "Sous-seuil", valeur: .etat(ligne.sousSeuil)),
             IndicateurFeuille(nom: "Séances sous-seuil", valeur: .texte(ligne.seancesSousSeuil)),
             IndicateurFeuille(nom: "Charge", valeur: .texte(ligne.charge)),
-            IndicateurFeuille(nom: "Monotonie (Foster)", valeur: .texte(ligne.monotonie)),
-            IndicateurFeuille(nom: "Contrainte (Foster)", valeur: .texte(ligne.contrainte)),
             IndicateurFeuille(nom: ligne.libelleFootings, valeur: .etat(ligne.conformite)),
         ]
     }
