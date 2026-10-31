@@ -291,6 +291,23 @@ private func vueRecuperation() throws -> VueRecuperation {
     #expect(try ligne(lignes, "trenteJours").echelle == 187.5...277.5)
 }
 
+// 03 « Ligne de jauge » : l'échelle ne descend pas sous zéro pour des mesures positives, mais une mesure négative
+// (un écart d'allure, par exemple) garde ses bornes : l'échelle reste valide et contient tout.
+@Test func lEchelleDUneMesureNegativeContientSesBornes() throws {
+    let negatives = LignesVolume(
+        semaine: jauge(-18, trait: -17, bande: -20 ... -15, precision: 1),
+        trenteJours: jauge(-3, trait: 2, bande: -4...4, precision: 1),
+        annee: exempleVolume.annee, references: references
+    )
+    for l in ModeleJauges.volume(negatives, annee: 2026) where l.id != "annee" {
+        #expect(l.echelle.upperBound > l.echelle.lowerBound, "\(l.id) : échelle nulle")
+        if let point = l.point { #expect(l.echelle.contains(point), "\(l.id) : le point hors de l'échelle") }
+        if let bande = l.bande {
+            #expect(l.echelle.contains(bande.lowerBound) && l.echelle.contains(bande.upperBound), "\(l.id) : la bande hors de l'échelle")
+        }
+    }
+}
+
 // D-026 : une valeur absente n'a pas de point à placer sur la barre.
 @Test func valeurAbsenteNAPasDePoint() throws {
     let lignes = LignesVolume(

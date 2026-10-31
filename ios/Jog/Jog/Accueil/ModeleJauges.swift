@@ -176,13 +176,15 @@ enum ModeleJauges {
         return "\(ModeleApercu.nombre(abs(ecart), gabarit.decimalesEcart))\(unite) \(sens) que \(gabarit.reference)"
     }
 
-    /// Échelle de la barre : l'étendue des valeurs affichées, avec une marge (ACCUEIL), sans
-    /// descendre sous zéro. Jamais nulle : une étendue vide reçoit la marge minimale.
+    /// Échelle de la barre : l'étendue des valeurs affichées, avec une marge (ACCUEIL). Une mesure positive ne descend
+    /// pas sous zéro ; une mesure négative (écart d'allure) garde sa marge. Jamais nulle : une étendue vide reçoit la
+    /// marge minimale.
     private static func echelle(_ jauge: LigneJauge) -> ClosedRange<Double> {
         let points = [jauge.valeurAffichee, jauge.trait, jauge.bande?.lowerBound, jauge.bande?.upperBound].compactMap { $0 }
         guard let bas = points.min(), let haut = points.max() else { return 0...1 }
         let marge = max((haut - bas) * ACCUEIL.margeEchelleJauge, ACCUEIL.etendueMinEchelleJauge)
-        return max(0, bas - marge)...(haut + marge)
+        let plancher = bas >= 0 ? max(0, bas - marge) : bas - marge
+        return plancher...(haut + marge)
     }
 
     /// Mention « Norme en cours (n sur m) » d'une ligne dont l'échantillon est trop petit (D-026), sinon nil.
