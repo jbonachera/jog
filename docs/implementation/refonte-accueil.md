@@ -634,7 +634,7 @@ enum ModeleNiveau {
 | 12 | fait | swift test 530 ; xcodebuild test 161 verts (31 nouveaux) ; relu ; 5 corrections (plus de double arrondi de l'écart en %, `point` optionnel, marge d'échelle dans `ACCUEIL`, absence en récupération testée, diff du pbxproj réduit à l'ajout) |
 | 13 | fait | swift test 531 ; xcodebuild test 189 verts (35 nouveaux) ; relu ; 4 corrections (`LigneJauge.n` pour « {n} footings des 8 dernières semaines », formats de toutes les jauges testés, borne 365/366 jours, résumé sans sous-seuil testé) |
 | 14 | fait | swift test 531 ; xcodebuild test 194 verts (5 fonctions nouvelles) ; relu ; 4 corrections (toucher de la ligne seulement si dépliable, trait bouton explicite, tolérance retirée du test, colonne du libellé compressible : débordement de 0,33 pt corrigé) |
-| 15 | | |
+| 15 | fait | swift test 534 ; xcodebuild test 215 verts (21 nouveaux) ; relu ; 3 corrections (records par distance calculés dans JogCore par `recordsParDistance`, sans dépendre d'un 5 km ; bornes D-015 du ton d'un axe ; rayon 0,5 sans écart testé) |
 | 16 | | |
 | 17 | | |
 | 18 | | |
@@ -665,3 +665,4 @@ enum ModeleNiveau {
 - Lot 13 : le résumé de semaine omet « · N seuils · X′ sous-seuil (P %) » sans séance sous-seuil (sinon « 0 seuil · 0′ (0 %) »). Une séance de plus de 365 jours porte l'année. La séance qualité prend la couleur « au-dessus du seuil », comme courses et tests.
 - Lot 14 : VoiceOver vérifié par la lecture composée (`lecture`), pas par l'arbre d'accessibilité (non observable depuis l'hôte de test) ; le trait bouton est posé explicitement.
 - À faire par l'utilisateur (lot 14) : relire les composants dans les `#Preview` (clair, sombre, XXL) et à VoiceOver.
+- Lot 15 : le record de Courses (point 14) vient de `recordsParDistance` (JogCore, meilleur temps par distance, la plus ancienne à égalité), et non du `NiveauEstime` de P5, qui n'existe qu'avec un 5 km. L'en-tête porte un `ton` (écart nul neutre) au lieu de `ecartPositif` ; chaque axe porte `comparaison` et `accessibilite`.

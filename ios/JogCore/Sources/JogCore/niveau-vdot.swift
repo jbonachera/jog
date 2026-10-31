@@ -78,6 +78,23 @@ public func coursesEtTests(_ vue: Vue) throws -> [LigneCourse] {
     }
 }
 
+/// Les records de P5 par distance standard (04, « Records », point de décision 14) : pour 5 km, 10 km, semi et marathon,
+/// la course au meilleur temps. À égalité, la plus ancienne garde le record (comme `meilleurRecord`). Une seule passe ;
+/// une distance « autre » n'a jamais de record. Renvoie les cleSource des courses qui détiennent un record.
+public func recordsParDistance(_ courses: [LigneCourse]) -> Set<String> {
+    var meilleurs: [DistanceCourse: LigneCourse] = [:]
+    for course in courses {
+        if case .autre = course.distance { continue }
+        if let actuel = meilleurs[course.distance] {
+            let plusRapide = course.temps_s < actuel.temps_s
+            let egalPlusAncienne = course.temps_s == actuel.temps_s && course.date < actuel.date
+            guard plusRapide || egalPlusAncienne else { continue }
+        }
+        meilleurs[course.distance] = course
+    }
+    return Set(meilleurs.values.map(\.cleSource))
+}
+
 /// La catégorie d'une course : une distance standard à 3 % près (point de décision 9), sinon « autre ».
 public func distanceCourse(_ km: Double) -> DistanceCourse {
     let reference = distanceStandardProche(km)

@@ -183,3 +183,40 @@ private func vueAvec(_ seances: [SeanceIntrinseque]) throws -> Vue {
     #expect(coursePlusAncienne.allure_skm == 2260.0 / 10)
     #expect(coursePlusAncienne.vdot == 55.7)
 }
+
+// MARK: - 04, « Records » (point de décision 14) : le record de chaque distance standard
+
+private func ligneCourse(_ cle: String, _ date: DateCivile, _ distance: DistanceCourse, _ temps: Double) -> LigneCourse {
+    LigneCourse(
+        cleSource: cle, date: date, distance: distance, estTest: false, temps_s: temps, allure_skm: temps, vdot: 50
+    )
+}
+
+// 04, « Records » : sans 5 km, le 10 km et le marathon gardent leur record ; le plus rapide de chaque distance seulement
+@Test func sansCinqKmLeDixKmEtLeMarathonGardentLeurRecord() {
+    let records = recordsParDistance([
+        ligneCourse("dix-recent", "2026-10-12", .dixKm, 2260),
+        ligneCourse("dix-record", "2026-04-06", .dixKm, 2250),
+        ligneCourse("marathon", "2025-10-19", .marathon, 11140),
+    ])
+    #expect(records == ["dix-record", "marathon"])
+}
+
+// 04, « Records » : à égalité de temps, la course la plus ancienne garde le record (comme P5)
+@Test func aEgaliteDeTempsLaCourseLaPlusAncienneGardeLeRecord() {
+    let records = recordsParDistance([
+        ligneCourse("dix-2026", "2026-04-06", .dixKm, 2250),
+        ligneCourse("dix-2025", "2025-06-15", .dixKm, 2250),
+    ])
+    #expect(records == ["dix-2025"])
+}
+
+// 04, « Records » : une distance « autre » n'a jamais de record, même la plus rapide
+@Test func uneDistanceAutreNAPasDeRecord() {
+    let records = recordsParDistance([
+        ligneCourse("quinze", "2026-05-02", .autre(km: 15), 3600),
+        ligneCourse("cinq", "2026-09-14", .cinqKm, 1085),
+    ])
+    #expect(records == ["cinq"])
+    #expect(recordsParDistance([]).isEmpty)
+}
