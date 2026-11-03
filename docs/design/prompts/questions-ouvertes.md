@@ -17,7 +17,7 @@ Lis intégralement, dans cet ordre :
 6. `docs/design/07-donnees.md`
 7. `docs/design/09-questions-ouvertes.md`. **C'est la liste à traiter.**
 
-Consulte les autres fichiers de `docs/design/` et la maquette `docs/design/maquette/ensemble.html` (avec `data.js`) dès qu'une question les touche. Pour une question de méthode d'entraînement, `recherche.md` à la racine donne le contexte NSA.
+Consulte les autres fichiers de `docs/design/` et la maquette `docs/design/maquette/accueil.html` (avec `data.js`) dès qu'une question les touche. Pour une question de méthode d'entraînement, `recherche.md` à la racine donne le contexte NSA.
 
 ## Contraintes du produit, non négociables
 

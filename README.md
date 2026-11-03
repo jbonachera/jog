@@ -6,7 +6,7 @@ App iPhone (iOS 26, SwiftUI) de suivi de course à pied selon la méthode NSA : 
 
 - `ios/JogCore` : le moteur Swift (calculs, adaptateur HealthKit pur, stockage), sans UIKit ni HealthKit.
 - `ios/Jog` : le projet Xcode de l'app (écrans, requêtes HealthKit, synchronisation).
-- `docs/design` : la spécification fonctionnelle et les maquettes (`maquette/index.html`, une maquette par écran ; design de référence : `maquette/ensemble.html`).
+- `docs/design` : la spécification fonctionnelle et les maquettes (`maquette/index.html`, une maquette par écran ; design de référence : `maquette/accueil.html`).
 - `docs/adr` : les décisions d'architecture (en particulier [0014](docs/adr/0014-app-ios-native.md)).
 - `docs/implementation` : contrats, plan de réalisation et historique de la migration.
 

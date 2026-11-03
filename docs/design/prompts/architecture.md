@@ -19,7 +19,7 @@ Lis intégralement, dans cet ordre :
 8. `docs/design/decisions.md` : décisions D-001 à D-011. Elles contraignent l'architecture.
 9. `docs/design/09-questions-ouvertes.md` : en particulier « À vérifier sur données réelles ».
 
-Consulte `03-composants.md`, `08-systeme-visuel.md` et la maquette `docs/design/maquette/ensemble.html` (avec `data.js`) dès qu'un sujet touche l'interface. `recherche.md`, à la racine, liste les outils du marché et leurs API.
+Consulte `03-composants.md`, `08-systeme-visuel.md` et la maquette `docs/design/maquette/accueil.html` (avec `data.js`) dès qu'un sujet touche l'interface. `recherche.md`, à la racine, liste les outils du marché et leurs API.
 
 ## Ce que la spécification impose déjà à l'architecture
 

@@ -2,20 +2,19 @@
 
 Spécification de référence pour l'implémentation du tableau de bord de suivi de course à pied de Jog. Elle décrit ce que le produit doit permettre, comment il est organisé, chaque composant, chaque calcul et le système visuel. La maquette jointe en est l'illustration exécutable.
 
-> **Design de référence de l'app** : `maquette/accueil.html` pour la navigation et l'écran Aujourd'hui (refonte D-024 à D-028, octobre 2026) ; `maquette/ensemble.html` (iPhone, iOS 26) pour le système visuel et les écrans de détail. `maquette/index.html` liste toutes les maquettes (une par écran de l'app).
+> **Design de référence de l'app** : `maquette/accueil.html` pour la navigation et l'écran Aujourd'hui (refonte D-024 à D-028, octobre 2026). L'ancienne vue d'ensemble `ensemble.html` (structure à onglets abandonnée) a été supprimée ; elle reste dans l'historique git. `maquette/index.html` liste toutes les maquettes (une par écran de l'app).
 
 > **Statut** : design validé sur maquette (v4, octobre 2026). Les valeurs de la maquette sont des **données d'exemple** générées.
 
 ## Ouvrir la maquette
 
 ```
-file:///<chemin du dépôt>/docs/design/maquette/ensemble.html
+file:///<chemin du dépôt>/docs/design/maquette/index.html
 ```
 
 - `maquette/accueil.html` : l'accueil retenu (Niveau, Récupération, Volume, séances par semaine), l'écran Courses et la carte de séance par type. Ses données sont un scénario fixe : jeudi 30 octobre.
 - `maquette/index.html` : l'index des maquettes ; `maquette/maquette.css` : la pastille de retour à l'index, commune à toutes les pages.
 - `maquette/recuperation.html` : l'onglet Récupération (R1 à R7, D-023).
-- `maquette/ensemble.html` : la maquette iPhone (iOS 26, Liquid Glass, thème Fjord). Vue d'ensemble : système visuel, Progression, Historique, Paramètres, Décision. Mêmes calculs que `data.js`. Sur un écran large, elle s'affiche dans un cadre d'iPhone ; sur un téléphone, en plein écran.
 - `maquette/chargement.html` : la progression des travaux longs (import, recalcul après un réglage ou un marquage, rechargement d'une séance) dans l'accessoire Liquid Glass de la barre d'onglets, et le verrou des Paramètres et du marquage pendant un recalcul (iOS 26 minimum).
 - `maquette/seance.html` : l'écran Séance (S3) retenu, en mise en page éditoriale, décliné pour un footing, une séance sous-seuil, une course et une sortie longue (D-034). Données synthétiques propres au fichier.
 - `maquette/data.js` : le générateur de données d'exemple, déterministe. Il produit un athlète fictif sur 14 mois en méthode NSA.

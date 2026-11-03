@@ -344,7 +344,7 @@ button.row:active { background: var(--fill); }
   <aside class="stage-info">
     <span class="brand">Jog · maquette d'ensemble · proposition</span>
     <h1>Récupération : la tendance, pas une note</h1>
-    <p>Ajout à la <a href="ensemble.html">maquette d'ensemble</a>, toujours sur 4 onglets : la récupération rejoint la charge, la nuit se lit dans Aujourd'hui. Données HealthKit de l'Apple Watch : VFC nocturne, FC de repos, sommeil par phases, fréquence respiratoire.</p>
+    <p>Ajout à la maquette d’ensemble (supprimée depuis, voir l’historique git), toujours sur 4 onglets : la récupération rejoint la charge, la nuit se lit dans Aujourd'hui. Données HealthKit de l'Apple Watch : VFC nocturne, FC de repos, sommeil par phases, fréquence respiratoire.</p>
     <div class="bench">
       <div><b>Athlytic</b>Score de récupération de 0 à 100 %, fondé sur la VFC (pondérée plus fort) et la FC de repos, mesurées pendant le sommeil et comparées à une base glissante de 60 jours. Calculé une fois par jour, au réveil.<span class="keep">On garde la base de 60 jours, la mesure nocturne et le calcul figé du matin.</span> <span class="drop">On écarte le pourcentage, opaque.</span></div>
       <div><b>Bevel</b>Trois anneaux (Effort, Récupération, Sommeil) et une « Energy Bank » qui fusionne le tout.<span class="keep">On garde un sommeil résumé en une ligne lisible.</span> <span class="drop">On écarte le score composite et la gamification.</span></div>
@@ -412,7 +412,7 @@ button.row:active { background: var(--fill); }
           </section>
           <section>
             <div class="sh"><h2>Progressivité · sous-seuil · discipline NSA</h2></div>
-            <div class="card placeholder">Inchangés. Voir la <a href="ensemble.html">maquette d'ensemble</a>.</div>
+            <div class="card placeholder">Inchangés. Voir <a href="accueil.html">accueil.html</a>.</div>
           </section>
         </div>
         <div class="view" id="cp-recup" hidden>
@@ -472,8 +472,8 @@ button.row:active { background: var(--fill); }
           <p class="foot">Source : Apple Santé (HealthKit). Pas de score sur 100 : chaque valeur est affichée face à sa propre norme.</p>
         </div>
       </main>
-      <main class="view" id="v-progression" role="tabpanel" aria-labelledby="t-progression" data-title="Progression" hidden><div class="ltitle"><h1>Progression</h1></div><div class="card placeholder">Inchangé. Voir la <a href="ensemble.html">maquette d'ensemble</a>.</div></main>
-      <main class="view" id="v-historique" role="tabpanel" aria-labelledby="t-historique" data-title="Historique" hidden><div class="ltitle"><h1>Historique</h1></div><div class="card placeholder">Inchangé. Voir la <a href="ensemble.html">maquette d'ensemble</a>.</div></main>
+      <main class="view" id="v-progression" role="tabpanel" aria-labelledby="t-progression" data-title="Progression" hidden><div class="ltitle"><h1>Progression</h1></div><div class="card placeholder">Inchangé. Voir <a href="accueil.html">accueil.html</a>.</div></main>
+      <main class="view" id="v-historique" role="tabpanel" aria-labelledby="t-historique" data-title="Historique" hidden><div class="ltitle"><h1>Historique</h1></div><div class="card placeholder">Inchangé. Voir <a href="accueil.html">accueil.html</a>.</div></main>
     </div>
 
     <div class="edge-top" id="edge-top" aria-hidden="true"></div>
@@ -596,7 +596,7 @@ function compute() {
   return { st, S, why };
 }
 
-// ---------- Outils de graphique (même conventions que ensemble.html)
+// ---------- Outils de graphique (mêmes conventions que l’ancienne maquette d’ensemble)
 function dom(vals, step, pad = .08) { let lo = Math.min(...vals), hi = Math.max(...vals); const p = (hi - lo) * pad; return [Math.floor((lo - p) / step) * step, Math.ceil((hi + p) / step) * step]; }
 function ticks(lo, hi, step, maxN = 4) { let s = step; while ((hi - lo) / s > maxN) s *= 2; const o = []; for (let v = Math.ceil(lo / s) * s; v <= hi + 1e-9; v += s) o.push(+v.toFixed(6)); return o; }
 function yAxis(svg, y, tk, Lx, R, W, fmt = (v) => v) { const g = el('g', { class: 'grid' }, svg); tk.forEach(v => { el('line', { x1: Lx, x2: W - R, y1: y(v), y2: y(v) }, g); vt(svg, Lx - 5, y(v) + 3.5, fmt(v), { 'text-anchor': 'end' }); }); }

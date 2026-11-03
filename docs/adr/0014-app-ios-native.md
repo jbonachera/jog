@@ -13,7 +13,7 @@ Le tableau de bord web (TypeScript, navigateur, archive Strava importée à la m
 
 Les règles D-016 à D-021 (suppression des données, marquage Course ou Test, répétitions estimées…) sont consignées dans `docs/implementation/lots.md` (« Écarts proposés ») et `docs/implementation/migration-ios.md`.
 
-- **App** : SwiftUI, iOS 26 au minimum, un athlète, aucun serveur. Design de référence : `docs/design/maquette/ensemble.html`.
+- **App** : SwiftUI, iOS 26 au minimum, un athlète, aucun serveur. Design de référence : `docs/design/maquette/ensemble.html` (supprimée, remplacée par `accueil.html` après D-024 ; voir l’historique git).
 - **Moteur** : le paquet Swift `ios/JogCore`, sans UIKit ni HealthKit, reprend l'ancien `src/core`. La Vue (ADR 0009) est un type Swift consommé directement par les écrans. Un `actor Moteur` calcule hors du fil principal.
 - **Source** : HealthKit, en lecture seule. Toutes les séances de course sont importées, quelle que soit l'app, pour le volume, la charge, la FC, la forme et les compteurs. Seule l'analyse des intervalles (tours, étapes d'entraînement) est réservée à l'app Exercice d'Apple ; les autres apps donnent des séances libres, avec des répétitions estimées (D-021). Les doublons (même sortie enregistrée par deux apps, recouvrement d'au moins 50 % de la plus courte ; l'ADR 0004 disait « plus de 50 % ») sont résolus au profit d'Exercice. Synchronisation incrémentale par ancre, livraison en arrière-plan. Le marquage Course ou Test (D-020) est saisi dans l'app.
 - **Adaptateur** : les requêtes HealthKit (dans l'app) produisent des échantillons bruts ; la transformation en `ActivitePivot` est pure et testée dans `JogCore`.
