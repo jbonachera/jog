@@ -5,8 +5,7 @@ import JogCore
 
 /// R6 · Récupération et charge (03 R6 ; maquette recuperation.html, carte « Récupération et charge »). Sur 16 semaines, deux
 /// graphiques empilés et alignés : les kilomètres par semaine (barres à largeur fixe, la semaine en cours en contour), puis
-/// l'écart moyen de la VFC à sa norme, en %, avec la ligne zéro ; les points sous −8 % sont orange. Lecture partagée et vue
-/// tableau (D-011).
+/// l'écart moyen de la VFC à sa norme, en %, avec la ligne zéro ; les points sous −8 % sont orange. Lecture partagée.
 struct RecuperationChargeView: View {
     @Environment(\.dynamicTypeSize) private var tailleTexte
     private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
@@ -69,30 +68,28 @@ struct RecuperationChargeView: View {
                 if semaines.isEmpty {
                     EtatVide(texte: "Pas encore de semaine terminée.")
                 } else {
-                    GraphiqueOuTableau(tableau: ModeleRecuperation.tableauCharge(semaines)) {
-                        VStack(alignment: .leading, spacing: 14) {
-                            Text(lecture)
-                                .font(.caption)
-                                .foregroundStyle(.encre2)
-                                .monospacedDigit()
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text(lecture)
+                            .font(.caption)
+                            .foregroundStyle(.encre2)
+                            .monospacedDigit()
 
-                            GeometryReader { geometrie in
-                                let largeurY = largeurAxesY
-                                let longueurX = DimensionsGraphique.longueurAxeX(largeurGraphique: geometrie.size.width, largeurAxeY: largeurY)
-                                VStack(spacing: 14) {
-                                    graphiqueKm(longueurX: longueurX, lue: lue)
-                                        .frame(height: DimensionsGraphique.recuperationKm)
-                                    graphiqueEcart(longueurX: longueurX, lundis: lundis, lue: lue)
-                                        .frame(height: DimensionsGraphique.recuperationEcart)
-                                }
+                        GeometryReader { geometrie in
+                            let largeurY = largeurAxesY
+                            let longueurX = DimensionsGraphique.longueurAxeX(largeurGraphique: geometrie.size.width, largeurAxeY: largeurY)
+                            VStack(spacing: 14) {
+                                graphiqueKm(longueurX: longueurX, lue: lue)
+                                    .frame(height: DimensionsGraphique.recuperationKm)
+                                graphiqueEcart(longueurX: longueurX, lundis: lundis, lue: lue)
+                                    .frame(height: DimensionsGraphique.recuperationEcart)
                             }
-                            .frame(height: DimensionsGraphique.recuperationKm + DimensionsGraphique.recuperationEcart + 6)
-
-                            Text(ModeleRecuperation.noteCharge)
-                                .font(.footnote)
-                                .foregroundStyle(.encre2)
-                                .fixedSize(horizontal: false, vertical: true)
                         }
+                        .frame(height: DimensionsGraphique.recuperationKm + DimensionsGraphique.recuperationEcart + 6)
+
+                        Text(ModeleRecuperation.noteCharge)
+                            .font(.footnote)
+                            .foregroundStyle(.encre2)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }

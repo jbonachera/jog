@@ -338,13 +338,6 @@ enum ModeleProgression {
         }
     }
 
-    static func tableauTendance(_ points: [PointAffiche], _ valeurTexte: (Double) -> String) -> TableauAffiche {
-        TableauAffiche(
-            entetes: ["Date", "Mesurée", "Lissée"],
-            lignes: points.map { [formatDate($0.id), valeurTexte($0.brut), valeurTexte($0.lisse)] }
-        )
-    }
-
     // MARK: - Nuage (P3)
 
     /// Bornes de l'axe des allures (P3 et P4) : pas de 5 s/km, étendue d'au moins 20 s/km. L'axe est inversé à l'affichage.
@@ -415,16 +408,6 @@ enum ModeleProgression {
         let arrondi = ecart.rounded()
         if arrondi == 0 { return "même allure à FC égale" }
         return arrondi > 0 ? "\(Int(arrondi)) s/km plus rapide" : "\(Int(-arrondi)) s/km plus lent"
-    }
-
-    static func tableauNuage(_ nuage: Nuage) -> TableauAffiche {
-        let groupes: [(RoleNuage, PeriodeRepetitions)] = [(.reference, nuage.reference), (.recente, nuage.recente)]
-        let lignes: [[String]] = groupes.flatMap { role, periode in
-            pointsNuage(periode, role: role).map { point in
-                [nomPeriode(role, nuage.periode), point.libelle]
-            }
-        }
-        return TableauAffiche(entetes: ["Période", "Répétition"], lignes: lignes)
     }
 
     // MARK: - Dernière séance (P4)

@@ -1,4 +1,4 @@
-// Logique d'affichage de l'onglet Charge (03, C1 à C3) : séries, bornes d'axe, lectures au doigt, tableaux (D-011) et
+// Logique d'affichage de l'onglet Charge (03, C1 à C3) : séries, bornes d'axe, lectures au doigt et
 // descriptions VoiceOver. Aucun import SwiftUI : ce fichier se teste sans interface. Les calculs restent dans JogCore
 // (selecteurs-progressivite, selecteurs-minutes-ss, selecteurs-discipline) ; ici on ne fait que mettre en forme.
 import Foundation
@@ -124,20 +124,6 @@ enum ModeleCharge {
         return "\(quand) : \(ModeleApercu.nombre(point.s7, 1)) km sur 7 jours · moyenne sur 30 jours \(ModeleApercu.nombre(point.chronic, 1)) km · ratio \(ModeleApercu.nombre(point.r, 2))"
     }
 
-    static func tableauVolume(_ points: [PointRatio]) -> TableauAffiche {
-        TableauAffiche(
-            entetes: ["Date", "7 derniers jours (km)", "Moyenne 30 jours (km)"],
-            lignes: points.map { [formatDate($0.id), ModeleApercu.nombre($0.s7, 1), ModeleApercu.nombre($0.chronic, 1)] }
-        )
-    }
-
-    static func tableauRatio(_ points: [PointRatio]) -> TableauAffiche {
-        TableauAffiche(
-            entetes: ["Date", "Ratio 7 j / 30 j", "Lecture"],
-            lignes: points.map { [formatDate($0.id), ModeleApercu.nombre($0.r, 2), libelleEtat($0.etat)] }
-        )
-    }
-
     static func donneesVolume(_ modele: Progressivite) -> DonneesAccessibles {
         DonneesAccessibles(
             titre: "Volume des 7 derniers jours et moyenne sur 30 jours",
@@ -216,13 +202,6 @@ enum ModeleCharge {
         "moyenne 4 sem. : \(ModeleApercu.nombre(moyenne)) min"
     }
 
-    static func tableauMinutes(_ modele: MinutesSousSeuil) -> TableauAffiche {
-        TableauAffiche(
-            entetes: ["Semaine du", "Minutes de sous-seuil", "Séances"],
-            lignes: modele.semaines.map { [formatDate($0.lundi), ModeleApercu.nombre($0.minutes), String($0.seances)] }
-        )
-    }
-
     static func donneesMinutes(_ modele: MinutesSousSeuil) -> DonneesAccessibles {
         DonneesAccessibles(
             titre: "Minutes de sous-seuil par semaine",
@@ -295,16 +274,6 @@ enum ModeleCharge {
         }
         let verdict = semaine.dansCible == true ? "dans la cible" : "hors cible"
         return "\(prefixe)\(formatSemaine(semaine.lundi)) : \(ModeleApercu.pourcentage(part)) du temps en sous-seuil · \(verdict)"
-    }
-
-    static func tableauDiscipline(_ modele: Discipline) -> TableauAffiche {
-        TableauAffiche(
-            entetes: ["Semaine du", "Part en sous-seuil", "Cible"],
-            lignes: modele.semaines.map { semaine in
-                let cible = semaine.dansCible.map { $0 ? "dans la cible" : "hors cible" } ?? ModeleApercu.tiret
-                return [formatDate(semaine.lundi), ModeleApercu.pourcentageOuTiret(semaine.partPct), cible]
-            }
-        )
     }
 
     static func donneesDiscipline(_ modele: Discipline) -> DonneesAccessibles {

@@ -4,7 +4,7 @@ import Charts
 import JogCore
 
 /// C3 · Discipline NSA (03, C3) : part du temps en sous-seuil sur les 30 dernières semaines terminées, avec la bande
-/// cible ; une note sur les footings sous le plafond. Lecture au doigt et vue tableau (D-011).
+/// cible ; une note sur les footings sous le plafond. Lecture au doigt.
 struct DisciplineView: View {
     @Environment(\.dynamicTypeSize) private var tailleTexte
     private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
@@ -62,10 +62,8 @@ struct DisciplineView: View {
                 .foregroundStyle(.encre2)
                 .monospacedDigit()
 
-            GraphiqueOuTableau(tableau: ModeleCharge.tableauDiscipline(modele)) {
-                graphique(modele, lecture: lecture)
-                    .frame(height: DimensionsGraphique.discipline)
-            }
+            graphique(modele, lecture: lecture)
+                .frame(height: DimensionsGraphique.discipline)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), alignment: .leading)], alignment: .leading, spacing: 6) {
                 LegendeForme(texte: "Dans la cible", forme: .carre, couleur: Zone.sousSeuil.couleur)

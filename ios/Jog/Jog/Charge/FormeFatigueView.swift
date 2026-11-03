@@ -51,34 +51,30 @@ struct FormeFatigueView: View {
             TitreSection(titre: "Forme et fatigue")
 
             VStack(alignment: .leading, spacing: 14) {
-                GraphiqueOuTableau(tableau: modele.tableauForme) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text(texte)
-                            .font(.caption)
-                            .foregroundStyle(.encre2)
-                            .monospacedDigit()
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(texte)
+                        .font(.caption)
+                        .foregroundStyle(.encre2)
+                        .monospacedDigit()
 
-                        formeChart(modele, lecture: texte, lu: lu)
-                            .frame(height: DimensionsGraphique.formeFatigue)
+                    formeChart(modele, lecture: texte, lu: lu)
+                        .frame(height: DimensionsGraphique.formeFatigue)
 
-                        HStack(spacing: 14) {
-                            LegendeForme(texte: "Forme de fond (CTL)", forme: .ligne, couleur: .accentFjord)
-                            LegendeForme(texte: "Fatigue (ATL)", forme: .ligne, couleur: .encre3)
-                        }
+                    HStack(spacing: 14) {
+                        LegendeForme(texte: "Forme de fond (CTL)", forme: .ligne, couleur: .accentFjord)
+                        LegendeForme(texte: "Fatigue (ATL)", forme: .ligne, couleur: .encre3)
                     }
                 }
 
-                GraphiqueOuTableau(tableau: modele.tableauFraicheur) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text("Fraîcheur (TSB) : forme − fatigue")
-                            .font(.caption)
-                            .foregroundStyle(.encre2)
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("Fraîcheur (TSB) : forme − fatigue")
+                        .font(.caption)
+                        .foregroundStyle(.encre2)
 
-                        fraicheurChart(modele, lecture: texte, lu: lu)
-                            .frame(height: DimensionsGraphique.fraicheurForme)
+                    fraicheurChart(modele, lecture: texte, lu: lu)
+                        .frame(height: DimensionsGraphique.fraicheurForme)
 
-                        LegendeForme(texte: "Zone productive, de −25 à −10", forme: .carre, couleur: .bande)
-                    }
+                    LegendeForme(texte: "Zone productive, de −25 à −10", forme: .carre, couleur: .bande)
                 }
 
                 HStack(alignment: .top, spacing: 12) {

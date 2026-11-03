@@ -108,7 +108,7 @@ struct CourbeDistance: View {
     @State private var km: Double?
 
     var body: some View {
-        GraphiqueOuTableau(tableau: tableau) { graphique }
+        graphique
     }
 
     /// Vue tableau (D-011) : une ligne par kilomètre, la valeur du point le plus proche de chaque série.

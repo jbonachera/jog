@@ -105,7 +105,7 @@ Les titres utilisent `text-wrap: balance`.
 - Les résultats du simulateur et les messages des paramètres sont annoncés (`aria-live` / `role="status"`).
 - Les contrastes de texte sont conformes WCAG AA dans les deux thèmes.
 - Les tableaux ont des en-têtes réels. Le journal a un en-tête collant.
-- **Vue tableau** ([D-011](decisions.md#d-011--vue-tableau-des-graphiques)) : chaque graphique porte un bouton segmenté **Graphique · Tableau**. « Tableau » remplace le graphique par un tableau des mêmes séries sur la même période : une ligne par point (date ou semaine), une colonne par série, des en-têtes réels, les formats de la section Rédaction, et un défilement dans son propre conteneur. Le choix n'est pas mémorisé.
+- **Pas de vue tableau** ([D-035](decisions.md#d-035--graphiques-sans-vue-tableau)) : les graphiques n'ont pas de sélecteur Graphique · Tableau. Les valeurs sont lues par la description VoiceOver de chaque graphique et par la lecture au doigt.
 - Respect de `prefers-reduced-motion`. La maquette n'anime rien.
 
 ## Rédaction

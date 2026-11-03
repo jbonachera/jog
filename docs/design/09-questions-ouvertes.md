@@ -61,7 +61,7 @@ Ce ne sont pas des questions ouvertes : les règles sont fixées. Il faudra en c
 | Pas de gestion des données insuffisantes | Minimums par signal, pastille neutre, « Pas encore de verdict » avant 30 jours, « Maintenir » au mieux si un signal décisif manque (D-007) |
 | L'enregistrement des paramètres recharge la page | Recalcul sans rechargement, annonce dans `role="status"` (D-010) |
 | Le fichier de données contient des notions de plan, d'objectif et de lactate, non lues | À ne pas reprendre |
-| Aucune vue tableau alternative aux graphiques | Bouton segmenté Graphique · Tableau sur chaque graphique (D-011) |
+| Aucune vue tableau alternative aux graphiques | Description VoiceOver de chaque graphique ; vue tableau abandonnée (D-011, puis D-035) |
 
 ## Backlog, hors du périmètre validé
 

@@ -4,7 +4,7 @@ import Charts
 import JogCore
 
 /// H1 · Saisons et volume hebdomadaire (03, H1) : barres empilées par intensité, résultats de course, aujourd'hui.
-/// Bascule Graphique · Tableau (D-011) ; le choix n'est pas mémorisé. Dernière section de Progrès (lot 19).
+/// Dernière section de Progrès (lot 19).
 struct SaisonsView: View {
     @Environment(\.dynamicTypeSize) private var tailleTexte
     private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
@@ -38,36 +38,15 @@ struct SaisonsView: View {
             TitreSection(titre: "Saisons", detail: ModeleHistorique.libellePeriode(donnees.periode))
 
             VStack(alignment: .leading, spacing: 14) {
-                GraphiqueOuTableau(tableau: tableau) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        lectureTexte
-                        graphique
-                            .frame(height: DimensionsGraphique.saisons)
-                        legende
-                    }
+                VStack(alignment: .leading, spacing: 14) {
+                    lectureTexte
+                    graphique
+                        .frame(height: DimensionsGraphique.saisons)
+                    legende
                 }
             }
             .carte()
         }
-    }
-
-    // MARK: - Tableau (D-011)
-
-    /// Une ligne par semaine, la plus récente en premier, comme la vue tableau de H1.
-    private var tableau: TableauAffiche {
-        TableauAffiche(
-            entetes: ["Semaine", "km", "Facile", "Marathon", "Sous-seuil", "Au-dessus"],
-            lignes: donnees.chronologique.reversed().map { ligne in
-                [
-                    ligne.titreCourt,
-                    ModeleApercu.nombre(ligne.km, 1),
-                    ModeleApercu.nombre(ligne.kmParZone[.facile] ?? 0, 1),
-                    ModeleApercu.nombre(ligne.kmParZone[.marathon] ?? 0, 1),
-                    ModeleApercu.nombre(ligne.kmParZone[.sousSeuil] ?? 0, 1),
-                    ModeleApercu.nombre(ligne.kmParZone[.auDessus] ?? 0, 1),
-                ]
-            }
-        )
     }
 
     // MARK: - Lecture au doigt

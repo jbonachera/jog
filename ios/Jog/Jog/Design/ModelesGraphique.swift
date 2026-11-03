@@ -1,18 +1,6 @@
-// Types partagés par les graphiques de l'app (08 : vue tableau D-011, description VoiceOver, axes). Aucun import
+// Types partagés par les graphiques de l'app (08 : description VoiceOver, axes). Aucun import
 // SwiftUI : ce fichier se teste sans interface. Les domaines d'axe viennent de JogCore (`domaineAxe`, D-009).
 import Foundation
-
-/// Graphique ou tableau des mêmes séries (D-011). Le choix n'est pas mémorisé.
-enum ModeAffichage: CaseIterable, Hashable, Sendable {
-    case graphique, tableau
-
-    var libelle: String {
-        switch self {
-        case .graphique: "Graphique"
-        case .tableau: "Tableau"
-        }
-    }
-}
 
 /// Un tableau des mêmes séries qu'un graphique : en-têtes réels et lignes déjà formatées, dans l'ordre du graphique.
 struct TableauAffiche: Equatable, Sendable {

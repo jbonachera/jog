@@ -4,7 +4,7 @@ import Charts
 import JogCore
 
 /// C2 · Minutes de sous-seuil par semaine (03, C2) : les 26 dernières semaines terminées, la moyenne des 4 dernières
-/// en pointillé, une date sur l'axe toutes les 5 semaines. Lecture au doigt et vue tableau (D-011).
+/// en pointillé, une date sur l'axe toutes les 5 semaines. Lecture au doigt.
 struct MinutesSousSeuilView: View {
     @Environment(\.dynamicTypeSize) private var tailleTexte
     private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
@@ -46,10 +46,8 @@ struct MinutesSousSeuilView: View {
                         .foregroundStyle(.encre2)
                         .monospacedDigit()
 
-                    GraphiqueOuTableau(tableau: ModeleCharge.tableauMinutes(modele)) {
-                        graphique(modele, lecture: lecture)
-                            .frame(height: DimensionsGraphique.minutesSousSeuil)
-                    }
+                    graphique(modele, lecture: lecture)
+                        .frame(height: DimensionsGraphique.minutesSousSeuil)
 
                     LegendeForme(texte: "Minutes de sous-seuil", forme: .carre, couleur: Zone.sousSeuil.couleur)
                 }

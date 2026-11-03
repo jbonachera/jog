@@ -3,32 +3,6 @@ import UIKit
 import Charts
 import JogCore
 
-/// Un graphique et sa vue tableau, au choix (D-011 ; 08, « Accessibilité »). Le choix n'est pas mémorisé.
-struct GraphiqueOuTableau<Graphique: View>: View {
-    let tableau: TableauAffiche
-    @ViewBuilder let graphique: () -> Graphique
-    @State private var mode: ModeAffichage = .graphique
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Picker("Affichage", selection: $mode) {
-                ForEach(ModeAffichage.allCases, id: \.self) { option in
-                    Text(option.libelle).tag(option)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-
-            switch mode {
-            case .graphique:
-                graphique()
-            case .tableau:
-                TableauVue(tableau: tableau)
-            }
-        }
-    }
-}
-
 /// Le tableau des mêmes séries que le graphique : en-têtes réels, une ligne par point. Les lignes sont paresseuses
 /// (un A4 de 250 lignes, ou H1 « Toutes »), et le tableau défile dans son propre conteneur (08).
 struct TableauVue: View {

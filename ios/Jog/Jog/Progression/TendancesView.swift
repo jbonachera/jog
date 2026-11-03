@@ -94,16 +94,14 @@ private struct PanneauTendance: View {
             if points.isEmpty {
                 EtatVide(texte: "Pas encore assez de séances pour tracer cette tendance.")
             } else {
-                GraphiqueOuTableau(tableau: ModeleProgression.tableauTendance(points, valeur)) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        GraphiqueTendance(serie: serie, titre: titre, points: points)
-                            .frame(height: DimensionsGraphique.tendance)
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), alignment: .leading)], alignment: .leading, spacing: 6) {
-                            LegendeForme(texte: "Valeur lissée", forme: .ligne, couleur: .accentFjord)
-                            LegendeForme(texte: "Valeur mesurée", forme: .rond, couleur: .encre3)
-                            if serie == .decouplage {
-                                LegendeForme(texte: "Sortie à allure marathon", forme: .losange, couleur: .encre3)
-                            }
+                VStack(alignment: .leading, spacing: 10) {
+                    GraphiqueTendance(serie: serie, titre: titre, points: points)
+                        .frame(height: DimensionsGraphique.tendance)
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), alignment: .leading)], alignment: .leading, spacing: 6) {
+                        LegendeForme(texte: "Valeur lissée", forme: .ligne, couleur: .accentFjord)
+                        LegendeForme(texte: "Valeur mesurée", forme: .rond, couleur: .encre3)
+                        if serie == .decouplage {
+                            LegendeForme(texte: "Sortie à allure marathon", forme: .losange, couleur: .encre3)
                         }
                     }
                 }

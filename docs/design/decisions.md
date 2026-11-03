@@ -199,6 +199,8 @@ Décisions prises sur les questions ouvertes de la spécification. Chaque entré
 
 ## D-011 · Vue tableau des graphiques
 
+> **Remplacée par [D-035](#d-035--graphiques-sans-vue-tableau).**
+
 - **Date** : 2026-10-20
 - **Question** : Quelle forme donner à la vue tableau alternative aux graphiques ?
 - **Décision** : chaque graphique porte un bouton segmenté **Graphique · Tableau**. « Tableau » remplace le graphique par un tableau des mêmes séries sur la même période, avec une ligne par point (date ou semaine) et une colonne par série, des en-têtes réels et les formats de `08`. Le tableau défile dans son propre conteneur. Le choix n'est pas mémorisé.
@@ -491,3 +493,10 @@ Décisions prises sur les questions ouvertes de la spécification. Chaque entré
 - **Maquettes** : [`maquette/seance.html`](maquette/seance.html) (retenue, les 4 types) ; pistes explorées supprimées (historique git, `maquettes/resume-seance.html`).
 - **Fichiers modifiés** : [03-composants.md](03-composants.md), [04-metriques.md](04-metriques.md), [README.md](README.md).
 
+## D-035 · Graphiques sans vue tableau
+
+- **Date** : 2026-11-03
+- **Question** : Faut-il garder le bouton segmenté **Graphique · Tableau** sur chaque graphique (D-011) ?
+- **Décision** : non. Les graphiques s'affichent seuls, sans sélecteur. L'accès aux valeurs passe par la description VoiceOver de chaque graphique (`accessibilityChartDescriptor`, 08) et par la lecture au doigt. Les vrais tableaux de contenu (tours, répétitions, comparateur) restent.
+- **Options écartées** : garder le sélecteur (un contrôle de plus au-dessus de chaque graphique, peu utilisé) ; un tableau toujours visible (double la hauteur des écrans).
+- **Fichiers modifiés** : [03-composants.md](03-composants.md), [08-systeme-visuel.md](08-systeme-visuel.md), [09-questions-ouvertes.md](09-questions-ouvertes.md).

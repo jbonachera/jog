@@ -256,8 +256,6 @@ enum ModeleApercu {
         let notes: [String]
         let domaineForme: ClosedRange<Double>
         let domaineFraicheur: ClosedRange<Double>
-        let tableauForme: TableauAffiche
-        let tableauFraicheur: TableauAffiche
         let donneesForme: DonneesAccessibles
         let donneesFraicheur: DonneesAccessibles
         let resume: String
@@ -274,30 +272,12 @@ enum ModeleApercu {
             notes: notesForme(vue),
             domaineForme: domaineForme,
             domaineFraicheur: domaineFraicheur,
-            tableauForme: tableauForme(points),
-            tableauFraicheur: tableauFraicheur(points),
             donneesForme: donneesForme(points, domaine: domaineForme, resume: resume),
             donneesFraicheur: donneesFraicheur(
                 points, domaine: domaineFraicheur,
                 resume: "Zone productive de −25 à −10. Sous −25 : surcharge. Au-dessus de +5 : frais."
             ),
             resume: resume
-        )
-    }
-
-    /// Tableau du graphique forme et fatigue (D-011) : les mêmes points, dans l'ordre du graphique.
-    static func tableauForme(_ points: [PointForme]) -> TableauAffiche {
-        TableauAffiche(
-            entetes: ["Date", "Forme de fond", "Fatigue"],
-            lignes: points.map { [formatDate($0.id), nombre($0.forme), nombre($0.fatigue)] }
-        )
-    }
-
-    /// Tableau du graphique de fraîcheur (D-011).
-    static func tableauFraicheur(_ points: [PointForme]) -> TableauAffiche {
-        TableauAffiche(
-            entetes: ["Date", "Fraîcheur", "Lecture"],
-            lignes: points.map { [formatDate($0.id), ecart($0.fraicheur), lectureFraicheur($0.fraicheur)] }
         )
     }
 

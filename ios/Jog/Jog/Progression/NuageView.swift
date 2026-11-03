@@ -79,10 +79,8 @@ struct NuageView: View {
             EtatVide(texte: "Aucune répétition sous-seuil sur ces deux périodes.")
         } else {
             VStack(alignment: .leading, spacing: 12) {
-                GraphiqueOuTableau(tableau: modele.tableau) {
-                    GraphiqueNuage(modele: modele, bande: calculs.bandeFC, selection: $selection)
-                        .frame(height: DimensionsGraphique.nuage)
-                }
+                GraphiqueNuage(modele: modele, bande: calculs.bandeFC, selection: $selection)
+                    .frame(height: DimensionsGraphique.nuage)
 
                 legende(modele.nuage)
 
@@ -135,7 +133,6 @@ private struct ModeleNuage {
     let domaineX: ClosedRange<Double>
     let domaineY: ClosedRange<Double>
     let segmentsFleche: [SegmentFleche]
-    let tableau: TableauAffiche
 
     init(nuage: Nuage, bande: (lo: Double, hi: Double)) {
         self.nuage = nuage
@@ -145,7 +142,6 @@ private struct ModeleNuage {
         domaineX = ModeleProgression.domaineAllure(tous.map(\.allure))
         domaineY = ModeleProgression.domaineFC(tous.map(\.fc), bande: bande)
         segmentsFleche = ModeleNuage.fleche(nuage, domaineX: domaineX, domaineY: domaineY)
-        tableau = ModeleProgression.tableauNuage(nuage)
     }
 
     /// Segments de la flèche : du centre de référence au centre récent, et les deux ailes de la pointe (03, P3).

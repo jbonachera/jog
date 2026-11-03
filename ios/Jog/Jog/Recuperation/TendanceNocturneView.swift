@@ -6,7 +6,7 @@ import JogCore
 /// R3 · Variabilité cardiaque (VFC nocturne) et R4 · FC de repos (03 R3, R4 ; maquette recuperation.html). Un point par nuit
 /// mesurée (ZFacile, plus petit à 6 mois), la moyenne sur 7 nuits en courbe accent avec son point final, la bande de norme.
 /// La lecture donne « Ce matin » par défaut, et la nuit touchée au doigt. La fenêtre 8 semaines · 6 mois est partagée par R3 et
-/// R4 (elle vit dans RecuperationView) ; seul R3 montre le sélecteur. Vue tableau (D-011).
+/// R4 (elle vit dans RecuperationView) ; seul R3 montre le sélecteur.
 struct TendanceNocturneView: View {
     @Environment(\.dynamicTypeSize) private var tailleTexte
     private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
@@ -74,18 +74,16 @@ struct TendanceNocturneView: View {
                 if modele.points.isEmpty {
                     EtatVide(texte: "Pas encore de nuit mesurée.")
                 } else {
-                    GraphiqueOuTableau(tableau: modele.tableau) {
-                        VStack(alignment: .leading, spacing: 14) {
-                            Text(lecture)
-                                .font(.caption)
-                                .foregroundStyle(.encre2)
-                                .monospacedDigit()
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text(lecture)
+                            .font(.caption)
+                            .foregroundStyle(.encre2)
+                            .monospacedDigit()
 
-                            graphique(modele, lecture: lecture, lu: lu)
-                                .frame(height: DimensionsGraphique.recuperationTendance)
+                        graphique(modele, lecture: lecture, lu: lu)
+                            .frame(height: DimensionsGraphique.recuperationTendance)
 
-                            legende
-                        }
+                        legende
                     }
                 }
             }

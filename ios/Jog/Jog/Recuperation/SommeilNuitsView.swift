@@ -5,7 +5,7 @@ import JogCore
 
 /// R5 · Sommeil, 14 dernières nuits (03 R5 ; maquette recuperation.html, carte « Sommeil »). Barres empilées par phase (profond,
 /// paradoxal, léger, éveillé, de bas en haut), une ligne pointillée encre au besoin de sommeil, une nuit absente marquée « – ».
-/// Par défaut, la moyenne des nuits ; au doigt, la nuit et ses phases. Vue tableau (D-011).
+/// Par défaut, la moyenne des nuits ; au doigt, la nuit et ses phases.
 struct SommeilNuitsView: View {
     @Environment(\.dynamicTypeSize) private var tailleTexte
     private var categorie: UIContentSizeCategory { tailleTexte.categorieUIKit }
@@ -59,26 +59,24 @@ struct SommeilNuitsView: View {
             TitreSection(titre: "Sommeil", detail: "14 dernières nuits")
 
             VStack(alignment: .leading, spacing: 14) {
-                GraphiqueOuTableau(tableau: ModeleRecuperation.tableauSommeil(barres)) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text(lecture)
-                            .font(.caption)
-                            .foregroundStyle(.encre2)
-                            .monospacedDigit()
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(lecture)
+                        .font(.caption)
+                        .foregroundStyle(.encre2)
+                        .monospacedDigit()
 
-                        GeometryReader { geometrie in
-                            graphiqueDessin(
-                                barres, lecture: lecture, lue: lue,
-                                longueurX: DimensionsGraphique.longueurAxeX(
-                                    largeurGraphique: geometrie.size.width,
-                                    largeurAxeY: largeurY(ModeleRecuperation.domaineSommeil(barres))
-                                )
+                    GeometryReader { geometrie in
+                        graphiqueDessin(
+                            barres, lecture: lecture, lue: lue,
+                            longueurX: DimensionsGraphique.longueurAxeX(
+                                largeurGraphique: geometrie.size.width,
+                                largeurAxeY: largeurY(ModeleRecuperation.domaineSommeil(barres))
                             )
-                        }
-                        .frame(height: DimensionsGraphique.recuperationSommeil)
-
-                        legende
+                        )
                     }
+                    .frame(height: DimensionsGraphique.recuperationSommeil)
+
+                    legende
                 }
             }
             .carte()

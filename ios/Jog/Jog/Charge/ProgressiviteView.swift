@@ -4,7 +4,7 @@ import Charts
 import JogCore
 
 /// C1 · Progressivité 7 j / 30 j (03, C1) : volume et ratio empilés sur un axe de temps commun, une seule lecture au
-/// doigt partagée, 16 semaines ou 12 mois. Chaque graphique a sa vue tableau (D-011).
+/// doigt partagée, 16 semaines ou 12 mois.
 /// Largeurs majorantes des repères de l'axe des dates, mémorisées par fenêtre, locale, calendrier et catégorie : évite de
 /// reformater 372 libellés à chaque image.
 @MainActor
@@ -132,15 +132,11 @@ struct ProgressiviteView: View {
                 .foregroundStyle(.encre2)
                 .monospacedDigit()
 
-            GraphiqueOuTableau(tableau: ModeleCharge.tableauVolume(modele.points)) {
-                volume(modele, lecture: lecture)
-                    .frame(height: DimensionsGraphique.progressiviteVolume)
-            }
+            volume(modele, lecture: lecture)
+                .frame(height: DimensionsGraphique.progressiviteVolume)
 
-            GraphiqueOuTableau(tableau: ModeleCharge.tableauRatio(modele.points)) {
-                ratio(modele, lecture: lecture)
-                    .frame(height: DimensionsGraphique.progressiviteRatio)
-            }
+            ratio(modele, lecture: lecture)
+                .frame(height: DimensionsGraphique.progressiviteRatio)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), alignment: .leading)], alignment: .leading, spacing: 6) {
                 LegendeForme(texte: "7 derniers jours", forme: .carre, couleur: Zone.facile.couleur)

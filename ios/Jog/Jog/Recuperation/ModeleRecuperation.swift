@@ -408,14 +408,13 @@ enum ModeleRecuperation {
     }
 
     /// Modèle de R3 ou R4 : les nuits, les moyennes en segments (une absence coupe la courbe), les bandes, les bornes de
-    /// l'axe Y (D-009) et la vue tableau.
+    /// l'axe Y (D-009).
     struct Tendance {
         let points: [PointTendance]
         let nuits: [Repere]
         let moyennes: [[Repere]]
         let bandes: [Bande]
         let domaine: ClosedRange<Double>
-        let tableau: TableauAffiche
     }
 
     /// Pas de l'axe Y de R3 (5 ms) et de R4 (2 bpm).
@@ -445,24 +444,12 @@ enum ModeleRecuperation {
         }
         return Tendance(
             points: points, nuits: nuits, moyennes: segments.filter { !$0.isEmpty }, bandes: bandes, domaine: domaine,
-            tableau: tableauTendance(points, mesure: mesure)
         )
     }
 
     /// Dernier point ayant une moyenne 7 nuits (le point final marqué de R3 et R4).
     static func pointFinal(_ tendance: Tendance) -> Repere? {
         tendance.moyennes.last?.last
-    }
-
-    /// Tableau de R3 et R4 : une ligne par nuit de la fenêtre, dans l'ordre du graphique.
-    static func tableauTendance(_ points: [PointTendance], mesure: CleIndicateur) -> TableauAffiche {
-        let unite = mesure == .vfc ? "ms" : "bpm"
-        return TableauAffiche(
-            entetes: ["Nuit", "Mesure (\(unite))", "Moyenne 7 nuits", "Norme"],
-            lignes: points.map { p in
-                [formatJourDate(p.id), nombre(p.nuit), nombre(p.moyenne7), plage(nil, p.bas, p.haut)]
-            }
-        )
     }
 
     /// Une tranche de barre de R5 : une phase d'une nuit, de `debut` à `fin` en minutes depuis le bas de la barre.
@@ -517,22 +504,6 @@ enum ModeleRecuperation {
         return "\(quand) : \(dureeLecture(barre.sommeil)) · profond \(nombre(barre.minutes(.profond))) min · paradoxal \(dureeLecture(barre.minutes(.paradoxal))) · éveillé \(nombre(barre.minutes(.eveille))) min"
     }
 
-    /// Tableau de R5 : une ligne par nuit de A−13 à A ; une nuit absente porte des tirets.
-    static func tableauSommeil(_ barres: [BarreSommeil]) -> TableauAffiche {
-        TableauAffiche(
-            entetes: ["Nuit", "Sommeil", "Profond", "Paradoxal", "Léger", "Éveillé"],
-            lignes: barres.map { barre in
-                guard !barre.absente else {
-                    return [formatJourDate(barre.id)] + Array(repeating: ModeleApercu.tiret, count: 5)
-                }
-                return [
-                    formatJourDate(barre.id), dureeEspacee(barre.sommeil), "\(nombre(barre.minutes(.profond))) min",
-                    dureeEspacee(barre.minutes(.paradoxal)), "\(nombre(barre.minutes(.leger))) min", "\(nombre(barre.minutes(.eveille))) min",
-                ]
-            }
-        )
-    }
-
     /// Un point de l'écart de R6 : la semaine (centre sur l'axe), son écart, et la marque orange sous −8 %.
     struct PointEcart: Identifiable {
         let id: DateCivile
@@ -575,14 +546,6 @@ enum ModeleRecuperation {
 
     /// Note de R6 (03, R6 ; maquette) : la charge n'est plus absorbée quand le volume monte et la VFC reste basse.
     static let noteCharge = "Quand le volume monte et que la VFC passe sous sa norme plusieurs semaines de suite, la charge n’est plus absorbée. Une baisse isolée d’une nuit ne veut rien dire."
-
-    /// Tableau de R6 : une ligne par semaine, dans l'ordre du graphique.
-    static func tableauCharge(_ semaines: [SemaineChargeRecup]) -> TableauAffiche {
-        TableauAffiche(
-            entetes: ["Semaine du", "km", "Écart VFC"],
-            lignes: semaines.map { [formatDate($0.id), nombre($0.km), $0.ecart.map(ModeleApercu.ecartPourcentage) ?? ModeleApercu.tiret] }
-        )
-    }
 
     /// Instant d'une date civile à midi UTC (ModeleApercu.date) : position d'une nuit sur l'axe des jours.
     static func temps(_ jour: DateCivile) -> Double {

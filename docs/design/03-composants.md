@@ -9,7 +9,7 @@ Conventions communes :
 - **Pastille d'état** : chaque état coloré porte aussi un **texte** (OK, À surveiller, Alerte, Dans la cible…). La couleur seule ne porte jamais l'information.
 - **Infobulle** : au survol de chaque marque de graphique (barre, point, ligne avec réticule), elle affiche les valeurs exactes. Fond encre, texte inversé, police à chasse fixe.
 - **Bornes des axes** : calculées sur les données, selon la règle de [08](08-systeme-visuel.md#règles-des-graphiques), sauf mention contraire.
-- **Vue tableau** : chaque graphique porte un bouton segmenté **Graphique · Tableau** qui le remplace par le tableau de ses séries (voir [08](08-systeme-visuel.md#accessibilité)).
+- **Pas de vue tableau** : les graphiques n'ont pas de sélecteur Graphique · Tableau (D-035) ; les valeurs passent par leur description VoiceOver.
 
 ---
 
@@ -106,7 +106,7 @@ Blocs réutilisés : **jauges** (lignes de jauge de S2, sans cadre, séparées p
 
 **Pas de** bloc de synthèse rédigée (« ce qu'il faut retenir »), **pas de** commande flottante entre résumé, carte et tours : l'écran est un seul défilement. Le verre se limite à la barre (retour, menu ⋯) et à la barre d'onglets.
 
-**Critères** : à 320 pt, le héros tient sur une ligne (réduire à 88 pt puis 72 pt) ; chaque graphique a son `aria-label` et sa vue tableau (D-011) ; le tracé n'est jamais la seule source d'une information (les allures sont aussi dans les tours).
+**Critères** : à 320 pt, le héros tient sur une ligne (réduire à 88 pt puis 72 pt) ; chaque graphique a sa description VoiceOver (D-035) ; le tracé n'est jamais la seule source d'une information (les allures sont aussi dans les tours).
 
 **Barre** : un menu ⋯ remplace le bouton « Marquage » ([D-033](decisions.md#d-033--recharger-une-séance)). En tête, le marquage actuel (« Marquage : automatique (Endurance) ») ; puis Course, Test ; puis « Recharger depuis Santé ». Pendant un travail long, les actions sont grisées et une dernière ligne dit « Disponible à la fin du recalcul de l'historique. ».
 
@@ -254,7 +254,7 @@ Signaux : VFC, FC de repos, Sommeil, Régularité, Fréquence respiratoire (cont
 - La bande de norme teintée (`Bande`).
 - Axe Y calculé sur les données (D-009), au pas de 5 ms (VFC) ou de 2 bpm (FC).
 - Lecture par défaut : « Ce matin : moy. 7 nuits 52 ms · norme 40–59 ». Au doigt : « Nuit du {date} : nuit 49 ms · moy. 7 n. 52 · norme 40–59 », ou « pas de mesure (montre non portée) ».
-- Légende : Nuit · Moyenne 7 nuits · Ta norme. Vue tableau (D-011).
+- Légende : Nuit · Moyenne 7 nuits · Ta norme.
 
 ### R5 · Sommeil, 14 dernières nuits
 - Barres empilées par phase (profond, paradoxal, léger, éveillé, de bas en haut), avec une ligne pointillée encre au besoin.
