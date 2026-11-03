@@ -41,7 +41,10 @@ charge
 répétitions (si sous-seuil) : [{ n°, durée, allure moy (s/km), FC fin (bpm) }], format (ex. « 6×6' »), récupération
 sortie longue : découplage (%) ou « non utilisable », minutes retenues pour le découplage, minutes à allure marathon
 course / test : distance de référence, temps
+source : lue dans Santé le (date-heure), calculée avec (FC max en vigueur, version du calcul)   # section Source de S3 (D-033)
 ```
+
+Lecture et calcul en parallèle, publication de la plus récente à la plus ancienne ([D-032](decisions.md#d-032--calcul-en-parallèle-publié-du-plus-récent-au-plus-ancien)).
 
 Un jour sans activité est un jour de **repos**, de charge nulle.
 

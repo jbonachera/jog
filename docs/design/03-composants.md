@@ -87,6 +87,24 @@ Ouvert depuis N1. Titre « Courses », à droite « {n} courses et tests ».
 
 Ancienne P4, élargie à tous les types. Carte S2 en tête, puis le détail : pour une séance sous-seuil, le graphique en sucettes de P4 ; pour les autres, les courbes d'allure et de FC, et les segments (allure marathon, lignes droites).
 
+**Barre** : un menu ⋯ remplace le bouton « Marquage » ([D-033](decisions.md#d-033--recharger-une-séance)). En tête, le marquage actuel (« Marquage : automatique (Endurance) ») ; puis Course, Test ; puis « Recharger depuis Santé ». Pendant un travail long, les actions sont grisées et une dernière ligne dit « Disponible à la fin du recalcul de l'historique. ».
+
+**Source** : en bas de l'écran, deux lignes : « Lue dans Santé » (« il y a 3 jours », « en cours… » pendant un rechargement) et « Calculée avec » (« FC max 186 »). Pendant le rechargement, la carte S2 est estompée.
+
+### A7 · Accessoire de progression
+
+Accessoire Liquid Glass de la barre d'onglets ([D-030](decisions.md#d-030--progression-dans-laccessoire-de-la-barre-donglets)). Absent hors travail. Maquette : [`maquette/chargement.html`](maquette/chargement.html).
+
+| État | Gauche | Libellé | Sous-libellé | Droite |
+|---|---|---|---|---|
+| Import | anneau | « Import · prêt jusqu'au 2 mars » | « 78 sur 112 séances · 6 s » | chevron ⌃ |
+| Recalcul | anneau | « Recalcul · FC max 186 » (ou « Recalcul · marquage ») | « 38 sur 62 séances · 4 s » | chevron ⌃ |
+| Rechargement | anneau | « Sortie longue · dim. 2 » | « Allures ajustées · étape 2 sur 4 » | chevron ⌃ |
+| Terminé | coche verte | « Historique à jour » | « 62 séances recalculées » | (rien), disparaît après 3 s |
+| Échec | point d'exclamation orange | « Recalcul interrompu » | « FC max 190 rétablie » | bouton « Réessayer » |
+
+Le temps restant n'apparaît qu'après 5 séances traitées. **Détail** (toucher l'accessoire) : feuille avec le pourcentage, une frise de janvier à aujourd'hui (partie avant la date d'effet en gris, « inchangé »), une ligne par mois (coche, roue ou cercle vide, « 17 / 21 »), puis « Charge, forme, tendances · à la fin ». **Accessibilité** : l'accessoire est lu comme « Recalcul FC max 186, 61 %, 4 secondes restantes » et annonce la fin.
+
 ### A6 · Cette nuit
 
 En tête de l'écran Récupération. **Affichage** :

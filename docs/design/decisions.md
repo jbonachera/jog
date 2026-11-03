@@ -448,3 +448,35 @@ Décisions prises sur les questions ouvertes de la spécification. Chaque entré
 - **Options écartées** : allure brute de la montre (dépend du terrain) ; modèle Strava empirique (non publié).
 - **Fichiers modifiés** : `seance-denivele.swift`, `seance-intrinseque.swift`, `seance-repetitions.swift`, `constantes.swift` (`VERSION_DENIVELE` = 2, les Vues en cache sont recalculées).
 - **À valider sur données réelles** : le coût des descentes raides, que Minetti surestime pour la course sur route.
+
+## D-030 · Progression dans l'accessoire de la barre d'onglets
+
+- **Date** : 2026-11-03
+- **Question** : Comment montrer l'avancement des travaux longs (import, synchronisation, recalcul, rechargement d'une séance), y compris quand on navigue ailleurs ?
+- **Décision** : un seul composant, l'**accessoire de la barre d'onglets** (`tabViewBottomAccessory`, Liquid Glass). Il est visible sur les deux onglets et dans les écrans empilés tant qu'un travail tourne : anneau d'avancement, libellé du travail, compte et temps restant. Touché, il s'agrandit en feuille de détail (frise depuis la date d'effet, mois par mois). À la fin, « Historique à jour » pendant 3 s puis il se rétracte ; en cas d'échec, il reste affiché en orange avec « Réessayer ». Une synchronisation ne l'affiche que si elle dure plus de 1 s. Les valeurs pas encore recalculées sont estompées. **iOS 26 minimum.**
+- **Options écartées** : bandeau sous la barre de titre (masqué dans les écrans empilés) ; toast flottant sans place fixe ; grille d'une case par séance (peu dense au-delà de 500 séances) ; progression dans la feuille Paramètres (bloque la feuille).
+- **Fichiers modifiés** : [02-navigation.md](02-navigation.md), [03-composants.md](03-composants.md) (A7), [06-parametres.md](06-parametres.md). Maquette : [`maquette/chargement.html`](maquette/chargement.html).
+
+## D-031 · Verrou des Paramètres et du marquage pendant un recalcul
+
+- **Date** : 2026-11-03
+- **Question** : Que peut-on modifier pendant qu'un recalcul de l'historique tourne ?
+- **Décision** : rien qui en déclenche un autre. Pendant un import, un recalcul (réglage, marquage) ou le rechargement d'une séance, le bouton des Paramètres et les actions du menu de la séance (marquage, rechargement) sont **grisés mais visibles** ; les toucher dit pourquoi (« Paramètres disponibles dans 4 s », ligne « Disponible à la fin du recalcul » dans le menu) avec un retour haptique d'avertissement. La validation des Paramètres passe par une confirmation qui annonce le nombre de séances et le verrou, puis **ferme la feuille**. Le verrou tombe à la fin du travail, succès ou échec. Un seul travail à la fois (file de `ModeleApp`).
+- **Options écartées** : feuille Paramètres ouverte et bloquée pendant le recalcul ; file d'attente des modifications (résultats intermédiaires incohérents, annulation difficile à expliquer) ; contrôles masqués (on ne sait plus où ils sont).
+- **Fichiers modifiés** : [02-navigation.md](02-navigation.md), [06-parametres.md](06-parametres.md).
+
+## D-032 · Calcul en parallèle, publié du plus récent au plus ancien
+
+- **Date** : 2026-11-03
+- **Question** : Comment rendre l'import et le recalcul plus rapides, et l'app utilisable avant leur fin ?
+- **Décision** : les séances sont lues dans Santé et calculées **en parallèle** (4 à la fois par défaut), mais publiées **de la plus récente à la plus ancienne**. Le premier import garde son écran plein ; « Voir l'accueil » apparaît dès que les **6 dernières semaines** sont prêtes, la suite passe dans l'accessoire (D-030). Les blocs qui demandent tout l'historique (Niveau, Progrès) restent estompés jusqu'à la fin. Le recalcul d'un paramètre daté part de sa date d'effet ; les indicateurs cumulés (charge, forme, tendances) sont recalculés à la fin.
+- **Options écartées** : ordre de lecture HealthKit (l'accueil reste vide longtemps) ; publication dans le désordre (l'accueil change sous les yeux).
+- **Fichiers modifiés** : [07-donnees.md](07-donnees.md).
+
+## D-033 · Recharger une séance
+
+- **Date** : 2026-11-03
+- **Question** : Comment refaire le calcul d'une seule séance (tracé corrigé dans Santé, nouvelle version du calcul GAP) ?
+- **Décision** : le bouton « Marquage » de l'écran Séance (S3) devient un **menu ⋯** : marquage actuel, Course, Test, puis « Recharger depuis Santé ». Le rechargement relit la séance dans Santé et recalcule distance, GAP, zones, charge, puis les indicateurs cumulés ; il passe par l'accessoire (D-030). Une section **Source** en bas de S3 dit quand la séance a été lue et avec quelle FC max elle a été calculée.
+- **Options écartées** : bouton de rechargement seul dans la barre (deux boutons pour des actions rares) ; feuille d'étapes dédiée (redondante avec l'accessoire).
+- **Fichiers modifiés** : [03-composants.md](03-composants.md), [07-donnees.md](07-donnees.md).

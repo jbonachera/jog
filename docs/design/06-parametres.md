@@ -38,13 +38,12 @@ Les messages s'affichent dans une zone `role="status"`, à côté des boutons.
 
 ## Actions
 
-- **Enregistrer et recalculer** : valide, enregistre, puis recalcule tout le tableau de bord **sans recharger la page** ([D-010](decisions.md#d-010--recalcul-sans-rechargement)) :
+- **Enregistrer et recalculer** ([D-030](decisions.md#d-030--progression-dans-laccessoire-de-la-barre-donglets), [D-031](decisions.md#d-031--verrou-des-paramètres-et-du-marquage-pendant-un-recalcul)) :
+  - le bouton ✓ ouvre une confirmation : « La FC max passe de 190 à 186 à partir du 1er sept. 62 séances seront recalculées, environ 10 s. Pendant le recalcul, les Paramètres et le marquage des séances ne sont pas disponibles. », bouton « Enregistrer et recalculer » ;
+  - après confirmation, la feuille se ferme et le recalcul s'affiche dans l'accessoire de la barre d'onglets (A7) ;
   - le recalcul part de la date d'effet pour un paramètre daté, et porte sur tout l'historique sinon ;
-  - on reste sur l'onglet Paramètres, à la même position. Les sélecteurs locaux sont conservés et l'infobulle est fermée ;
-  - la zone `role="status"` annonce « Enregistré. Tableau de bord recalculé. » ;
-  - si le recalcul échoue, les paramètres précédents restent en vigueur, et la zone annonce « Le recalcul a échoué : les paramètres précédents sont conservés. »
-
-  La maquette, elle, recharge la page et rouvre l'onglet Paramètres.
+  - le bouton des Paramètres reste grisé jusqu'à la fin ; le toucher affiche « Paramètres disponibles dans 4 s » ;
+  - si le recalcul échoue, les paramètres précédents restent en vigueur et l'accessoire affiche « Recalcul interrompu · FC max 190 rétablie » avec « Réessayer ».
 - **Revenir aux valeurs par défaut** : remet les paramètres globaux à leur défaut, et enregistre pour chaque paramètre daté une modification datée d'aujourd'hui vers sa valeur par défaut. L'historique des modifications est conservé. Puis recalcule.
 
 ## FC max observée

@@ -6,7 +6,8 @@
 
 Deux onglets, en bas d'écran : **Aujourd'hui** · **Progrès**.
 
-- Les **Paramètres** s'ouvrent depuis un bouton dans la barre de titre d'Aujourd'hui.
+- Les **Paramètres** s'ouvrent depuis un bouton dans la barre de titre d'Aujourd'hui. Ce bouton est grisé pendant un import ou un recalcul ([D-031](decisions.md#d-031--verrou-des-paramètres-et-du-marquage-pendant-un-recalcul)).
+- Au-dessus de la barre d'onglets, un **accessoire** (A7) montre l'avancement de tout travail long, sur les deux onglets et dans les écrans empilés ; touché, il ouvre le détail en feuille ([D-030](decisions.md#d-030--progression-dans-laccessoire-de-la-barre-donglets)). iOS 26 minimum.
 - Le dernier onglet ouvert est rouvert au lancement.
 - Chaque onglet a sa propre pile de navigation. Les écrans de détail s'empilent (retour par glissement ou par le bouton de retour) ; on ne change jamais de contenu par un sélecteur segmenté.
 
@@ -36,6 +37,8 @@ Les fiches détaillées sont dans [03-composants.md](03-composants.md).
 | Décision | un signal | son graphique : Progressivité (C1), Forme et fatigue (A4), Sous-seuil et discipline (C2 + C3), tendance (P2) |
 | Volume (A2) | une ligne | sa phrase de référence, puis la ligne Année ouvre Progrès › Saisons (H1) |
 | Séances (S1) | une carte de séance | **Séance** (S3) |
+| Séance (S3) | le menu ⋯ | marquage (Course, Test) et « Recharger depuis Santé » ([D-033](decisions.md#d-033--recharger-une-séance)) ; actions grisées pendant un recalcul |
+| Accessoire (A7) | l'accessoire | la feuille de progression |
 | Séances (S1) | un en-tête de semaine | le détail de la semaine (ratio 7 j / 30 j, footings sous le plafond, répartition) |
 
 ## Sélecteurs locaux
