@@ -8,7 +8,7 @@ import Foundation
 
 /// Version de cet adaptateur, dans le pivot (ADR 0003). 1.1.0 : durée écoulée (`dureeEcoulee_s`) et bundle de l'app
 /// source dans les clés de mémorisation ; changer la version force une relecture complète (voir `VERSION_FORMAT_ACTIVITES`).
-public let VERSION_ADAPTATEUR_HEALTHKIT = "healthkit-1.1.0"
+public let VERSION_ADAPTATEUR_HEALTHKIT = "healthkit-1.2.0"
 
 /// HKWorkoutActivityType de la course à pied.
 private let TYPE_ACTIVITE_COURSE = 37
@@ -89,10 +89,13 @@ public func adapterSeance(_ brute: SeanceBrute, decalageAppareil: (Date) -> Int)
     let pauses = pausesDepuis(brute.workoutEvents ?? [], relatif: relatif, W: W)
     let grille = Grille(W: W, pauses: pauses)
 
-    let intervalles = intervallesDistance(
+    let intervallesHealthKit = intervallesDistance(
         (brute.distanceEchantillonsFins ?? []).map { (debut: relatif($0.debut), fin: relatif($0.fin), metres: $0.metres) },
         W: W
     )
+    let intervalles = brute.metadata?["HKIndoorWorkout"] == "1"
+        ? intervallesHealthKit
+        : corrigerDistanceGPS(intervallesHealthKit, traces: brute.traces ?? [], relatif: relatif, W: W)
     let distanceCumulee = cumulAuxInstants(intervalles, grille.instants)
     let distanceTotale = intervalles.reduce(0) { $0 + $1.metres }
 
@@ -251,6 +254,38 @@ private struct IntervalleMetres {
 /// 3. Les résumés (plusieurs minutes) ne servent qu'en repli, quand la séance n'a AUCUN échantillon fin. Ils recouvrent
 ///    alors les fins absentes, sans chevauchement entre eux. Sur l'export réel, ils doublent les fins : les compter
 ///    en plus donnait 0,7 à 2,3 % de trop.
+/// Écart relatif au-delà duquel la distance du tracé GPS remplace celle d'HealthKit.
+let ECART_DISTANCE_GPS_MAX = 0.02
+/// Part minimale de la séance que le tracé doit couvrir pour corriger la distance.
+let COUVERTURE_GPS_MIN = 0.9
+
+/// Corrige la distance comme le « Corriger la distance » de Strava : si le tracé GPS couvre la séance et s'écarte de
+/// plus de `ECART_DISTANCE_GPS_MAX` de la distance HealthKit, les intervalles viennent du tracé.
+private func corrigerDistanceGPS(
+    _ intervalles: [IntervalleMetres], traces: [TraceBrute], relatif: (Date) -> Double, W: Double
+) -> [IntervalleMetres] {
+    var gps: [IntervalleMetres] = []
+    var couverture = 0.0
+    for trace in traces {
+        let points = trace.points
+            .compactMap { p -> (t: Double, d: Double)? in
+                guard let d = p.distanceGPS_m, d.isFinite else { return nil }
+                return (t: relatif(p.timestamp), d: d)
+            }
+            .filter { $0.t >= 0 && $0.t <= W }
+            .sorted { $0.t < $1.t }
+        for (a, b) in zip(points, points.dropFirst()) where b.t > a.t && b.d >= a.d {
+            gps.append(IntervalleMetres(debut: a.t, fin: b.t, metres: b.d - a.d))
+        }
+        if let premier = points.first, let dernier = points.last { couverture += dernier.t - premier.t }
+    }
+    let totalGPS = gps.reduce(0) { $0 + $1.metres }
+    let totalHK = intervalles.reduce(0) { $0 + $1.metres }
+    guard couverture >= COUVERTURE_GPS_MIN * W, totalGPS > 0 else { return intervalles }
+    if totalHK > 0 && abs(totalGPS - totalHK) / totalHK <= ECART_DISTANCE_GPS_MAX { return intervalles }
+    return gps
+}
+
 private func intervallesDistance(_ echantillons: [(debut: Double, fin: Double, metres: Double)], W: Double) -> [IntervalleMetres] {
     var rognes: [IntervalleMetres] = []
     for echantillon in echantillons where echantillon.metres.isFinite && echantillon.metres >= 0 {

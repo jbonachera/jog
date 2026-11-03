@@ -32,6 +32,8 @@ struct ConstructeurSeance {
     var fc: [(t: Double, bpm: Double)] = []
     var distances: [(debut: Double, fin: Double, metres: Double)] = []
     var points: [(t: Double, altitude: Double, vitesse: Double, precisionVerticale: Double)] = []
+    /// Distance GPS cumulée par instant ; remplace `points` quand elle est donnée.
+    var pointsGPS: [(t: Double, metres: Double)] = []
     /// Étapes d'un entraînement personnalisé : clé « bloc.itération.étape », début et fin.
     var etapes: [(cle: String, debut: Double, fin: Double)] = []
     /// Remplace des clés de l'export (champs d'erreur du spike, par exemple).
@@ -50,6 +52,13 @@ struct ConstructeurSeance {
 
     private var pausesTotales: Double {
         pauses.reduce(0) { $0 + (min($1.fin, dureeEcoulee) - $1.debut) }
+    }
+
+    private var tracesGPS: Any {
+        [[
+            "uuid": UUID().uuidString, "debut": iso(0), "fin": iso(dureeEcoulee), "metadata": NSNull(),
+            "points": pointsGPS.map { ["timestamp": iso($0.t), "precisionHorizontale": 5.0, "distanceGPS_m": $0.metres] },
+        ] as [String: Any]]
     }
 
     private func json() -> [String: Any] {
@@ -79,7 +88,7 @@ struct ConstructeurSeance {
                  "metadata": ["HKMetadataKeyHeartRateMotionContext": "0"]]
             },
             "distanceEchantillonsFins": distances.map { ["debut": iso($0.debut), "fin": iso($0.fin), "metres": $0.metres] },
-            "traces": points.isEmpty ? NSNull() : [[
+            "traces": !pointsGPS.isEmpty ? tracesGPS : points.isEmpty ? NSNull() as Any : [[
                 "uuid": UUID().uuidString, "debut": iso(0), "fin": iso(dureeEcoulee), "metadata": NSNull(),
                 "points": points.map { point -> [String: Any] in
                     ["timestamp": iso(point.t), "altitude": point.altitude, "vitesse": point.vitesse,

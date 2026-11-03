@@ -169,7 +169,7 @@ public struct EchantillonDistanceBrut: Codable, Sendable, Equatable {
     }
 }
 
-/// Un tracé GPS. Seuls l'altitude et la vitesse servent ; les coordonnées ne sont pas décodées.
+/// Un tracé GPS. L'altitude, la vitesse et la distance cumulée servent ; les coordonnées ne sont pas gardées.
 public struct TraceBrute: Codable, Sendable, Equatable {
     public var debut: Date?
     public var fin: Date?
@@ -190,16 +190,20 @@ public struct PointTraceBrut: Codable, Sendable, Equatable {
     public var vitesse: Double?
     public var precisionHorizontale: Double?
     public var precisionVerticale: Double?
+    /// Mètres parcourus depuis le début du tracé, calculés à la lecture depuis les coordonnées (qui ne sont pas
+    /// gardées, ADR 0010). Sert à corriger la distance de la séance.
+    public var distanceGPS_m: Double?
 
     public init(
         timestamp: Date, altitude: Double? = nil, vitesse: Double? = nil,
-        precisionHorizontale: Double? = nil, precisionVerticale: Double? = nil
+        precisionHorizontale: Double? = nil, precisionVerticale: Double? = nil, distanceGPS_m: Double? = nil
     ) {
         self.timestamp = timestamp
         self.altitude = altitude
         self.vitesse = vitesse
         self.precisionHorizontale = precisionHorizontale
         self.precisionVerticale = precisionVerticale
+        self.distanceGPS_m = distanceGPS_m
     }
 }
 

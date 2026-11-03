@@ -3,6 +3,7 @@
 // Implémente `SourceSeances`, le protocole que `Synchroniseur` (JogCore) consomme. Hors DEBUG : le spike réutilise
 // cette collecte.
 import Foundation
+import CoreLocation
 import HealthKit
 import JogCore
 
@@ -209,7 +210,8 @@ public actor LecteurHealthKit: SourceSeances {
         return distances
     }
 
-    /// Le tracé sert à l'altitude et à la vitesse. Les coordonnées ne sont jamais lues (ADR 0010).
+    /// Le tracé sert à l'altitude, à la vitesse et à la distance. Les coordonnées ne servent qu'à cumuler la distance,
+    /// en mémoire, et ne sont jamais gardées (ADR 0010). Un point imprécis (plus de 20 m) n'avance pas la distance.
     private func traces(_ seance: HKWorkout) async throws -> [TraceBrute]? {
         let predicat = HKSamplePredicate.workoutRoute(HKQuery.predicateForObjects(from: seance))
         let routes = try await HKSampleQueryDescriptor(predicates: [predicat], sortDescriptors: []).result(for: store)
@@ -217,13 +219,21 @@ public actor LecteurHealthKit: SourceSeances {
         var traces: [TraceBrute] = []
         for route in routes {
             var points: [PointTraceBrut] = []
+            var cumul = 0.0
+            var precedente: CLLocation?
             for try await position in HKWorkoutRouteQueryDescriptor(route).results(for: store) {
+                let precise = position.horizontalAccuracy >= 0 && position.horizontalAccuracy <= 20
+                if precise {
+                    if let precedente { cumul += position.distance(from: precedente) }
+                    precedente = position
+                }
                 points.append(PointTraceBrut(
                     timestamp: position.timestamp,
                     altitude: position.altitude,
                     vitesse: position.speed,
                     precisionHorizontale: position.horizontalAccuracy,
-                    precisionVerticale: position.verticalAccuracy
+                    precisionVerticale: position.verticalAccuracy,
+                    distanceGPS_m: precise ? cumul : nil
                 ))
             }
             traces.append(TraceBrute(debut: route.startDate, fin: route.endDate, points: points))

@@ -1,2 +1,0 @@
-On collecte actuellement les distances et allures directement depuis healthkit.
-On doit les confronter aux données GPS pour corriger les éventuelles erreurs de calculés par le logiciel d'apple, comme le fait Strava avec "Corriger la distance"

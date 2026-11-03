@@ -103,7 +103,7 @@ private func entrainementPersonnalise(
     let pivot = try pivotDe(c)
     #expect(pivot.source == .healthkit)
     #expect(pivot.cleSource == "hk:" + c.id)
-    #expect(pivot.versionAdaptateur == "healthkit-1.1.0")
+    #expect(pivot.versionAdaptateur == "healthkit-1.2.0")
     #expect(pivot.dureeEcoulee_s == 1200)
     #expect(pivot.nom == "Marque de test")
     #expect(pivot.competition == false)
