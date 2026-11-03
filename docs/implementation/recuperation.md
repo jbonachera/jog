@@ -1,6 +1,6 @@
 # Récupération : VFC, FC de repos et sommeil (D-023)
 
-Statut : **proposé**, 2026-10-29. Maquette validée : [`../design/maquette/recuperation.html`](../design/maquette/recuperation.html). C'est la source de vérité de l'UX, y compris pour les règles de son JS. Le reste de l'app suit [`ensemble.html`](../design/maquette/ensemble.html).
+Statut : **proposé**, 2026-10-29. Maquette validée : [`../design/maquette/recuperation.html`](../design/maquette/recuperation.html). C'est la source de vérité de l'UX, y compris pour les règles de son JS. Le reste de l’app suit [`accueil.html`](../design/maquette/accueil.html).
 
 Le principe 2 de `01-vision.md` (« pas de sommeil ») est levé par D-023, validée par l'athlète.
 
