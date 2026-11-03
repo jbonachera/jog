@@ -1,0 +1,1 @@
+Les métriques (VFC, durée de sommeil) sur la page d'accueil affichent la valeur normale; elles doivent afficher la valeur la plus recente (de la nuit précédente, donc) et la date de revelé.
