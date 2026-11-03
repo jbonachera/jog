@@ -14,7 +14,7 @@ file:///<chemin du dépôt>/docs/design/maquette/index.html
 
 - `maquette/accueil.html` : l'accueil retenu (Niveau, Récupération, Volume, séances par semaine), l'écran Courses et la carte de séance par type. Ses données sont un scénario fixe : jeudi 30 octobre.
 - `maquette/index.html` : l'index des maquettes ; `maquette/maquette.css` : la pastille de retour à l'index, commune à toutes les pages.
-- `maquette/recuperation.html` : l'onglet Récupération (R1 à R7, D-023).
+- `maquette/recuperation.html` : l'écran de détail Récupération, ouvert depuis le bloc Récupération de l'accueil (R1 à R7, D-023, D-024).
 - `maquette/chargement.html` : la progression des travaux longs (import, recalcul après un réglage ou un marquage, rechargement d'une séance) dans l'accessoire Liquid Glass de la barre d'onglets, et le verrou des Paramètres et du marquage pendant un recalcul (iOS 26 minimum).
 - `maquette/seance.html` : l'écran Séance (S3) retenu, en mise en page éditoriale, décliné pour un footing, une séance sous-seuil, une course et une sortie longue (D-034). Données synthétiques propres au fichier.
 - `maquette/data.js` : le générateur de données d'exemple, déterministe. Il produit un athlète fictif sur 14 mois en méthode NSA.
