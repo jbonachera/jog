@@ -34,6 +34,11 @@ struct ParametresView: View {
     var body: some View {
         NavigationStack {
             Form {
+                if let avancement = modele.avancementRecalcul {
+                    Section {
+                        ProgressView("Recalcul du tableau de bord", value: avancement)
+                    }
+                }
                 if base == nil {
                     ProgressView("Lecture des paramètres")
                 } else {
@@ -79,6 +84,7 @@ struct ParametresView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Fermer") { fermer() }
+                        .disabled(modele.recalculEnCours)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     if enregistrement {
@@ -115,6 +121,7 @@ struct ParametresView: View {
                 Text("Les séances, les paramètres, leur historique et les marquages sont effacés de cet iPhone. "
                     + "Les données Santé d’Apple ne sont pas touchées.")
             }
+            .interactiveDismissDisabled(modele.recalculEnCours)
         }
     }
 

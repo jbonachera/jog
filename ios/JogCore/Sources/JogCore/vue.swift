@@ -274,19 +274,22 @@ public struct ResultatIntrinseques: Sendable, Equatable {
 /// la séance est rangée dans `memoire`. Les paramètres sont ceux du jour de la séance (D-006). Une activité dont le flux
 /// manque, ou dont la lecture ou le calcul échoue, est écartée (`ecartees`) : elle ne bloque pas les autres. Seule
 /// l'annulation se propage. `marquages` (D-020) : marquage saisi par clé source ; une activité absente de ce
-/// dictionnaire garde son marquage déduit.
+/// dictionnaire garde son marquage déduit. `progression` reçoit (traitees, total) avant chaque séance datée avant J : le
+/// premier appel annonce 0 sur le total, et la dernière séance n'est jamais annoncée comme terminée.
 public func seancesIntrinseques(
     activites: [PivotSansFlux],
     lireFlux: (String) async throws -> Flux?,
     parametres: Parametres,
     J: DateCivile,
     memoire: inout MemoireSeances,
-    marquages: [String: MarquageUtilisateur] = [:]
+    marquages: [String: MarquageUtilisateur] = [:],
+    progression: @escaping @Sendable (Int, Int) async -> Void = { _, _ in }
 ) async throws -> ResultatIntrinseques {
     let parametresDates = try indexerParametres(parametres)
     var resultat = ResultatIntrinseques()
-    for pivot in activites {
-        if pivot.dateLocale >= J { continue }
+    let aTraiter = activites.filter { $0.dateLocale < J }
+    for (traitees, pivot) in aTraiter.enumerated() {
+        await progression(traitees, aTraiter.count)
         let p = parametresDates.auJour(pivot.dateLocale)
         let marquage = marquages[pivot.cleSource]
         let cle = cleDeSeance(EmpreinteActivite(pivot), p, marquage: marquage)

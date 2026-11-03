@@ -78,15 +78,20 @@ public actor Moteur {
     /// Recalcule la Vue en entier. Persiste la mémoire de ②a et la Vue, puis la diffuse à `vues()`.
     /// `J` est le premier jour exclu du calcul (D-022) : l'app y passe `jourDeCoupure`, le lendemain du jour courant,
     /// pour que les séances d'aujourd'hui comptent tout de suite. Une séance dont le flux manque ou dont
-    /// la lecture échoue est écartée (`ecartees`), sans bloquer les autres.
-    public func recalculer(J: DateCivile, derniereSynchro: String?) async throws -> Vue {
+    /// la lecture échoue est écartée (`ecartees`), sans bloquer les autres. `progression` reçoit (traitees, total)
+    /// pendant la lecture des séances (voir `seancesIntrinseques`).
+    public func recalculer(
+        J: DateCivile,
+        derniereSynchro: String?,
+        progression: @escaping @Sendable (Int, Int) async -> Void = { _, _ in }
+    ) async throws -> Vue {
         try chargerSiBesoin()
         for _ in 0..<TENTATIVES_CALCUL {
             let mienne = generation
             let instantane = Instantane(
                 parametres: parametres, marquages: marquages, activites: activites, memoire: memoire, nuits: nuits
             )
-            let calcul = try await calculer(instantane, J: J, derniereSynchro: derniereSynchro)
+            let calcul = try await calculer(instantane, J: J, derniereSynchro: derniereSynchro, progression: progression)
             // Une modification pendant le calcul l'a rendu périmé : on le refait, sans rien persister.
             guard mienne == generation else { continue }
             try persister(calcul)
@@ -332,7 +337,9 @@ public actor Moteur {
 
     // MARK: - Calcul et persistance
 
-    private func calculer(_ s: Instantane, J: DateCivile, derniereSynchro: String?) async throws -> Calcul {
+    private func calculer(
+        _ s: Instantane, J: DateCivile, derniereSynchro: String?, progression: @escaping @Sendable (Int, Int) async -> Void
+    ) async throws -> Calcul {
         // Les doublons se décident sur toutes les activités connues, à chaque calcul : ils n'entrent pas dans la Vue.
         let doublons = doublonsEcartes(s.activites)
         let ecartees = Set(doublons.map(\.cleSource))
@@ -341,7 +348,7 @@ public actor Moteur {
         var memoireLocale = MemoireSeances(entrees: s.memoire)
         let intrinseques = try await seancesIntrinseques(
             activites: retenues, lireFlux: lireFlux, parametres: s.parametres, J: J, memoire: &memoireLocale,
-            marquages: s.marquages
+            marquages: s.marquages, progression: progression
         )
         // Une clé qui ne sert plus (activité retirée, paramètre ou marquage changé) est oubliée, pour que la mémoire ne
         // grossisse pas.

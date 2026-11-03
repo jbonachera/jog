@@ -23,6 +23,10 @@ func retirerPreferences(_ defaults: UserDefaults) {
 @Observable
 final class ModeleApp {
     private(set) var etat: EtatApp = .chargement
+    /// Avancement (0...1) du recalcul déclenché par un réglage ; nil hors recalcul.
+    private(set) var avancementRecalcul: Double?
+    /// Vrai pendant un recalcul déclenché par un réglage : la feuille ne doit pas se fermer.
+    var recalculEnCours: Bool { avancementRecalcul != nil }
     /// Cartes de séance de l'app (lot 16) : une seule construction par Vue, lue par l'écran Séance et l'accueil.
     let cartes = CacheCartes()
     /// Carte Niveau (lot 17) : niveau VDOT et six qualités, calculés une fois par Vue.
@@ -77,6 +81,16 @@ final class ModeleApp {
             services = nil
             etat = .erreur(message: "Les données de l’app n’ont pas pu être ouvertes.", vue: nil)
         }
+    }
+
+    /// Seam de test : stockage dans `racine`, flux lus par `lireFlux` au lieu de HealthKit.
+    init(racine: URL, lireFlux: @escaping Moteur.LectureFlux) {
+        let stockage = Stockage(racine: racine)
+        let lecteur = LecteurHealthKit()
+        let moteur = Moteur(stockage: stockage, lireFlux: lireFlux)
+        let synchro = Synchroniseur(source: lecteur, stockage: stockage, moteur: moteur)
+        let synchroNuits = SynchroniseurNuits(source: lecteur, moteur: moteur)
+        services = Services(lecteur: lecteur, moteur: moteur, synchro: synchro, synchroNuits: synchroNuits)
     }
 
     /// Aperçus (Xcode) : pas de stockage ni de HealthKit, l'état est donné tel quel.
@@ -209,11 +223,14 @@ final class ModeleApp {
 
     /// Lit les paramètres stockés DANS la file (et non avant : une autre écriture peut précéder), leur applique
     /// `modifier`, les valide, les enregistre puis recalcule. Si le recalcul échoue, les paramètres lus sont rétablis ;
-    /// si ce rétablissement échoue aussi, son erreur est levée à la place de « précédents conservés ».
+    /// si ce rétablissement échoue aussi, son erreur est levée à la place de « précédents conservés ». L'avancement du
+    /// recalcul est publié pendant qu'il dure, et retombe à nil à la sortie, succès ou échec.
     private func enregistrer(_ modifier: @escaping (Parametres) -> Parametres) async throws -> Parametres {
         guard let services else { throw ErreurParametres.indisponible }
         var issue: Result<Parametres, ErreurParametres> = .failure(.indisponible)
         await enfiler { [self] in
+            avancementRecalcul = 0
+            defer { avancementRecalcul = nil }
             do {
                 let anciens = try await services.moteur.lireParametres()
                 let nouveaux = modifier(anciens)
@@ -224,7 +241,10 @@ final class ModeleApp {
                 }
                 try await services.moteur.modifierParametres(nouveaux)
                 do {
-                    let vue = try await services.moteur.recalculer(J: J, derniereSynchro: derniereSynchro)
+                    let vue = try await services.moteur.recalculer(
+                        J: J, derniereSynchro: derniereSynchro,
+                        progression: { traitees, total in await self.avancer(traitees, sur: total) }
+                    )
                     if case .erreur(let message, _) = etat {
                         etat = .erreur(message: message, vue: vue)
                     } else {
@@ -380,6 +400,11 @@ final class ModeleApp {
         guard traitees >= progressionRecue else { return }
         progressionRecue = traitees
         etat = TransitionsApp.suivant(etat, .progression(traitees: traitees, total: total))
+    }
+
+    /// Avancement du recalcul d'un réglage : `traitees` séances sur `total` (0...1). Le total est nul sans séance à relire.
+    private func avancer(_ traitees: Int, sur total: Int) {
+        avancementRecalcul = total > 0 ? Double(traitees) / Double(total) : 0
     }
 
     private func recevoir(_ vue: Vue) {
