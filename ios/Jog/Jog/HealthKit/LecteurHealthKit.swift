@@ -33,12 +33,13 @@ public actor LecteurHealthKit: SourceSeances {
 
     public init() {}
 
-    /// Types lus : séances, FC, distances, tracé, énergie, sommeil, VFC, fréquence respiratoire. Rien n'est écrit.
+    /// Types lus : séances, FC, distances, pas, tracé, énergie, sommeil, VFC, fréquence respiratoire. Rien n'est écrit.
     private static var typesLecture: Set<HKObjectType> {
         [
             HKObjectType.workoutType(),
             HKQuantityType(.heartRate),
             HKQuantityType(.distanceWalkingRunning),
+            HKQuantityType(.stepCount),
             HKSeriesType.workoutRoute(),
             HKQuantityType(.activeEnergyBurned),
             HKCategoryType(.sleepAnalysis),
@@ -132,12 +133,13 @@ public actor LecteurHealthKit: SourceSeances {
             .result(for: store).first
     }
 
-    /// Collecte d'une séance complète, en séquence : FC, distances fines, tracé, événements, étapes.
+    /// Collecte d'une séance complète, en séquence : FC, distances fines, pas, tracé, événements, étapes.
     /// Interne : le spike de DEBUG réutilise cette collecte pour son export.
     func collecter(_ seance: HKWorkout) async throws -> SeanceBrute {
         let frequence = try await frequenceCardiaque(seance)
         let distances = try await distancesFines(seance)
         let traces = try await traces(seance)
+        let pas = try await pas(seance)
         let source = seance.sourceRevision
         return SeanceBrute(
             id: seance.uuid.uuidString,
@@ -162,8 +164,21 @@ public actor LecteurHealthKit: SourceSeances {
             distanceEchantillonsFins: distances,
             traces: traces,
             workoutEvents: evenements(seance.workoutEvents),
-            workoutActivities: seance.workoutActivities.map(etape)
+            workoutActivities: seance.workoutActivities.map(etape),
+            pas: pas
         )
+    }
+
+    /// Pas de la séance (cadence, D-034), sur sa plage de dates, de la même source que la séance.
+    private func pas(_ seance: HKWorkout) async throws -> [EchantillonPasBrut] {
+        let predicat = HKQuery.predicateForSamples(withStart: seance.startDate, end: seance.endDate, options: [])
+        let source = seance.sourceRevision.source.bundleIdentifier
+        return try await HKSampleQueryDescriptor(
+            predicates: [.quantitySample(type: HKQuantityType(.stepCount), predicate: predicat)],
+            sortDescriptors: [SortDescriptor(\.startDate)]
+        ).result(for: store)
+            .filter { $0.sourceRevision.source.bundleIdentifier == source }
+            .map { EchantillonPasBrut(debut: $0.startDate, fin: $0.endDate, pas: $0.quantity.doubleValue(for: .count())) }
     }
 
     private func frequenceCardiaque(_ seance: HKWorkout) async throws -> [EchantillonFCBrut] {
@@ -210,8 +225,9 @@ public actor LecteurHealthKit: SourceSeances {
         return distances
     }
 
-    /// Le tracé sert à l'altitude, à la vitesse et à la distance. Les coordonnées ne servent qu'à cumuler la distance,
-    /// en mémoire, et ne sont jamais gardées (ADR 0010). Un point imprécis (plus de 20 m) n'avance pas la distance.
+    /// Le tracé sert à l'altitude, à la vitesse, à la distance et au dessin du parcours (ADR 0014, D-034). Les
+    /// coordonnées ne sont jamais écrites sur disque : le flux est relu à la demande. Un point imprécis (plus de 20 m)
+    /// n'avance pas la distance.
     private func traces(_ seance: HKWorkout) async throws -> [TraceBrute]? {
         let predicat = HKSamplePredicate.workoutRoute(HKQuery.predicateForObjects(from: seance))
         let routes = try await HKSampleQueryDescriptor(predicates: [predicat], sortDescriptors: []).result(for: store)
@@ -233,7 +249,9 @@ public actor LecteurHealthKit: SourceSeances {
                     vitesse: position.speed,
                     precisionHorizontale: position.horizontalAccuracy,
                     precisionVerticale: position.verticalAccuracy,
-                    distanceGPS_m: precise ? cumul : nil
+                    distanceGPS_m: precise ? cumul : nil,
+                    latitude: position.coordinate.latitude,
+                    longitude: position.coordinate.longitude
                 ))
             }
             traces.append(TraceBrute(debut: route.startDate, fin: route.endDate, points: points))

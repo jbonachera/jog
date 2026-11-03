@@ -197,15 +197,47 @@ public struct Flux: Codable, Sendable, Equatable {
     @TableauNulOuNaN public var fc_bpm: [Float]?
     @TableauNulOuNaN public var alt_m: [Float]?
     @TableauNulOuNaN public var vitesse_ms: [Float]?
+    /// Positions GPS précises (≤ 20 m), triées, pour le tracé de l'écran Séance (D-034, ADR 0014). nil sans tracé.
+    public var positions: [Position]?
+    /// Cadence (pas/min) des échantillons de pas de Santé, triés. nil sans pas.
+    public var cadence: [MesureCadence]?
 
     public init(
-        t_s: [Float], dist_m: [Float], fc_bpm: [Float]?, alt_m: [Float]?, vitesse_ms: [Float]?
+        t_s: [Float], dist_m: [Float], fc_bpm: [Float]?, alt_m: [Float]?, vitesse_ms: [Float]?,
+        positions: [Position]? = nil, cadence: [MesureCadence]? = nil
     ) {
         self.t_s = t_s
         self.dist_m = dist_m
         self.fc_bpm = fc_bpm
         self.alt_m = alt_m
         self.vitesse_ms = vitesse_ms
+        self.positions = positions
+        self.cadence = cadence
+    }
+}
+
+public struct Position: Codable, Sendable, Equatable {
+    public var t_s: Double
+    public var lat: Double
+    public var lon: Double
+
+    public init(t_s: Double, lat: Double, lon: Double) {
+        self.t_s = t_s
+        self.lat = lat
+        self.lon = lon
+    }
+}
+
+/// Pas d'un échantillon de Santé, ramenés à la minute, à l'instant du milieu de l'échantillon.
+public struct MesureCadence: Codable, Sendable, Equatable {
+    public var t_s: Double
+    public var ppm: Double
+    public var duree_s: Double
+
+    public init(t_s: Double, ppm: Double, duree_s: Double) {
+        self.t_s = t_s
+        self.ppm = ppm
+        self.duree_s = duree_s
     }
 }
 

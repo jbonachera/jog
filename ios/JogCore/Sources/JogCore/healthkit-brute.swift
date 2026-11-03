@@ -52,13 +52,16 @@ public struct SeanceBrute: Codable, Sendable, Equatable {
     public var traces: [TraceBrute]?
     public var workoutEvents: [EvenementBrut]?
     public var workoutActivities: [EtapeBrute]?
+    /// Échantillons de pas de la séance (cadence, D-034).
+    public var pas: [EchantillonPasBrut]?
 
     public init(
         id: String, activityType: Int, debut: Date, fin: Date, dureeSecondes: Double,
         device: AppareilBrut? = nil, sourceRevision: SourceBrute? = nil, metadata: [String: String]? = nil,
         totaux: TotauxBrut? = nil, frequenceCardiaque: [EchantillonFCBrut]? = nil,
         distanceEchantillonsFins: [EchantillonDistanceBrut]? = nil, traces: [TraceBrute]? = nil,
-        workoutEvents: [EvenementBrut]? = nil, workoutActivities: [EtapeBrute]? = nil
+        workoutEvents: [EvenementBrut]? = nil, workoutActivities: [EtapeBrute]? = nil,
+        pas: [EchantillonPasBrut]? = nil
     ) {
         self.id = id
         self.activityType = activityType
@@ -74,11 +77,12 @@ public struct SeanceBrute: Codable, Sendable, Equatable {
         self.traces = traces
         self.workoutEvents = workoutEvents
         self.workoutActivities = workoutActivities
+        self.pas = pas
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, activityType, debut, fin, dureeSecondes, device, sourceRevision, metadata, totaux
-        case frequenceCardiaque, distanceEchantillonsFins, traces, workoutEvents, workoutActivities
+        case frequenceCardiaque, distanceEchantillonsFins, traces, workoutEvents, workoutActivities, pas
     }
 
     public init(from decoder: any Decoder) throws {
@@ -97,6 +101,7 @@ public struct SeanceBrute: Codable, Sendable, Equatable {
         traces = Self.listeTolerante(c, .traces)
         workoutEvents = Self.listeTolerante(c, .workoutEvents)
         workoutActivities = Self.listeTolerante(c, .workoutActivities)
+        pas = Self.listeTolerante(c, .pas)
     }
 
     private static func listeTolerante<Element: Decodable & Sendable>(
@@ -169,7 +174,7 @@ public struct EchantillonDistanceBrut: Codable, Sendable, Equatable {
     }
 }
 
-/// Un tracé GPS. L'altitude, la vitesse et la distance cumulée servent ; les coordonnées ne sont pas gardées.
+/// Un tracé GPS : altitude, vitesse, distance cumulée et coordonnées (tracé de l'écran Séance, ADR 0014).
 public struct TraceBrute: Codable, Sendable, Equatable {
     public var debut: Date?
     public var fin: Date?
@@ -190,14 +195,18 @@ public struct PointTraceBrut: Codable, Sendable, Equatable {
     public var vitesse: Double?
     public var precisionHorizontale: Double?
     public var precisionVerticale: Double?
-    /// Mètres parcourus depuis le début du tracé, calculés à la lecture depuis les coordonnées (qui ne sont pas
-    /// gardées, ADR 0010). Sert à corriger la distance de la séance.
+    /// Mètres parcourus depuis le début du tracé, calculés à la lecture depuis les coordonnées. Sert à corriger la distance de la séance.
     public var distanceGPS_m: Double?
+    public var latitude: Double?
+    public var longitude: Double?
 
     public init(
         timestamp: Date, altitude: Double? = nil, vitesse: Double? = nil,
-        precisionHorizontale: Double? = nil, precisionVerticale: Double? = nil, distanceGPS_m: Double? = nil
+        precisionHorizontale: Double? = nil, precisionVerticale: Double? = nil, distanceGPS_m: Double? = nil,
+        latitude: Double? = nil, longitude: Double? = nil
     ) {
+        self.latitude = latitude
+        self.longitude = longitude
         self.timestamp = timestamp
         self.altitude = altitude
         self.vitesse = vitesse
@@ -251,5 +260,18 @@ public struct ConfigurationEtapeBrute: Codable, Sendable, Equatable {
     public init(activityType: Int? = nil, locationType: Int? = nil) {
         self.activityType = activityType
         self.locationType = locationType
+    }
+}
+
+/// Échantillon de pas (HKQuantityType.stepCount) : nombre de pas entre début et fin.
+public struct EchantillonPasBrut: Codable, Sendable, Equatable {
+    public var debut: Date
+    public var fin: Date
+    public var pas: Double
+
+    public init(debut: Date, fin: Date, pas: Double) {
+        self.debut = debut
+        self.fin = fin
+        self.pas = pas
     }
 }

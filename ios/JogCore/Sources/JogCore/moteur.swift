@@ -163,6 +163,22 @@ public actor Moteur {
         generation += 1
     }
 
+    /// Détail de la séance pour l'écran Séance (D-034), son flux relu à la demande. nil si l'activité ou son flux manque.
+    /// La lecture et le calcul se font hors de l'acteur : ils ne retardent ni la synchronisation ni les recalculs.
+    public nonisolated func detail(cleSource: String, type: TypeSeance) async throws -> DetailSeance? {
+        guard let (pivot, p, segmentsMp) = try await entreesDetail(cleSource),
+              let flux = try await lireFlux(cleSource) else { return nil }
+        return try detailSeance(pivot.avecFlux(flux), type: type, segmentsMp: segmentsMp, p)
+    }
+
+    private func entreesDetail(_ cleSource: String) throws -> (PivotSansFlux, ParamsDates, [SegmentMp])? {
+        try chargerSiBesoin()
+        guard let pivot = activites.first(where: { $0.cleSource == cleSource }) else { return nil }
+        let p = try indexerParametres(parametres).auJour(pivot.dateLocale)
+        let cle = cleDeSeance(EmpreinteActivite(pivot), p, marquage: marquages[cleSource])
+        return (pivot, p, memoire[cle]?.segmentsMp ?? [])
+    }
+
     /// Le relevé des nuits (D-023), ou nil s'il est absent, illisible ou d'une autre version. Un relevé illisible est mis
     /// de côté au premier chargement, comme les autres fichiers : la synchronisation repart d'une relecture complète.
     public func releveNuits() throws -> ReleveNuits? {

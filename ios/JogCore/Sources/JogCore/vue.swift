@@ -79,7 +79,7 @@ public struct PivotSansFlux: Codable, Sendable, Equatable {
     }
 
     /// L'activité complète, avec le flux lu.
-    fileprivate func avecFlux(_ flux: Flux) -> ActivitePivot {
+    func avecFlux(_ flux: Flux) -> ActivitePivot {
         ActivitePivot(
             cleSource: cleSource, source: source, versionAdaptateur: versionAdaptateur, empreinteBrute: empreinteBrute,
             debutUtc: debutUtc, decalageLocal_min: decalageLocal_min, dateLocale: dateLocale, duree_s: duree_s,

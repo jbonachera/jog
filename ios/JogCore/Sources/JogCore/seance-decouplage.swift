@@ -110,3 +110,18 @@ private func sommeDt(_ g: GrilleSeance) -> Double {
 private func ilYaDeLaFc(_ g: GrilleSeance) -> Bool {
     g.fc_bpm.contains { !$0.isNaN }
 }
+
+/// Moitiés du découplage pour la courbe d'efficacité (D-034) : portions retenues, indice où commence la 2de moitié, EF
+/// de chaque moitié sur la grille `g` donnée (ajustée à la pente pour l'écran). nil quand le découplage ne se mesure pas.
+func moitiesDecouplage(_ g: GrilleSeance, _ segmentsMp: [SegmentMp])
+    -> (retenus: Set<Int>, iMoitie: Int, ef1: Double, ef2: Double)? {
+    guard sommeDt(g) >= DUREE_MIN_CANDIDAT_DECOUPLAGE_MIN * 60, ilYaDeLaFc(g) else { return nil }
+    let retenus = portionsRetenues(g, segmentsMp)
+    let duree = retenus.reduce(0.0) { $0 + g.dt_s[$1] }
+    guard duree >= DUREE_MIN_RETENUE_DECOUPLAGE_S else { return nil }
+    let (premiere, seconde) = couperEnDeux(g, retenus, duree / 2)
+    guard let ef1 = efficacite(premiere), let ef2 = efficacite(seconde) else { return nil }
+    var cumul = 0.0
+    let iMoitie = retenus.first { cumul += g.dt_s[$0]; return cumul >= duree / 2 } ?? g.n - 1
+    return (Set(retenus), iMoitie, ef1, ef2)
+}

@@ -8,9 +8,10 @@ import JogCore
 
 /// Préférence « autorisation HealthKit demandée » : sans elle, l'app montre l'écran d'accueil.
 private let CLE_AUTORISATION_DEMANDEE = "autorisationDemandee"
-/// Préférence « autorisation de la récupération (sommeil, VFC, respiration) demandée ». Absente des installations
-/// antérieures à la récupération : la demande est alors refaite une fois (iOS ne présente que les types nouveaux).
-private let CLE_AUTORISATION_RECUPERATION = "autorisationRecuperationDemandee"
+/// Préférence « autorisation des derniers types lus demandée » : récupération (sommeil, VFC, respiration), puis pas
+/// (D-034). Absente des installations antérieures : la demande est refaite une fois (iOS ne présente que les types
+/// nouveaux). Changer la clé à chaque ajout de type.
+private let CLE_AUTORISATION_RECUPERATION = "autorisationPasDemandee"
 
 /// Retire les préférences de l'app (D-016, « Supprimer toutes mes données ») : autorisations, « Ignorer » et besoin de sommeil.
 func retirerPreferences(_ defaults: UserDefaults) {
@@ -212,6 +213,11 @@ final class ModeleApp {
             return
         }
         await recalculerJour(titre: titre)
+    }
+
+    /// Détail de l'écran Séance (D-034) : flux relu dans Santé à la demande ; nil s'il manque.
+    func detail(cleSource: String, type: TypeSeance) async -> DetailSeance? {
+        try? await services?.moteur.detail(cleSource: cleSource, type: type)
     }
 
     /// « Réessayer » de l'accessoire (A7) : relance le travail qui a échoué.

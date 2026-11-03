@@ -1,5 +1,7 @@
 # 0010 · Sécurité et données personnelles
 
+> **Note (2026-11-03)** : les coordonnées GPS et les pas sont désormais lus dans Santé pour dessiner le tracé et donner la cadence sur l'écran Séance (D-034). Ils restent en mémoire, le temps de l'affichage : ni la Vue, ni la mémoire des séances, ni aucun fichier ne les contient. Aucune sortie réseau, aucun fond de carte.
+>
 > **Note (2026-10-28)** : amendée par ADR 0014. Restent valables : données personnelles hors dépôt, aucune sortie réseau, pas de journal de données de santé. IndexedDB, CSP, `vite build` et clé d'API ne s'appliquent plus.
 
 - **Statut** : Acceptée, amendée par [0014](0014-app-ios-native.md) (données dans l'app iOS : HealthKit en lecture seule, fichiers protégés sur l'appareil, aucune sortie réseau)

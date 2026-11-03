@@ -119,6 +119,19 @@ public func adapterSeance(_ brute: SeanceBrute, decalageAppareil: (Date) -> Int)
         return (t: p.t, valeur: vitesse)
     }
 
+    // Positions précises seulement (≤ 20 m), comme la distance GPS.
+    let positions = points.compactMap { p -> Position? in
+        guard let lat = p.point.latitude, let lon = p.point.longitude, let h = p.point.precisionHorizontale,
+              h >= 0, h <= 20 else { return nil }
+        return Position(t_s: p.t, lat: lat, lon: lon)
+    }
+    let cadence = (brute.pas ?? []).compactMap { e -> MesureCadence? in
+        let duree = e.fin.timeIntervalSince(e.debut)
+        let t = relatif(e.debut) + duree / 2
+        guard duree > 0, t >= 0, t <= W else { return nil }
+        return MesureCadence(t_s: t, ppm: e.pas / duree * 60, duree_s: duree)
+    }.sorted { $0.t_s < $1.t_s }
+
     let decalage = decalageLocal(brute, decalageAppareil: decalageAppareil)
     let debutUtc = brute.debut.timeIntervalSince1970 * 1000
     let appSource = brute.sourceRevision?.bundleId ?? ""
@@ -144,7 +157,9 @@ public func adapterSeance(_ brute: SeanceBrute, decalageAppareil: (Date) -> Int)
             dist_m: distanceCumulee.map { Float($0) },
             fc_bpm: fc,
             alt_m: altitudes.isEmpty ? nil : colonne(altitudes, grille),
-            vitesse_ms: vitesses.isEmpty ? nil : colonne(vitesses, grille)
+            vitesse_ms: vitesses.isEmpty ? nil : colonne(vitesses, grille),
+            positions: positions.isEmpty ? nil : positions,
+            cadence: cadence.isEmpty ? nil : cadence
         ),
         tours: tourDeLaSeance,
         appSource: appSource,
