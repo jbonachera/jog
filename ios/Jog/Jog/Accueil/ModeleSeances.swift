@@ -81,6 +81,8 @@ enum ModeleSeances {
         let carte: Carte
         let tableau: TableauAffiche?
         let segments: [String]
+        /// FC max en vigueur à la date de la séance (section Source de S3, D-033) ; nil si non renseignée.
+        var fcMax: Int? = nil
     }
 
     /// L'écran de la séance `s`, avec sa carte `c` (JogCore) et les paramètres datés (D-006) pour le tableau de P4.
@@ -89,7 +91,11 @@ enum ModeleSeances {
         let tableau = repetitions && !s.repetitions.isEmpty
             ? ModeleProgression.tableauDerniere(seanceSousSeuil(s, paramsAuJour))
             : nil
-        return Ecran(carte: carte(s, c, J: J, fuseau: fuseau), tableau: tableau, segments: segments(s))
+        let hrMax = paramsAuJour(s.date).hrMax
+        return Ecran(
+            carte: carte(s, c, J: J, fuseau: fuseau), tableau: tableau, segments: segments(s),
+            fcMax: hrMax.isFinite ? Int(hrMax) : nil
+        )
     }
 
     /// Les segments de la séance, en texte : minutes à allure marathon (sortie longue), lignes droites (footing).

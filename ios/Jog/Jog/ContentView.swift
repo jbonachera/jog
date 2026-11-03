@@ -9,6 +9,7 @@ struct ContentView: View {
     let modele: ModeleApp
     @Environment(\.scenePhase) private var phase
     @State private var parametresOuverts = false
+    @State private var verrouAffiche = false
     @State private var navigation = Navigation()
 
     var body: some View {
@@ -37,6 +38,8 @@ struct ContentView: View {
             ParametresView(modele: modele, vue: vueCourante)
         }
         .tabBarMinimizeBehavior(.onScrollDown)
+        .accessoireTravail(modele)
+        .environment(modele)
         .task {
             await modele.demarrer()
         }
@@ -47,13 +50,25 @@ struct ContentView: View {
         }
     }
 
-    /// Le bouton Paramètres, dans la barre d'Aujourd’hui (02, « Barre d'onglets »).
+    /// Le bouton Paramètres, dans la barre d'Aujourd’hui (02, « Barre d'onglets »). Grisé mais touchable pendant un
+    /// travail long : il dit pourquoi, avec un retour haptique (D-031).
     private var boutonParametres: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Button("Paramètres", systemImage: "slider.horizontal.3") {
-                parametresOuverts = true
+                if modele.verrouille { verrouAffiche = true } else { parametresOuverts = true }
+            }
+            .opacity(modele.verrouille ? 0.4 : 1)
+            .sensoryFeedback(.warning, trigger: verrouAffiche) { _, affiche in affiche }
+            .popover(isPresented: $verrouAffiche) {
+                Text(messageVerrou).padding().presentationCompactAdaptation(.popover)
             }
         }
+    }
+
+    /// « Paramètres disponibles dans 4 s » (D-031), ou sans délai tant qu'il n'est pas estimé.
+    private var messageVerrou: String {
+        guard let restant = modele.travail?.restant() else { return "Paramètres disponibles à la fin du recalcul" }
+        return "Paramètres disponibles dans \(Int(restant.rounded(.up))) s"
     }
 
     /// Empile un écran de détail dans la pile de l'onglet courant (02, « Écrans de détail »).
@@ -155,6 +170,24 @@ struct ContentView: View {
                 BandeauErreur(message: message, modele: modele)
                 accueil(vue)
             }
+        }
+    }
+}
+
+private extension View {
+    /// L'accessoire A7, absent hors travail (D-030). `isEnabled` n'existe qu'à partir d'iOS 26.1 ; avant, il est affiché
+    /// seulement pendant un travail, au prix d'une barre recomposée.
+    @ViewBuilder
+    func accessoireTravail(_ modele: ModeleApp) -> some View {
+        let contenu = modele.travail.map { travail in
+            AccessoireTravail(travail: travail) { Task { await modele.reessayerTravail() } }
+        }
+        if #available(iOS 26.1, *) {
+            tabViewBottomAccessory(isEnabled: contenu != nil) { contenu }
+        } else if let contenu {
+            tabViewBottomAccessory { contenu }
+        } else {
+            self
         }
     }
 }

@@ -10,27 +10,27 @@
 		00000000000000000000A029 /* JogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A028 /* JogTests.swift */; };
 		00000000000000000000A053 /* JogCore in Frameworks */ = {isa = PBXBuildFile; productRef = 00000000000000000000A051 /* JogCore */; };
 		00000000000000000000A054 /* JogCore in Frameworks */ = {isa = PBXBuildFile; productRef = 00000000000000000000A052 /* JogCore */; };
+		00000000000000000000A060 /* ProgressionLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A061 /* ProgressionLayoutTests.swift */; };
+		00000000000000000000A062 /* ProgressionGraduationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A063 /* ProgressionGraduationsTests.swift */; };
 		00000000000000000000A064 /* DisciplineGrapheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A065 /* DisciplineGrapheTests.swift */; };
 		00000000000000000000A066 /* RenduGraphique.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A067 /* RenduGraphique.swift */; };
 		00000000000000000000A068 /* MinutesSousSeuilGrapheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A069 /* MinutesSousSeuilGrapheTests.swift */; };
 		00000000000000000000A06A /* ProgressiviteGrapheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A06B /* ProgressiviteGrapheTests.swift */; };
-		00000000000000000000A060 /* ProgressionLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A061 /* ProgressionLayoutTests.swift */; };
-		00000000000000000000A062 /* ProgressionGraduationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A063 /* ProgressionGraduationsTests.swift */; };
 		00000000000000000000A080 /* ApercuTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A081 /* ApercuTests.swift */; };
 		00000000000000000000A082 /* ParametresTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A083 /* ParametresTests.swift */; };
 		00000000000000000000A084 /* EcranTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A085 /* EcranTests.swift */; };
 		00000000000000000000A086 /* TransitionsAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A087 /* TransitionsAppTests.swift */; };
 		00000000000000000000A088 /* NavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A089 /* NavigationTests.swift */; };
 		00000000000000000000A08A /* RecuperationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A08B /* RecuperationTests.swift */; };
-		00000000000000000000A101 /* AccueilMaquetteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A102 /* AccueilMaquetteTests.swift */; };
-		00000000000000000000A0F0 /* AccueilJaugesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F1 /* AccueilJaugesTests.swift */; };
-		00000000000000000000A0F2 /* AccueilSeancesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F3 /* AccueilSeancesTests.swift */; };
-		00000000000000000000A0F6 /* AccueilNiveauTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F7 /* AccueilNiveauTests.swift */; };
-		00000000000000000000A0F8 /* AccueilEcranTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F9 /* AccueilEcranTests.swift */; };
-		00000000000000000000A0F4 /* AccueilLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F5 /* AccueilLayoutTests.swift */; };
-		00000000000000000000A0FB /* ReglagesRechargementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0FA /* ReglagesRechargementTests.swift */; };
 		00000000000000000000A08C /* RecuperationLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A08D /* RecuperationLayoutTests.swift */; };
 		00000000000000000000A08E /* RecuperationGrapheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A08F /* RecuperationGrapheTests.swift */; };
+		00000000000000000000A0F0 /* AccueilJaugesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F1 /* AccueilJaugesTests.swift */; };
+		00000000000000000000A0F2 /* AccueilSeancesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F3 /* AccueilSeancesTests.swift */; };
+		00000000000000000000A0F4 /* AccueilLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F5 /* AccueilLayoutTests.swift */; };
+		00000000000000000000A0F6 /* AccueilNiveauTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F7 /* AccueilNiveauTests.swift */; };
+		00000000000000000000A0F8 /* AccueilEcranTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0F9 /* AccueilEcranTests.swift */; };
+		00000000000000000000A0FB /* ReglagesRechargementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A0FA /* ReglagesRechargementTests.swift */; };
+		00000000000000000000A101 /* AccueilMaquetteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000A102 /* AccueilMaquetteTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,27 +47,27 @@
 		00000000000000000000A028 /* JogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JogTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A02A /* Jog.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jog.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00000000000000000000A02B /* JogTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JogTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		00000000000000000000A061 /* ProgressionLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionLayoutTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A063 /* ProgressionGraduationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionGraduationsTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A065 /* DisciplineGrapheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisciplineGrapheTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A067 /* RenduGraphique.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenduGraphique.swift; sourceTree = "<group>"; };
 		00000000000000000000A069 /* MinutesSousSeuilGrapheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinutesSousSeuilGrapheTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A06B /* ProgressiviteGrapheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressiviteGrapheTests.swift; sourceTree = "<group>"; };
-		00000000000000000000A061 /* ProgressionLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionLayoutTests.swift; sourceTree = "<group>"; };
-		00000000000000000000A063 /* ProgressionGraduationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionGraduationsTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A081 /* ApercuTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApercuTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A083 /* ParametresTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParametresTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A085 /* EcranTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcranTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A087 /* TransitionsAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransitionsAppTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A089 /* NavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A08B /* RecuperationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecuperationTests.swift; sourceTree = "<group>"; };
-		00000000000000000000A102 /* AccueilMaquetteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilMaquetteTests.swift; sourceTree = "<group>"; };
-		00000000000000000000A0F1 /* AccueilJaugesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilJaugesTests.swift; sourceTree = "<group>"; };
-		00000000000000000000A0F3 /* AccueilSeancesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilSeancesTests.swift; sourceTree = "<group>"; };
-		00000000000000000000A0F7 /* AccueilNiveauTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilNiveauTests.swift; sourceTree = "<group>"; };
-		00000000000000000000A0F9 /* AccueilEcranTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilEcranTests.swift; sourceTree = "<group>"; };
-		00000000000000000000A0F5 /* AccueilLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilLayoutTests.swift; sourceTree = "<group>"; };
-		00000000000000000000A0FA /* ReglagesRechargementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReglagesRechargementTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A08D /* RecuperationLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecuperationLayoutTests.swift; sourceTree = "<group>"; };
 		00000000000000000000A08F /* RecuperationGrapheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecuperationGrapheTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A0F1 /* AccueilJaugesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilJaugesTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A0F3 /* AccueilSeancesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilSeancesTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A0F5 /* AccueilLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilLayoutTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A0F7 /* AccueilNiveauTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilNiveauTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A0F9 /* AccueilEcranTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilEcranTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A0FA /* ReglagesRechargementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReglagesRechargementTests.swift; sourceTree = "<group>"; };
+		00000000000000000000A102 /* AccueilMaquetteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccueilMaquetteTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -408,7 +408,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Jog.app/Jog";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -423,6 +422,7 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Jog.app/Jog";
 			};
 			name = Debug;
 		};
@@ -430,7 +430,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Jog.app/Jog";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -445,6 +444,7 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Jog.app/Jog";
 			};
 			name = Release;
 		};

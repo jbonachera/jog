@@ -274,44 +274,71 @@ public struct ResultatIntrinseques: Sendable, Equatable {
 /// la séance est rangée dans `memoire`. Les paramètres sont ceux du jour de la séance (D-006). Une activité dont le flux
 /// manque, ou dont la lecture ou le calcul échoue, est écartée (`ecartees`) : elle ne bloque pas les autres. Seule
 /// l'annulation se propage. `marquages` (D-020) : marquage saisi par clé source ; une activité absente de ce
-/// dictionnaire garde son marquage déduit. `progression` reçoit (traitees, total) avant chaque séance datée avant J : le
-/// premier appel annonce 0 sur le total, et la dernière séance n'est jamais annoncée comme terminée.
+/// dictionnaire garde son marquage déduit. Les flux sont lus et calculés `parallelisme` à la fois, de la séance la plus
+/// récente à la plus ancienne (D-032) ; le résultat garde l'ordre de `activites`. `progression` reçoit (traitees, total) :
+/// le premier appel annonce 0 sur le total, puis un appel par séance relue.
 public func seancesIntrinseques(
     activites: [PivotSansFlux],
-    lireFlux: (String) async throws -> Flux?,
+    lireFlux: @escaping @Sendable (String) async throws -> Flux?,
     parametres: Parametres,
     J: DateCivile,
     memoire: inout MemoireSeances,
     marquages: [String: MarquageUtilisateur] = [:],
+    parallelisme: Int = 4,
     progression: @escaping @Sendable (Int, Int) async -> Void = { _, _ in }
 ) async throws -> ResultatIntrinseques {
     let parametresDates = try indexerParametres(parametres)
-    var resultat = ResultatIntrinseques()
     let aTraiter = activites.filter { $0.dateLocale < J }
-    for (traitees, pivot) in aTraiter.enumerated() {
-        await progression(traitees, aTraiter.count)
+    var issues = [SeanceIntrinseque?](repeating: nil, count: aTraiter.count)
+    var ecarts: [Int: EcartIntrinseque] = [:]
+    // Séances à relire : (indice, clé, pivot, paramètres, marquage), de la plus récente à la plus ancienne.
+    var aLire: [(Int, String, PivotSansFlux, ParamsDates, MarquageUtilisateur?)] = []
+    for (i, pivot) in aTraiter.enumerated() {
         let p = parametresDates.auJour(pivot.dateLocale)
         let marquage = marquages[pivot.cleSource]
         let cle = cleDeSeance(EmpreinteActivite(pivot), p, marquage: marquage)
         if let memorisee = memoire.entrees[cle] {
-            resultat.seances.append(identifiee(memorisee, pivot))
-            continue
-        }
-        do {
-            guard let flux = try await lireFlux(pivot.cleSource) else {
-                throw FluxAbsent(cleSource: pivot.cleSource)
-            }
-            let calculee = try calculerSeanceIntrinseque(pivot.avecFlux(flux), p, marquageUtilisateur: marquage)
-            memoire.entrees[cle] = calculee
-            resultat.seances.append(identifiee(calculee, pivot))
-        } catch let annulation as CancellationError {
-            throw annulation
-        } catch {
-            let detail = error is FluxAbsent ? "flux absent" : String(describing: error)
-            resultat.ecartees.append(EcartIntrinseque(cleSource: pivot.cleSource, detail: detail))
+            issues[i] = identifiee(memorisee, pivot)
+        } else {
+            aLire.append((i, cle, pivot, p, marquage))
         }
     }
-    return resultat
+    aLire.sort { $0.2.debutUtc > $1.2.debutUtc }
+    await progression(0, aLire.count)
+    try await withThrowingTaskGroup(of: (Int, String, SeanceIntrinseque?, EcartIntrinseque?).self) { groupe in
+        var suivante = aLire.makeIterator()
+        func lancer() {
+            guard let (i, cle, pivot, p, marquage) = suivante.next() else { return }
+            groupe.addTask {
+                do {
+                    guard let flux = try await lireFlux(pivot.cleSource) else { throw FluxAbsent(cleSource: pivot.cleSource) }
+                    let calculee = try calculerSeanceIntrinseque(pivot.avecFlux(flux), p, marquageUtilisateur: marquage)
+                    return (i, cle, calculee, nil)
+                } catch let annulation as CancellationError {
+                    throw annulation
+                } catch {
+                    let detail = error is FluxAbsent ? "flux absent" : String(describing: error)
+                    return (i, cle, nil, EcartIntrinseque(cleSource: pivot.cleSource, detail: detail))
+                }
+            }
+        }
+        for _ in 0..<max(parallelisme, 1) { lancer() }
+        var traitees = 0
+        while let (i, cle, calculee, ecart) = try await groupe.next() {
+            if let calculee {
+                memoire.entrees[cle] = calculee
+                issues[i] = identifiee(calculee, aTraiter[i])
+            }
+            ecarts[i] = ecart
+            traitees += 1
+            if traitees < aLire.count { await progression(traitees, aLire.count) }
+            lancer()
+        }
+    }
+    return ResultatIntrinseques(
+        seances: issues.compactMap { $0 },
+        ecartees: ecarts.keys.sorted().compactMap { ecarts[$0] }
+    )
 }
 
 /// Une séance mémorisée est rattachée à l'activité qui la demande. La clé ne couvre ni `cleSource` ni la date

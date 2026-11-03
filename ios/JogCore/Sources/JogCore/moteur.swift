@@ -151,6 +151,18 @@ public actor Moteur {
         generation += 1
     }
 
+    /// « Recharger depuis Santé » (D-033) : oublie la séance ②a mémorisée de `cleSource`, pour que le prochain
+    /// `recalculer` relise son flux et la recalcule. Sans effet si elle n'est pas mémorisée.
+    public func oublier(cleSource: String) throws {
+        try chargerSiBesoin()
+        guard let pivot = activites.first(where: { $0.cleSource == cleSource }) else { return }
+        let p = try indexerParametres(parametres).auJour(pivot.dateLocale)
+        let cle = cleDeSeance(EmpreinteActivite(pivot), p, marquage: marquages[cleSource])
+        guard memoire.removeValue(forKey: cle) != nil else { return }
+        try stockage.ecrireMemoire(memoire)
+        generation += 1
+    }
+
     /// Le relevé des nuits (D-023), ou nil s'il est absent, illisible ou d'une autre version. Un relevé illisible est mis
     /// de côté au premier chargement, comme les autres fichiers : la synchronisation repart d'une relecture complète.
     public func releveNuits() throws -> ReleveNuits? {

@@ -1,3 +1,4 @@
+import Synchronization
 import Testing
 @testable import JogCore
 
@@ -26,22 +27,43 @@ private func modification(_ cle: String, _ valeur: Double, effet: DateCivile) ->
     ModifDatee(id: "m-\(cle)", cle: cle, valeur: valeur, dateEffet: effet, enregistreLe: "2026-08-01T10:00:00Z")
 }
 
+/// Compteur de lectures, partagé par des lectures concurrentes (D-032).
+private final class Compteur: Sendable {
+    private let mutex = Mutex<[String]>([])
+    var valeur: Int { mutex.withLock { $0.count } }
+    var ordre: [String] { mutex.withLock { $0 } }
+    func incrementer(_ cle: String = "") { mutex.withLock { $0.append(cle) } }
+}
+
+@Test func d032LesFluxSontLusDuPlusRecentAuPlusAncienEtLeResultatGardeLOrdre() async throws {
+    // D-032 : un seul flux à la fois pour observer l'ordre ; le résultat suit l'ordre des activités.
+    let activites = [activite("a", "2026-09-01"), activite("c", "2026-09-03"), activite("b", "2026-09-02")]
+    var memoire = MemoireSeances()
+    let lectures = Compteur()
+    let resultat = try await seancesIntrinseques(
+        activites: activites, lireFlux: { cle in lectures.incrementer(cle); return fluxSynthetique() },
+        parametres: parametresDefaut(), J: J, memoire: &memoire, parallelisme: 1
+    )
+    #expect(lectures.ordre == ["c", "b", "a"])
+    #expect(resultat.seances.map(\.cleSource) == ["a", "c", "b"])
+}
+
 @Test func adr0006LaMemoireEvitDeRelireLeFlux() async throws {
     // ADR 0006 : une clé présente dans la mémoire dispense de lire le flux. Au second calcul, aucune lecture.
     let activites = [activite("a", "2026-09-01"), activite("b", "2026-09-02")]
     var memoire = MemoireSeances()
-    var lectures = 0
+    let lectures = Compteur()
     let premier = try await seancesIntrinseques(
-        activites: activites, lireFlux: { _ in lectures += 1; return fluxSynthetique() },
+        activites: activites, lireFlux: { _ in lectures.incrementer(); return fluxSynthetique() },
         parametres: parametresDefaut(), J: J, memoire: &memoire
     )
-    #expect(lectures == 2)
+    #expect(lectures.valeur == 2)
 
     let second = try await seancesIntrinseques(
-        activites: activites, lireFlux: { _ in lectures += 1; return fluxSynthetique() },
+        activites: activites, lireFlux: { _ in lectures.incrementer(); return fluxSynthetique() },
         parametres: parametresDefaut(), J: J, memoire: &memoire
     )
-    #expect(lectures == 2, "aucun flux relu au second calcul")
+    #expect(lectures.valeur == 2, "aucun flux relu au second calcul")
     #expect(second == premier, "une séance reprise de la mémoire est celle qu'on a calculée")
 }
 
@@ -49,16 +71,16 @@ private func modification(_ cle: String, _ valeur: Double, effet: DateCivile) ->
     // ADR 0006 : la clé ne couvre ni cleSource ni la date. Deux activités de même empreinte partagent la séance calculée,
     // mais chacune garde sa clé source et sa date.
     var memoire = MemoireSeances()
-    var lectures = 0
+    let lectures = Compteur()
     _ = try await seancesIntrinseques(
-        activites: [activite("a", "2026-09-01", empreinte: "meme")], lireFlux: { _ in lectures += 1; return fluxSynthetique() },
+        activites: [activite("a", "2026-09-01", empreinte: "meme")], lireFlux: { _ in lectures.incrementer(); return fluxSynthetique() },
         parametres: parametresDefaut(), J: J, memoire: &memoire
     )
     let reprise = try await seancesIntrinseques(
-        activites: [activite("b", "2026-09-03", empreinte: "meme")], lireFlux: { _ in lectures += 1; return fluxSynthetique() },
+        activites: [activite("b", "2026-09-03", empreinte: "meme")], lireFlux: { _ in lectures.incrementer(); return fluxSynthetique() },
         parametres: parametresDefaut(), J: J, memoire: &memoire
     )
-    #expect(lectures == 1)
+    #expect(lectures.valeur == 1)
     #expect(reprise.seances.map(\.cleSource) == ["b"])
     #expect(reprise.seances.map(\.date) == ["2026-09-03"])
 }
@@ -68,9 +90,9 @@ private func modification(_ cle: String, _ valeur: Double, effet: DateCivile) ->
     // subtHrHi n'est lu qu'à ④ : le modifier ne relit rien.
     let activites = [activite("a", "2026-09-01")]
     var memoire = MemoireSeances()
-    var lectures = 0
+    let lectures = Compteur()
     _ = try await seancesIntrinseques(
-        activites: activites, lireFlux: { _ in lectures += 1; return fluxSynthetique() },
+        activites: activites, lireFlux: { _ in lectures.incrementer(); return fluxSynthetique() },
         parametres: parametresDefaut(), J: J, memoire: &memoire
     )
 
@@ -78,33 +100,33 @@ private func modification(_ cle: String, _ valeur: Double, effet: DateCivile) ->
         globaux: parametresDefaut().globaux, modifs: [modification("subtHrHi", 175, effet: "2026-08-01")]
     )
     _ = try await seancesIntrinseques(
-        activites: activites, lireFlux: { _ in lectures += 1; return fluxSynthetique() },
+        activites: activites, lireFlux: { _ in lectures.incrementer(); return fluxSynthetique() },
         parametres: parametresSubt, J: J, memoire: &memoire
     )
-    #expect(lectures == 1, "subtHrHi n'entre pas dans la clé")
+    #expect(lectures.valeur == 1, "subtHrHi n'entre pas dans la clé")
 
     let parametresLt2 = Parametres(
         globaux: parametresDefaut().globaux, modifs: [modification("lt2Pace", 240, effet: "2026-08-01")]
     )
     _ = try await seancesIntrinseques(
-        activites: activites, lireFlux: { _ in lectures += 1; return fluxSynthetique() },
+        activites: activites, lireFlux: { _ in lectures.incrementer(); return fluxSynthetique() },
         parametres: parametresLt2, J: J, memoire: &memoire
     )
-    #expect(lectures == 2, "lt2Pace entre dans la clé")
+    #expect(lectures.valeur == 2, "lt2Pace entre dans la clé")
 }
 
 @Test func regle03UneActiviteDeJOuFutureNEstPasLue() async throws {
     // 03 : seules les activités datées avant J sont calculées : leur flux n'est jamais demandé.
     var memoireVide = MemoireSeances()
-    var lectures = 0
+    let lectures = Compteur()
     let resultat = try await seancesIntrinseques(
         activites: [activite("aujourdhui", J), activite("demain", "2026-09-11")],
-        lireFlux: { _ in lectures += 1; return fluxSynthetique() },
+        lireFlux: { _ in lectures.incrementer(); return fluxSynthetique() },
         parametres: parametresDefaut(), J: J, memoire: &memoireVide
     )
     #expect(resultat.seances.isEmpty)
     #expect(resultat.ecartees.isEmpty)
-    #expect(lectures == 0)
+    #expect(lectures.valeur == 0)
 }
 
 @Test func unFluxAbsentEstEcarteSansBloquerLesAutres() async throws {

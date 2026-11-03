@@ -21,6 +21,7 @@ struct ParametresView: View {
     @State private var etat: EtatDonnees?
     @State private var confirmeDefauts = false
     @State private var confirmeSuppression = false
+    @State private var confirmeEnregistrement = false
 
     /// Journée courante (J) : une date d'effet ne peut pas la dépasser (06).
     private var J: DateCivile { dateCivile(de: Date()) }
@@ -34,11 +35,6 @@ struct ParametresView: View {
     var body: some View {
         NavigationStack {
             Form {
-                if let avancement = modele.avancementRecalcul {
-                    Section {
-                        ProgressView("Recalcul du tableau de bord", value: avancement)
-                    }
-                }
                 if base == nil {
                     ProgressView("Lecture des paramètres")
                 } else {
@@ -84,16 +80,14 @@ struct ParametresView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Fermer") { fermer() }
-                        .disabled(modele.recalculEnCours)
+                        .disabled(modele.verrouille)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     if enregistrement {
                         ProgressView()
                             .accessibilityLabel("Enregistrement en cours")
                     } else {
-                        Button("Enregistrer") {
-                            Task { await enregistrerSaisie() }
-                        }
+                        Button("Enregistrer") { confirmeEnregistrement = true }
                         .disabled(!(verification?.valide ?? false))
                     }
                 }
@@ -103,6 +97,13 @@ struct ParametresView: View {
             }
             .task(id: vue?.derniereSynchro) {
                 etat = await modele.etatDonnees()
+            }
+            .alert("Enregistrer et recalculer ?", isPresented: $confirmeEnregistrement) {
+                Button("Enregistrer et recalculer") { enregistrerSaisie() }
+                Button("Annuler", role: .cancel) {}
+            } message: {
+                Text("Les séances à partir du \(formatDate(dateEffet)) seront recalculées. Pendant le recalcul, les "
+                    + "Paramètres et le marquage des séances ne sont pas disponibles.")
             }
             .alert("Revenir aux valeurs par défaut ?", isPresented: $confirmeDefauts) {
                 Button("Revenir aux valeurs par défaut", role: .destructive) {
@@ -121,7 +122,7 @@ struct ParametresView: View {
                 Text("Les séances, les paramètres, leur historique et les marquages sont effacés de cet iPhone. "
                     + "Les données Santé d’Apple ne sont pas touchées.")
             }
-            .interactiveDismissDisabled(modele.recalculEnCours)
+            .interactiveDismissDisabled(modele.verrouille)
         }
     }
 
@@ -156,9 +157,12 @@ struct ParametresView: View {
         dateEffet = J
     }
 
-    private func enregistrerSaisie() async {
+    /// Après confirmation, la feuille se ferme et le recalcul passe dans l'accessoire de la barre d'onglets (D-030, D-031),
+    /// qui en montre aussi l'échec.
+    private func enregistrerSaisie() {
         guard let nouveaux = verification?.parametres else { return }
-        await appliquer(nouveaux)
+        fermer()
+        Task { [modele] in try? await modele.enregistrerParametres(nouveaux) }
     }
 
     /// Enregistre et recalcule (hors du fil principal). L'annonce VoiceOver suit la zone de statut de 06.

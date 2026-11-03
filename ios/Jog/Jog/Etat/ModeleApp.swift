@@ -23,10 +23,10 @@ func retirerPreferences(_ defaults: UserDefaults) {
 @Observable
 final class ModeleApp {
     private(set) var etat: EtatApp = .chargement
-    /// Avancement (0...1) du recalcul déclenché par un réglage ; nil hors recalcul.
-    private(set) var avancementRecalcul: Double?
-    /// Vrai pendant un recalcul déclenché par un réglage : la feuille ne doit pas se fermer.
-    var recalculEnCours: Bool { avancementRecalcul != nil }
+    /// Travail long en cours, ou tout juste fini ou échoué (D-030) ; nil hors travail.
+    private(set) var travail: Travail?
+    /// Vrai pendant un travail long : Paramètres et marquage sont verrouillés (D-031).
+    var verrouille: Bool { travail?.enCours == true }
     /// Cartes de séance de l'app (lot 16) : une seule construction par Vue, lue par l'écran Séance et l'accueil.
     let cartes = CacheCartes()
     /// Carte Niveau (lot 17) : niveau VDOT et six qualités, calculés une fois par Vue.
@@ -61,6 +61,10 @@ final class ModeleApp {
     @ObservationIgnored private var aRelancer = false
     /// Dernier nombre de séances traitées affiché pendant l'import : la progression ne recule jamais.
     @ObservationIgnored private var progressionRecue = 0
+    /// Début de la synchronisation en cours : elle n'apparaît dans l'accessoire qu'au-delà de 1 s (D-030).
+    @ObservationIgnored private var debutSynchro = Date()
+    /// « Réessayer » de l'accessoire après un échec.
+    @ObservationIgnored private var relance: (() async -> Void)?
 
     private struct Services: Sendable {
         let lecteur: LecteurHealthKit
@@ -195,7 +199,26 @@ final class ModeleApp {
             etat = TransitionsApp.suivant(etat, .echec(message(pour: error)))
             return
         }
-        await recalculerJour()
+        await recalculerJour(titre: "Recalcul · marquage")
+    }
+
+    /// « Recharger depuis Santé » (D-033) : oublie la séance calculée, puis la relit et recalcule la Vue.
+    func recharger(cleSource: String, titre: String) async {
+        guard let services else { return }
+        do {
+            try await services.moteur.oublier(cleSource: cleSource)
+        } catch {
+            travail = Travail(titre: titre, issue: .echec("Séance non rechargée"))
+            return
+        }
+        await recalculerJour(titre: titre)
+    }
+
+    /// « Réessayer » de l'accessoire (A7) : relance le travail qui a échoué.
+    func reessayerTravail() async {
+        guard let relance else { return }
+        self.relance = nil
+        await relance()
     }
 
     // MARK: - Paramètres et données (06, D-016, D-017)
@@ -229,8 +252,7 @@ final class ModeleApp {
         guard let services else { throw ErreurParametres.indisponible }
         var issue: Result<Parametres, ErreurParametres> = .failure(.indisponible)
         await enfiler { [self] in
-            avancementRecalcul = 0
-            defer { avancementRecalcul = nil }
+            commencer("Recalcul · réglages")
             do {
                 let anciens = try await services.moteur.lireParametres()
                 let nouveaux = modifier(anciens)
@@ -239,6 +261,9 @@ final class ModeleApp {
                 if case let .echec(_, message) = validerParametres(nouveaux, aujourdhui) {
                     throw ErreurParametres.ecriture(message)
                 }
+                let fcAvant = try? parametresAuJour(anciens, aujourdhui).hrMax
+                let fcApres = try? parametresAuJour(nouveaux, aujourdhui).hrMax
+                if let fcApres, fcApres != fcAvant { travail?.titre = "Recalcul · FC max \(Int(fcApres))" }
                 try await services.moteur.modifierParametres(nouveaux)
                 do {
                     let vue = try await services.moteur.recalculer(
@@ -251,7 +276,11 @@ final class ModeleApp {
                         recevoir(vue)
                     }
                     issue = .success(nouveaux)
+                    terminer()
                 } catch {
+                    echouer(fcAvant.map { "FC max \(Int($0)) rétablie" } ?? "Réglages précédents rétablis") {
+                        _ = try? await self.enregistrer(modifier)
+                    }
                     do {
                         try await services.moteur.modifierParametres(anciens)
                     } catch {
@@ -266,6 +295,8 @@ final class ModeleApp {
             } catch {
                 issue = .failure(.ecriture(error.localizedDescription))
             }
+            // Échec avant le recalcul (validation, écriture) : la feuille l'affiche, l'accessoire se retire.
+            if travail?.enCours == true { travail = nil }
         }.value
         return try issue.get()
     }
@@ -331,6 +362,7 @@ final class ModeleApp {
                 guard autorisationDemandee else { return }
                 aRelancer = false
                 progressionRecue = 0
+                debutSynchro = Date()
                 do {
                     // Secondaire : son échec ne bloque jamais les séances.
                     _ = try? await services.synchroNuits.synchroniser()
@@ -338,8 +370,10 @@ final class ModeleApp {
                         await self.progression(traitees, total)
                     }
                     recevoir(vue)
+                    terminer()
                 } catch {
                     etat = TransitionsApp.suivant(etat, .echec(message(pour: error)))
+                    echouer("Synchronisation interrompue") { await self.synchroniser() }
                 }
             } while aRelancer
         }
@@ -348,13 +382,21 @@ final class ModeleApp {
     }
 
     /// Recalcul au changement de jour (ADR 0007) : J change, les données non. Sans synchronisation, mais dans la même file.
-    private func recalculerJour() async {
+    /// Avec un `titre` (marquage, rechargement), le recalcul passe par l'accessoire (D-030).
+    private func recalculerJour(titre: String? = nil) async {
         guard autorisationDemandee, services != nil else { return }
         await enfiler { [self] in
             guard let services else { return }
+            if let titre { commencer(titre) }
             do {
                 let J = services.moteur.jourDeCoupure(maintenant: Date(), fuseau: .current)
-                let vue = try await services.moteur.recalculer(J: J, derniereSynchro: derniereSynchro)
+                // Sans titre (minuit), pas d'accessoire : aucun passage par le fil principal par séance.
+                var progression: @Sendable (Int, Int) async -> Void = { _, _ in }
+                if titre != nil { progression = { traitees, total in await self.avancer(traitees, sur: total) } }
+                let vue = try await services.moteur.recalculer(
+                    J: J, derniereSynchro: derniereSynchro, progression: progression
+                )
+                terminer()
                 // Un bandeau d'erreur déjà affiché reste : seule la Vue dessous est mise à jour.
                 if case .erreur(let message, _) = etat {
                     etat = .erreur(message: message, vue: vue)
@@ -362,6 +404,7 @@ final class ModeleApp {
                     recevoir(vue)
                 }
             } catch {
+                echouer("Historique inchangé") { await self.recalculerJour(titre: titre) }
                 // Un état d'erreur déjà affiché n'est pas remplacé par celui-ci.
                 if case .erreur = etat { return }
                 etat = TransitionsApp.suivant(etat, .echec(message(pour: error)))
@@ -396,15 +439,50 @@ final class ModeleApp {
         }
     }
 
+    /// Progression de la synchronisation : l'écran d'import au premier import, sinon l'accessoire au-delà de 1 s (D-030).
     private func progression(_ traitees: Int, _ total: Int) {
         guard traitees >= progressionRecue else { return }
         progressionRecue = traitees
         etat = TransitionsApp.suivant(etat, .progression(traitees: traitees, total: total))
+        if case .importEnCours = etat { return }
+        if travail?.enCours != true {
+            guard Date().timeIntervalSince(debutSynchro) > 1 else { return }
+            commencer("Import")
+            travail?.debut = debutSynchro
+        }
+        avancer(traitees, sur: total)
     }
 
-    /// Avancement du recalcul d'un réglage : `traitees` séances sur `total` (0...1). Le total est nul sans séance à relire.
+    // MARK: - Travail long (D-030)
+
+    private func commencer(_ titre: String) {
+        travail = Travail(titre: titre)
+        relance = nil
+    }
+
     private func avancer(_ traitees: Int, sur total: Int) {
-        avancementRecalcul = total > 0 ? Double(traitees) / Double(total) : 0
+        guard travail?.enCours == true else { return }
+        travail?.traitees = traitees
+        travail?.total = total
+    }
+
+    /// « Historique à jour » pendant 3 s, puis l'accessoire se rétracte.
+    private func terminer() {
+        guard var fini = travail, fini.enCours else { return }
+        fini.issue = .termine
+        fini.traitees = fini.total
+        travail = fini
+        Task {
+            try? await Task.sleep(for: .seconds(3))
+            if travail == fini { travail = nil }
+        }
+    }
+
+    /// L'accessoire reste affiché en orange, avec « Réessayer ».
+    private func echouer(_ message: String, relance: @escaping () async -> Void) {
+        guard travail?.enCours == true else { return }
+        travail?.issue = .echec(message)
+        self.relance = relance
     }
 
     private func recevoir(_ vue: Vue) {

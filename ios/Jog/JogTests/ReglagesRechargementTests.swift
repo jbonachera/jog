@@ -1,6 +1,6 @@
 // Reproduction du bug « changer un réglage fige l'interface » : enregistrer un réglage recalcule toute la Vue. Une
 // séance dont la clé de mémorisation change (ici par hrMax) voit son flux relu. Pendant ce recalcul, l'avancement (0...1)
-// doit être exposé, et la feuille Paramètres doit rester non fermable (`recalculEnCours`), puis tout se relâche à la fin.
+// doit être exposé, et la feuille Paramètres doit rester non fermable (`verrouille`), puis tout se relâche à la fin.
 // Le flux est contrôlé par le test : le recalcul reste suspendu pendant les assertions, donc déterministe. Un garde-fou
 // de temps empêche qu'un recalcul qui ne relit jamais le flux fasse pendre le test.
 // Fichier de la cible JogTests, hébergée par Jog (TEST_HOST) : il importe le module de l'app.
@@ -61,6 +61,30 @@ private final class Fil<T: Sendable>: @unchecked Sendable {
     }
 }
 
+/// Feux donnés par le test, consommés par des lectures concurrentes (D-032) : un feu libère une lecture en attente, ou la
+/// suivante. Après `eteindre`, toute lecture passe.
+private actor Feux {
+    private var credits = 0
+    private var eteint = false
+    private var attentes: [CheckedContinuation<Void, Never>] = []
+
+    func attendre() async {
+        guard !eteint else { return }
+        if credits > 0 { credits -= 1; return }
+        await withCheckedContinuation { attentes.append($0) }
+    }
+
+    func donner() {
+        if attentes.isEmpty { credits += 1 } else { attentes.removeFirst().resume() }
+    }
+
+    func eteindre() {
+        eteint = true
+        attentes.forEach { $0.resume() }
+        attentes = []
+    }
+}
+
 /// Modèle relié à un dossier, dont chaque lecture de flux est contrôlée : elle annonce son arrivée, puis attend le feu du
 /// test. Si `echec` est donné, la lecture lève cette erreur à la place de rendre le flux.
 @MainActor
@@ -68,20 +92,18 @@ private final class Banc {
     let modele: ModeleApp
     private let signalArrivee: AsyncStream<Void>.Continuation
     private let filArrivees: Fil<Void>
-    private let signalFeu: AsyncStream<Void>.Continuation
+    private let feux = Feux()
 
     init(racine: URL, echec: Error? = nil) {
         let (arrivees, signalArrivee) = AsyncStream<Void>.makeStream()
-        let (feux, signalFeu) = AsyncStream<Void>.makeStream()
-        let filFeux = Fil(feux)
+        let feux = feux
         modele = ModeleApp(racine: racine, lireFlux: { _ in
             signalArrivee.yield(())
-            _ = await filFeux.suivant()
+            await feux.attendre()
             if let echec { throw echec }
             return fluxTest
         })
         self.signalArrivee = signalArrivee
-        self.signalFeu = signalFeu
         filArrivees = Fil(arrivees)
     }
 
@@ -99,12 +121,12 @@ private final class Banc {
 
     /// Laisse finir la lecture en attente.
     func liberer() {
-        signalFeu.yield(())
+        Task { [feux] in await feux.donner() }
     }
 
     /// Libère toutes les lectures futures : appelé en fin de test, même en cas d'échec, pour ne pas laisser de tâche suspendue.
     func terminer() {
-        signalFeu.finish()
+        Task { [feux] in await feux.eteindre() }
     }
 }
 
@@ -126,14 +148,14 @@ struct ReglagesRechargementTests {
 
         #expect(await banc.attendreLecture(), "le flux n'a pas été relu après le changement de hrMax")
         // Pendant le rechargement : avancement 0...1 exposé (aucune séance relue encore), feuille non fermable.
-        #expect(banc.modele.avancementRecalcul == 0)
-        #expect(banc.modele.recalculEnCours == true)
+        #expect(banc.modele.travail?.fraction == 0)
+        #expect(banc.modele.verrouille)
 
         banc.liberer()
         try await enregistrement.value
         // Fin du rechargement : l'avancement retombe à nil, la feuille redevient fermable.
-        #expect(banc.modele.avancementRecalcul == nil)
-        #expect(banc.modele.recalculEnCours == false)
+        #expect(banc.modele.verrouille == false)
+        #expect(banc.modele.verrouille == false)
     }
 
     @MainActor
@@ -149,27 +171,18 @@ struct ReglagesRechargementTests {
         defer { banc.terminer() }
         let enregistrement = Task { try await banc.modele.enregistrerParametres(reglageHrMax()) }
 
-        // Avancement = séances terminées / total. À chaque lecture suspendue : 0 à la première, puis strictement croissant,
-        // dans [0, 1[ (la dernière lecture est suspendue avant d'avoir fini).
-        var precedent = -1.0
+        // D-032 : les trois flux sont lus en même temps ; aucun n'est fini, l'avancement est nul et le verrou posé.
         for indice in 0..<3 {
             #expect(await banc.attendreLecture(), "lecture \(indice + 1) attendue")
-            let avancement = banc.modele.avancementRecalcul ?? -1
-            #expect((0..<1).contains(avancement), "avancement pendant la lecture \(indice + 1) : \(avancement)")
-            #expect(avancement > precedent, "avancement pendant la lecture \(indice + 1) : \(avancement) après \(precedent)")
-            precedent = avancement
-            banc.liberer()
         }
+        #expect(banc.modele.travail?.fraction == 0)
+        #expect(banc.modele.verrouille)
 
-        // Après la dernière libération, l'avancement retombe à nil : sondage borné (200 × 10 ms).
-        var rendu = false
-        for _ in 0..<200 where !rendu {
-            rendu = banc.modele.avancementRecalcul == nil
-            if !rendu { try await Task.sleep(for: .milliseconds(10)) }
-        }
-        #expect(rendu, "l'avancement n'est pas revenu à nil après le recalcul")
+        for _ in 0..<3 { banc.liberer() }
         try await enregistrement.value
-        #expect(banc.modele.recalculEnCours == false)
+        #expect(banc.modele.verrouille == false)
+        #expect(banc.modele.travail?.issue == .termine)
+        #expect(banc.modele.travail?.total == 3)
     }
 
     @MainActor
@@ -186,7 +199,7 @@ struct ReglagesRechargementTests {
         let enregistrement = Task { try await banc.modele.enregistrerParametres(reglageHrMax()) }
 
         #expect(await banc.attendreLecture(), "le flux n'a pas été relu après le changement de hrMax")
-        #expect(banc.modele.avancementRecalcul == 0)
+        #expect(banc.modele.travail?.fraction == 0)
 
         banc.liberer()
         var levee: ErreurParametres?
@@ -196,7 +209,7 @@ struct ReglagesRechargementTests {
             levee = error as? ErreurParametres
         }
         #expect(levee?.localizedDescription == ErreurParametres.recalcul.localizedDescription)
-        #expect(banc.modele.avancementRecalcul == nil)
+        #expect(banc.modele.verrouille == false)
     }
 
     @MainActor
@@ -209,7 +222,7 @@ struct ReglagesRechargementTests {
         defer { banc.terminer() }
         try await banc.modele.enregistrerParametres(reglageHrMax())
 
-        #expect(banc.modele.avancementRecalcul == nil)
-        #expect(banc.modele.recalculEnCours == false)
+        #expect(banc.modele.verrouille == false)
+        #expect(banc.modele.verrouille == false)
     }
 }
