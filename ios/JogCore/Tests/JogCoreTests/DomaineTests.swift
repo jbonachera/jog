@@ -63,3 +63,34 @@ import Testing
     #expect(presetAxe(.partSousSeuil).plageMin == .intervalle(0, 35))
     #expect(presetAxe(.fraicheur).pas == 10)
 }
+
+// Écran Séance : FC jusqu'à la FC max, allure sans les arrêts, altitude sur 50 m au moins.
+
+@Test func laFCDistanceMonteJusquALaFCMax() {
+    // 5ᵉ centile de 100…160 : 103, arrondi à 100 ; le plafond 150 ne baisse pas le bas ; haut à la FC max 188 → 190.
+    let fc = (100...160).map(Double.init)
+    #expect(domaineFCDistance(fc, reperes: [150], hrMax: 188) == 100...190)
+}
+
+@Test func laFCDistanceNeCoupePasAuDessusDeLaFCMax() {
+    #expect(domaineFCDistance([140, 195], hrMax: 188).upperBound == 200)
+}
+
+@Test func laFCDesRepetitionsPartSousLaBande() {
+    #expect(domaineFCRepetitions([168, 172], subtHrLo: 165, reperes: [175, 178], hrMax: 190) == 155...190)
+}
+
+@Test func unArretNEcrasePasLAllure() {
+    // 98 points entre 300 et 310 s/km, deux arrêts à 900 : ignorés par les centiles.
+    let allures = Array(repeating: 300.0, count: 49) + Array(repeating: 310.0, count: 49) + [900, 900]
+    #expect(domaineAllureDistance(allures) == 290...320)
+}
+
+@Test func unParcoursPlatResteSurCinquanteMetres() {
+    #expect(domaineAltitude([42, 47]) == 40...90)
+    #expect(domaineAltitude([42, 147]) == 40...150)
+}
+
+@Test func laCourbeDesVDOTGardeQuatrePoints() {
+    #expect(domaineAxe([50], preset: .vdot) == 47...53)
+}

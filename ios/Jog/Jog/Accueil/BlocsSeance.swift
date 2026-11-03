@@ -104,6 +104,8 @@ struct CourbeDistance: View {
     var repere: (valeur: Double, texte: String)?
     var plages: [ClosedRange<Double>] = []
     var hauteur: CGFloat = 100
+    /// Bornes de l'axe Y ; un point hors domaine est tracé au bord (sa vraie valeur reste dans la lecture).
+    let domaineY: ClosedRange<Double>
     let description: String
     @State private var km: Double?
 
@@ -132,11 +134,12 @@ struct CourbeDistance: View {
                 let serie = series[s]
                 ForEach(serie.valeurs.indices, id: \.self) { i in
                     let p = serie.valeurs[i]
+                    let y = min(max(p.v, domaineY.lowerBound), domaineY.upperBound)
                     if aire {
-                        AreaMark(x: .value("km", p.km), y: .value(serie.nom, p.v))
+                        AreaMark(x: .value("km", p.km), yStart: .value("bas", domaineY.lowerBound), yEnd: .value(serie.nom, y))
                             .foregroundStyle(.grille)
                     }
-                    LineMark(x: .value("km", p.km), y: .value(serie.nom, p.v), series: .value("série", serie.nom))
+                    LineMark(x: .value("km", p.km), y: .value(serie.nom, y), series: .value("série", serie.nom))
                         .foregroundStyle(serie.couleur)
                         .lineStyle(StrokeStyle(lineWidth: serie.pointille ? 1.5 : 2, dash: serie.pointille ? [4, 3] : []))
                 }
@@ -161,7 +164,8 @@ struct CourbeDistance: View {
                     }
             }
         }
-        .chartYScale(domain: .automatic(includesZero: false, reversed: allure))
+        .chartYScale(domain: allure ? [domaineY.upperBound, domaineY.lowerBound] : [domaineY.lowerBound, domaineY.upperBound])
+        .chartXScale(domain: 0...max(series.flatMap(\.valeurs).map(\.km).max() ?? 0, plages.map(\.upperBound).max() ?? 0, 0.1))
         .chartYAxis {
             AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { v in
                 AxisGridLine().foregroundStyle(.grille)

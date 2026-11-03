@@ -99,6 +99,8 @@ struct EcranCourses: View {
                     .foregroundStyle(Zone.sousSeuil.couleur)
             }
         }
+        .chartYScale(domain: domaineAxe(courbe.points.map(\.vdot), preset: .vdot, reperes: courbe.reference.map { [$0] } ?? []))
+        .chartXScale(domain: 0...max(courbe.points.count - 1, 1))
         .chartXAxis(.hidden)
         .frame(height: 140)
         .accessibilityElement(children: .ignore)

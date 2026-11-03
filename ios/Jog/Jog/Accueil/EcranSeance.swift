@@ -127,6 +127,7 @@ struct EcranSeance: View {
             Filet(titre: "Plafond facile", contexte: "FC au fil de la distance")
             CourbeDistance(
                 series: [.init(nom: "FC", valeurs: serie(d, \.fc))], repere: (cap, "plafond \(Int(cap))"), hauteur: 110,
+                domaineY: domaineFCDistance(serie(d, \.fc).map(\.v), reperes: [cap], hrMax: c.params.hrMax),
                 description: "FC au fil de la distance, plafond facile à \(Int(cap)) bpm"
             )
             if let part = d.partSousPlafond {
@@ -139,6 +140,7 @@ struct EcranSeance: View {
         if let d = detail {
             Filet(titre: "Allure", contexte: "stable si la ligne est plate")
             CourbeDistance(series: [.init(nom: "Allure", valeurs: serie(d, \.allure_skm))], allure: true, hauteur: 90,
+                           domaineY: domaineAllureDistance(serie(d, \.allure_skm).map(\.v)),
                            description: "Allure au fil de la distance")
             Filet(titre: "Les tours")
             TableauTours(entetes: ["km", "Allure", "FC", "D+"], lignes: d.tours.map { t in
@@ -155,6 +157,7 @@ struct EcranSeance: View {
         let s = c.seance, p = c.params
         let reps = s.repetitions.filter { $0.fcFin.isFinite }
         if !reps.isEmpty {
+            let domaineFC = domaineFCRepetitions(reps.map(\.fcFin), subtHrLo: p.subtHrLo, reperes: [p.subtHrHi, p.lt2Hr], hrMax: p.hrMax)
             Filet(titre: "FC de fin de répétition", contexte: "bande de sous-seuil \(Int(p.subtHrLo))–\(Int(p.subtHrHi))")
             Chart {
                 RectangleMark(yStart: .value("bas", p.subtHrLo), yEnd: .value("haut", p.subtHrHi)).foregroundStyle(.bande)
@@ -165,14 +168,14 @@ struct EcranSeance: View {
                     }
                 ForEach(reps, id: \.n) { r in
                     let dans = (p.subtHrLo...p.subtHrHi).contains(r.fcFin)
-                    RuleMark(x: .value("rép", "R\(Int(r.n))"), yStart: .value("bas", p.subtHrLo - 10), yEnd: .value("FC", r.fcFin))
+                    RuleMark(x: .value("rép", "R\(Int(r.n))"), yStart: .value("bas", domaineFC.lowerBound), yEnd: .value("FC", r.fcFin))
                         .foregroundStyle(.ligne).lineStyle(StrokeStyle(lineWidth: 2))
                     PointMark(x: .value("rép", "R\(Int(r.n))"), y: .value("FC", r.fcFin))
                         .foregroundStyle(dans ? Color.accentFjord : Ton.attention.couleur).symbolSize(120)
                         .annotation(position: .top) { Text("\(Int(r.fcFin))").font(.caption2.monospacedDigit()).foregroundStyle(.encre) }
                 }
             }
-            .chartYScale(domain: .automatic(includesZero: false))
+            .chartYScale(domain: domaineFC)
             .frame(height: 150)
             .accessibilityLabel("FC de fin de chaque répétition")
         }
@@ -185,9 +188,11 @@ struct EcranSeance: View {
             let plages = s.repetitions.compactMap { r in kmPlage(d, s, r) }
             Filet(titre: "Allure et FC", contexte: "répétitions en bande")
             CourbeDistance(series: [.init(nom: "Allure", valeurs: serie(d, \.allure_skm))], allure: true, plages: plages,
+                           domaineY: domaineAllureDistance(serie(d, \.allure_skm).map(\.v), reperes: [p.lt2Pace]),
                            description: "Allure au fil de la distance, répétitions surlignées")
             CourbeDistance(series: [.init(nom: "FC", valeurs: serie(d, \.fc))], repere: (p.lt2Hr, "seuil \(Int(p.lt2Hr))"),
-                           plages: plages, description: "FC au fil de la distance, seuil à \(Int(p.lt2Hr)) bpm")
+                           plages: plages, domaineY: domaineFCDistance(serie(d, \.fc).map(\.v), reperes: [p.lt2Hr], hrMax: p.hrMax),
+                           description: "FC au fil de la distance, seuil à \(Int(p.lt2Hr)) bpm")
                 .padding(.top, 12)
         }
         Filet(titre: "Les chiffres")
@@ -208,9 +213,10 @@ struct EcranSeance: View {
         if let d = detail, !d.tours.isEmpty {
             let moyenne = (s.temps_s ?? s.duree_min * 60) / s.km
             Filet(titre: "Gestion de course", contexte: "allure par km")
+            let domaineAllure = domaineAxe(d.tours.map(\.allure_skm), preset: .allure, reperes: [moyenne])
             Chart {
                 ForEach(d.tours, id: \.km) { t in
-                    BarMark(x: .value("km", km(t.km)), y: .value("allure", t.allure_skm))
+                    BarMark(x: .value("km", km(t.km)), yStart: .value("bas", domaineAllure.lowerBound), yEnd: .value("allure", t.allure_skm))
                         .foregroundStyle(t.allure_skm < moyenne ? Color.accentFjord : Zone.facile.couleur)
                 }
                 RuleMark(y: .value("moyenne", moyenne))
@@ -219,7 +225,7 @@ struct EcranSeance: View {
                         Text("moyenne \(formatAllure(moyenne))").font(.caption2).foregroundStyle(.encre2)
                     }
             }
-            .chartYScale(domain: .automatic(includesZero: false))
+            .chartYScale(domain: domaineAllure)
             .chartYAxis {
                 AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { v in
                     AxisGridLine().foregroundStyle(.grille)
@@ -246,7 +252,9 @@ struct EcranSeance: View {
         }
         if let d = detail {
             Filet(titre: "FC", contexte: "au fil de la course")
-            CourbeDistance(series: [.init(nom: "FC", valeurs: serie(d, \.fc))], description: "FC au fil de la course")
+            CourbeDistance(series: [.init(nom: "FC", valeurs: serie(d, \.fc))],
+                           domaineY: domaineFCDistance(serie(d, \.fc).map(\.v), hrMax: c.params.hrMax),
+                           description: "FC au fil de la course")
         }
     }
 
@@ -270,12 +278,15 @@ struct EcranSeance: View {
             let alt = serie(d, \.alt_m)
             if !alt.isEmpty {
                 CourbeDistance(series: [.init(nom: "Altitude", valeurs: alt, couleur: .encre3)], aire: true, hauteur: 80,
+                               domaineY: domaineAltitude(alt.map(\.v)),
                                description: "Altitude au fil de la distance")
             }
             CourbeDistance(
                 series: [.init(nom: "Allure", valeurs: serie(d, \.allure_skm)),
                          .init(nom: "Ajustée", valeurs: serie(d, \.ajustee_skm), pointille: true, couleur: .encre3)],
-                allure: true, description: "Allure brute et allure ajustée à la pente au fil de la distance"
+                allure: true,
+                domaineY: domaineAllureDistance(serie(d, \.allure_skm).map(\.v) + serie(d, \.ajustee_skm).map(\.v)),
+                description: "Allure brute et allure ajustée à la pente au fil de la distance"
             )
             .padding(.top, 12)
         }
@@ -304,6 +315,7 @@ struct EcranSeance: View {
     /// Courbe d'efficacité (04) : échauffement grisé, filet des moitiés, paliers EF1 et EF2, découplage libellé.
     private func courbeEfficacite(_ e: CourbeEfficacite, decouplage: Double?) -> some View {
         let fin = e.points.last?.km ?? e.kmMoitie
+        let domaine = domaineAxe(e.points.map(\.ef), preset: .efficacite, reperes: [e.ef1, e.ef2])
         return Chart {
             RectangleMark(xStart: .value("km", 0), xEnd: .value("km", e.kmFinEchauffement)).foregroundStyle(.grille)
             RuleMark(x: .value("moitié", e.kmMoitie)).foregroundStyle(.ligne)
@@ -325,7 +337,8 @@ struct EcranSeance: View {
                     }
             }
         }
-        .chartYScale(domain: .automatic(includesZero: false))
+        .chartYScale(domain: domaine)
+        .chartXScale(domain: 0...max(fin, 0.1))
         .frame(height: 140)
         .accessibilityLabel("Efficacité de course au fil de la sortie" + (decouplage.map { ", découplage de \(ModeleApercu.nombre($0, 1)) % entre les deux moitiés" } ?? ""))
     }

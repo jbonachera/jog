@@ -11,7 +11,7 @@ public enum PlageAxe: Equatable, Sendable {
 
 /// Les réglages d'axe de D-009, nommés. Chaque graphique en prend un, sans recoder pas ni plage.
 public enum CleDePreset: CaseIterable, Sendable {
-    case fcFin, allure, efficacite, decouplage, formeFond, fraicheur, ratio, partSousSeuil
+    case fcFin, allure, efficacite, decouplage, formeFond, fraicheur, ratio, partSousSeuil, vdot
 }
 
 public struct PresetAxe: Equatable, Sendable {
@@ -32,6 +32,7 @@ public func presetAxe(_ cle: CleDePreset) -> PresetAxe {
     case .fraicheur: PresetAxe(pas: 10, plageMin: .intervalle(-30, 30), plancher: nil)
     case .ratio: PresetAxe(pas: 0.2, plageMin: .intervalle(0.4, 1.8), plancher: nil)
     case .partSousSeuil: PresetAxe(pas: 5, plageMin: .intervalle(0, 35), plancher: 0)
+    case .vdot: PresetAxe(pas: 1, plageMin: .etendue(4), plancher: nil)
     }
 }
 
