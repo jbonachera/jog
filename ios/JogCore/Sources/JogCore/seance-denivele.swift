@@ -15,6 +15,28 @@ public func denivelePositif(_ g: GrilleSeance) -> Double? {
     return arrondirEntier(somme)
 }
 
+/// Grille dont la distance est ajustée à la pente (GAP, D-029) : chaque pas Δd pèse C(pente)/C(0), coût énergétique de
+/// Minetti (2002), la pente venant de l'altitude lissée sur 30 s et bornée à ±45 % (domaine du modèle). Les allures tirées
+/// de cette distance sont des allures « à plat », comparables quel que soit le terrain. Grille inchangée sans altitude.
+public func grilleAjusteePente(_ g: GrilleSeance) -> GrilleSeance {
+    guard let altitude = g.alt_m, altitude.count == g.n, altitude.contains(where: \.isFinite) else { return g }
+    let lissee = altitudeLissee(altitude, g.t_s)
+    var ajustee = g
+    var cumul = g.n > 0 ? g.distance_m[0] : 0
+    for i in 1..<max(g.n, 1) {
+        let dd = g.distance_m[i] - g.distance_m[i - 1]
+        let dz = lissee[i] - lissee[i - 1]
+        if dd > 0 && dz.isFinite {
+            let x = min(max(dz / dd, -0.45), 0.45)
+            cumul += dd * ((((155.4 * x - 30.4) * x - 43.3) * x + 46.3) * x + 19.5) * x / 3.6 + dd
+        } else {
+            cumul += dd
+        }
+        ajustee.distance_m[i] = cumul
+    }
+    return ajustee
+}
+
 /// Altitude lissée à chaque point mesuré, sur la fenêtre de `lissageDenivele_s` (30 s) : [t − 15 s ; t + 15 s[.
 /// - Fenêtre pleine (entièrement dans le tracé) : moyenne des mesures. Sur 30 échantillons à 1 Hz, une alternance
 ///   parasite à 1 Hz s'annule presque exactement ; une moyenne n'a pas de biais sur une pente régulière, sauf un décalage

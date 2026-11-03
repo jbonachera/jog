@@ -235,4 +235,4 @@ public enum ACCUEIL {
                                  endurance_pt: 1.0, regularite_pt: 10.0, resilience_ms: 3.0)
 }
 /// VERSION_DENIVELE : clé de mémorisation de ②a pour le D+ (D-025). À monter à chaque changement du D+ calculé.
-public let VERSION_DENIVELE = 1
+public let VERSION_DENIVELE = 2  // 2 : allures ajustées à la pente (GAP, D-029)

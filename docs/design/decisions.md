@@ -439,3 +439,12 @@ Décisions prises sur les questions ouvertes de la spécification. Chaque entré
 - **Options écartées** : rayon entre le plus bas et le meilleur bloc de l'historique (P1) ; radar des 8 signaux.
 - **Fichiers modifiés** : `03-composants.md`, `04-metriques.md`.
 - **À valider sur données réelles** : l'amplitude de référence de chaque axe (plus grand écart à un an observé), la stabilité de la Résilience.
+
+## D-029 · Allure ajustée à la pente (GAP)
+
+- **Date** : 2026-11-03
+- **Question** : Comment comparer les allures de séances courues sur des terrains différents ?
+- **Décision** : l'allure moyenne, l'EF et l'allure des répétitions sont calculées sur une **distance ajustée à la pente** : chaque pas Δd pèse C(pente)/C(0), coût énergétique de Minetti (2002), pente tirée de l'altitude lissée sur 30 s (D-025) et bornée à ±45 %. La distance affichée reste la distance parcourue. Sans altitude, rien ne change.
+- **Options écartées** : allure brute de la montre (dépend du terrain) ; modèle Strava empirique (non publié).
+- **Fichiers modifiés** : `seance-denivele.swift`, `seance-intrinseque.swift`, `seance-repetitions.swift`, `constantes.swift` (`VERSION_DENIVELE` = 2, les Vues en cache sont recalculées).
+- **À valider sur données réelles** : le coût des descentes raides, que Minetti surestime pour la course sur route.

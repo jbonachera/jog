@@ -161,3 +161,26 @@ private func sansCleDPlus(_ donnees: Data) throws -> Data {
     #expect(relueSeance.dPlus_m == nil)
     #expect(relueVue.dPlus_m == nil)
 }
+
+// MARK: - Allure ajustée à la pente (GAP, D-029)
+
+/// Grille de 600 m parcourus à 1 m/s, sur l'altitude donnée.
+private func grilleGap(_ altitudes: [Double]?) -> GrilleSeance {
+    var g = grille(altitudes ?? [Double](repeating: 0, count: 601))
+    g.distance_m = (0..<g.n).map(Double.init)
+    if altitudes == nil { g.alt_m = nil }
+    return g
+}
+
+@Test func d029SansAltitudeOuAPlatLaDistanceEstInchangee() {
+    #expect(grilleAjusteePente(grilleGap(nil)).distance_m.last == 600)
+    #expect(grilleAjusteePente(grilleGap([Double](repeating: 50, count: 601))).distance_m.last == 600)
+}
+
+@Test func d029UneMonteeAllongeLaDistanceEtUneDescenteDouceLaRaccourcit() throws {
+    // Pente de 10 % : C = 5,97 J/kg/m contre 3,6 à plat (Minetti), soit 1,66 fois la distance.
+    let montee10 = try #require(grilleAjusteePente(grilleGap(montee(60, duree: 600))).distance_m.last)
+    #expect(abs(montee10 / 600 - 1.66) < 0.03)
+    let descente10 = try #require(grilleAjusteePente(grilleGap(montee(-60, duree: 600))).distance_m.last)
+    #expect(descente10 < 600)
+}

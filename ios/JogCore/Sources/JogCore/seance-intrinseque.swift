@@ -174,9 +174,12 @@ private func resumer(_ g: GrilleSeance) -> Resume {
     let km = (g.n > 0 ? g.distance_m[g.n - 1] : 0) / 1000
     let fcMoy: Double? = poidsFc > 0 ? sommeFc / poidsFc : nil
     let dureeMin = duree / 60
-    let allure: Double? = km > 0 ? duree / km : nil
+    // Allure et EF à plat (GAP, D-029) : distance ajustée à la pente ; km reste la distance parcourue.
+    let ga = grilleAjusteePente(g)
+    let kmPlat = (g.n > 0 ? ga.distance_m[g.n - 1] : 0) / 1000
+    let allure: Double? = kmPlat > 0 ? duree / kmPlat : nil
     // Sans distance mesurée, la vitesse moyenne et l'EF n'existent pas.
-    let vitesseMoyenne: Double? = km > 0 && dureeMin > 0 ? (km * 1000) / dureeMin : nil
+    let vitesseMoyenne: Double? = kmPlat > 0 && dureeMin > 0 ? (kmPlat * 1000) / dureeMin : nil
     var ef: Double?
     if let fcMoy, let vitesseMoyenne { ef = vitesseMoyenne / fcMoy }
     return Resume(duree_s: duree, km: km, fcMoy: fcMoy, allureMoy_skm: allure, ef: ef)

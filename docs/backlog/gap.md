@@ -1,1 +1,0 @@
-On collecte actuellement l'allure directement mesurée par la montre, sans prendre en compte le dénivelé. On doit travailler avec la Vitesse Ajustée à la Pente (ou Grade Ajusted Pace) pour ne pas dépendre du terrain pour comparer des séances.

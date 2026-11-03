@@ -180,11 +180,12 @@ func mettreEnForme(_ g: GrilleSeance, _ series: [[Plage]]) throws -> Repetitions
     var repetitions: [Repetition] = []
     var plages: [Plage] = []
     var recuperations: [Double] = []
+    let ga = grilleAjusteePente(g)  // allure à plat (GAP, D-029)
     for serie in series {
         for (k, r) in serie.enumerated() {
             if k + 1 < serie.count { recuperations.append(ecartEntre(g, r, serie[k + 1])) }
             let duree = dureeDuPlage(g, r)
-            let distance = distanceDuPlage(g, r)
+            let distance = distanceDuPlage(ga, r)
             plages.append(r)
             repetitions.append(Repetition(
                 n: Double(repetitions.count + 1),
