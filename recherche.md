@@ -1,6 +1,6 @@
 # Recherche : suivi d'entraînement course à pied & méthode NSA
 
-Synthèse de la phase de recherche (octobre 2026) qui a servi de base aux maquettes de `maquettes/`.
+Synthèse de la phase de recherche (octobre 2026) qui a servi de base aux maquettes explorées (supprimées ensuite, voir l'historique git de `maquettes/`).
 
 ## 1. La Norwegian Singles Approach (NSA / NSM)
 
@@ -80,15 +80,17 @@ Synthèse de la phase de recherche (octobre 2026) qui a servi de base aux maquet
 
 ## 5. Les trois maquettes
 
+Explorations supprimées du dépôt (historique git, dossier `maquettes/`). Seule la variante Fjord a été retenue, aujourd'hui dans `docs/design/maquette/`.
+
 | Fichier | Direction | Pour qui / quand |
 |---|---|---|
-| `maquettes/a-fjord.html` | **Fjord** : minimalisme nordique, grille suisse, clair et sombre. Bandeau des saisons empilé par zone, PMC, discipline NSA, petits multiples de progression. | Usage quotidien, lecture rapide, équilibré. |
-| `maquettes/b-piste.html` | **Piste** : stade d'athlétisme, tableau d'affichage LED, plan représenté comme un tour de piste, semaine en couloirs, séance en feuille de résultats. | Motivation, mobile, vue « où j'en suis ». |
-| `maquettes/c-carnet.html` | **Carnet de labo** : papier millimétré, tableaux denses (journal hebdo, registre des plans), courbe lactate/allure, nuage FC × allure, annotations manuscrites générées. | Analyse fine, athlète « data » ou coach. |
+| `a-fjord.html` | **Fjord** : minimalisme nordique, grille suisse, clair et sombre. Bandeau des saisons empilé par zone, PMC, discipline NSA, petits multiples de progression. | Usage quotidien, lecture rapide, équilibré. |
+| `b-piste.html` | **Piste** : stade d'athlétisme, tableau d'affichage LED, plan représenté comme un tour de piste, semaine en couloirs, séance en feuille de résultats. | Motivation, mobile, vue « où j'en suis ». |
+| `c-carnet.html` | **Carnet de labo** : papier millimétré, tableaux denses (journal hebdo, registre des plans), courbe lactate/allure, nuage FC × allure, annotations manuscrites générées. | Analyse fine, athlète « data » ou coach. |
 
 **Itération 2 (retenue : Fjord).** Le suivi n'est plus borné à une course : pas de compte à rebours, d'objectif ni de prédiction. Les blocs portent des noms neutres et les courses passées n'apparaissent que comme des résultats. Le niveau est donné en équivalences de Riegel. Fjord reprend aussi deux éléments du Carnet de labo : le nuage allure × FC par répétition (comparé à il y a un an ou au bloc précédent) et le journal hebdomadaire.
 
-Les trois partagent `maquettes/data.js`, un jeu d'exemple déterministe de 14 mois : base, prépa semi, 5 km, prépa 10 km, coupure, base été et prépa marathon en cours (S10/16).
+Les trois partagent `data.js`, un jeu d'exemple déterministe de 14 mois : base, prépa semi, 5 km, prépa 10 km, coupure, base été et prépa marathon en cours (S10/16).
 
 ## Sources
 

@@ -6,7 +6,7 @@
 
 ## Contexte
 
-L'interface comporte 5 onglets, dont un seul est visible à la fois (`02`). Elle compte une vingtaine de composants (`03`) et des graphiques SVG responsives avec infobulles, bornes calculées (D-009) et vue tableau (D-011), selon le système visuel de `08`. Le recalcul se fait sans rechargement (D-010), et le simulateur se met à jour en direct (`05`). Les préférences d'affichage restent locales (`02`, Persistance). La maquette (`docs/design/maquette/index.html`) implémente déjà tous les rendus en JavaScript natif et en SVG sur mesure. La performance est prioritaire.
+L'interface comporte 5 onglets, dont un seul est visible à la fois (`02`). Elle compte une vingtaine de composants (`03`) et des graphiques SVG responsives avec infobulles, bornes calculées (D-009) et vue tableau (D-011), selon le système visuel de `08`. Le recalcul se fait sans rechargement (D-010), et le simulateur se met à jour en direct (`05`). Les préférences d'affichage restent locales (`02`, Persistance). La maquette (`docs/design/maquette/ensemble.html`) implémente déjà tous les rendus en JavaScript natif et en SVG sur mesure. La performance est prioritaire.
 
 ## Options considérées
 
@@ -57,5 +57,5 @@ Worker → UI : { type: "vue", vue: Vue } , { type: "progression", fait, total, 
 
 ## Sources
 
-- Maquette `docs/design/maquette/index.html` (fonctions de rendu `lineChart`, `drawSeason`, `drawPhr`, `drawLog`…).
+- Maquette `docs/design/maquette/ensemble.html` (fonctions de rendu `lineChart`, `drawSeason`, `drawPhr`, `drawLog`…).
 - Aucune source externe.

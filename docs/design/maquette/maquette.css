@@ -1,0 +1,5 @@
+/* Navigation commune des maquettes : pastille fixe de retour à l'index (masquée sur téléphone, où la maquette occupe tout l'écran). */
+.maquette-nav{position:fixed;top:8px;left:8px;z-index:9999;font:500 12px/1 system-ui,-apple-system,sans-serif;padding:6px 10px;border-radius:999px;background:rgba(250,252,253,.85);color:#2a6390;border:1px solid #dde5eb;text-decoration:none;backdrop-filter:blur(8px)}
+.maquette-nav:hover{background:#fff}
+@media (max-width:600px){.maquette-nav{display:none}}
+@media (prefers-color-scheme:dark){.maquette-nav{background:rgba(11,20,28,.85);color:#93b3c9;border-color:#25343f}}

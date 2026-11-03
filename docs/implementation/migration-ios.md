@@ -2,7 +2,7 @@
 
 Statut : **terminé**, 2026-10-28 (lot 6 : bascule faite, ADR 0014). Plan proposé le 2026-10-22. Migration en une fois (big bang) : le tableau de bord web est retiré à la livraison. Aucune reprise de l'historique : l'app part de zéro et lit HealthKit. **Tout est réécrit en Swift**, moteur compris ; aucune ligne de TypeScript ne reste à la fin.
 
-Design cible : [`../design/maquette/mobile.html`](../design/maquette/mobile.html), avec ses écarts proposés (Paramètres dans la barre du haut, lecture au doigt, signaux et semaines dans des feuilles).
+Design cible : [`../design/maquette/ensemble.html`](../design/maquette/ensemble.html), avec ses écarts proposés (Paramètres dans la barre du haut, lecture au doigt, signaux et semaines dans des feuilles).
 
 ## Comment réécrire vite sans régresser : l'oracle TypeScript
 
