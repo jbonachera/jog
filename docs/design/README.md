@@ -16,6 +16,7 @@ file:///<chemin du dépôt>/docs/design/maquette/mobile.html
 - `maquette/index.html` : la maquette historique du tableau de bord web (HTML, CSS et JS dans un seul fichier).
 - `maquette/mobile.html` : la maquette iPhone (iOS 26, Liquid Glass, thème Fjord). Mêmes données et mêmes calculs que la maquette bureau. Sur un écran large, elle s'affiche dans un cadre d'iPhone ; sur un téléphone, en plein écran.
 - `maquette/chargement.html` : la progression des travaux longs (import, recalcul après un réglage ou un marquage, rechargement d'une séance) dans l'accessoire Liquid Glass de la barre d'onglets, et le verrou des Paramètres et du marquage pendant un recalcul (iOS 26 minimum).
+- `maquette/seance.html` : l'écran Séance (S3) retenu, en mise en page éditoriale, décliné pour un footing, une séance sous-seuil, une course et une sortie longue (D-034). Données synthétiques propres au fichier.
 - `maquette/data.js` : le générateur de données d'exemple, déterministe. Il produit un athlète fictif sur 14 mois en méthode NSA.
 
 La maquette n'a besoin d'aucun serveur. Elle charge seulement les polices depuis Google Fonts, et reste lisible hors ligne avec les polices de repli.

@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Résumé éditorial</title>
+<style>
+/* Piste C « Éditorial » déclinée par type de séance (D-025) : footing, sous-seuil, course, sortie longue.
+   Thème Fjord, police système, verre réservé à la barre de navigation et aux onglets. */
+:root {
+  --bg: #f4f7f9; --surface: #ffffff; --ink: #0f1e2b; --ink-2: #4b5d6c; --ink-3: #7c8b97;
+  --line: #dde5eb; --grid: #e9eef2; --accent: #2a6390; --band: rgba(42,99,144,.10);
+  --z-easy: #93b3c9; --z-mp: #5f8db0; --z-subt: #2a6390; --z-hard: #0f3150;
+  --good: #2f7d4f; --warn: #a66a00; --bad: #b3372f;
+  --glass: rgba(255,255,255,.55); --glass-edge: rgba(255,255,255,.9); --glass-shadow: 0 8px 32px rgba(15,30,43,.12);
+  --f: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --fr: -apple-system, "SF Pro Rounded", ui-rounded, sans-serif;
+  --fm: ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b141c; --surface: #0f1a24; --ink: #e6eef4; --ink-2: #a4b4c1; --ink-3: #6f8293;
+  --line: #1f2f3d; --grid: #172532; --accent: #8bb8d9; --band: rgba(139,184,217,.12);
+  --z-easy: #3b5f7a; --z-mp: #5c8bb0; --z-subt: #8bb8d9; --z-hard: #cfe5f4;
+  --good: #5cbf85; --warn: #e0a440; --bad: #ec7a70;
+  --glass: rgba(20,34,46,.50); --glass-edge: rgba(255,255,255,.14); --glass-shadow: 0 8px 32px rgba(0,0,0,.45);
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0b141c; --surface: #0f1a24; --ink: #e6eef4; --ink-2: #a4b4c1; --ink-3: #6f8293;
+  --line: #1f2f3d; --grid: #172532; --accent: #8bb8d9; --band: rgba(139,184,217,.12);
+  --z-easy: #3b5f7a; --z-mp: #5c8bb0; --z-subt: #8bb8d9; --z-hard: #cfe5f4;
+  --good: #5cbf85; --warn: #e0a440; --bad: #ec7a70;
+  --glass: rgba(20,34,46,.50); --glass-edge: rgba(255,255,255,.14); --glass-shadow: 0 8px 32px rgba(0,0,0,.45);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--f); -webkit-font-smoothing: antialiased; }
+.num { font-family: var(--fm); font-variant-numeric: tabular-nums; }
+.page { max-width: 1760px; margin: 0 auto; padding: 32px clamp(16px,4vw,48px) 64px; display: grid; gap: 28px; }
+.page > header { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; }
+.page h1 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+.page header p { color: var(--ink-2); max-width: 75ch; }
+.seg { display: inline-flex; padding: 3px; border-radius: 99px; background: var(--grid); gap: 2px; }
+.seg button { border: 0; background: none; font: 600 13px var(--f); color: var(--ink-2); padding: 6px 14px; border-radius: 99px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.phones { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 40px; justify-items: center; }
+.col { display: grid; gap: 12px; justify-items: center; align-content: start; width: 100%; max-width: 390px; }
+.col h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); font-weight: 600; justify-self: start; }
+.col .pitch { font-size: 13.5px; color: var(--ink-2); justify-self: start; min-height: 3em; }
+.col .pitch b { color: var(--ink); }
+
+.phone { width: 100%; max-width: 390px; height: 844px; border-radius: 54px; position: relative; overflow: hidden;
+  background: var(--bg); box-shadow: 0 0 0 10px #1b1f23, 0 0 0 11px #3a4047, 0 30px 80px rgba(0,0,0,.3); }
+.screen { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; padding: 110px 0 120px; }
+.screen::-webkit-scrollbar { display: none; }
+.status { position: absolute; top: 0; left: 0; right: 0; height: 54px; z-index: 30; display: flex; justify-content: space-between;
+  align-items: center; padding: 6px 34px 0; font: 600 16px var(--f); pointer-events: none; }
+.island { position: absolute; top: 11px; left: 50%; translate: -50% 0; width: 124px; height: 36px; border-radius: 20px; background: #000; z-index: 31; }
+.glass { background: var(--glass); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: .5px solid var(--glass-edge); box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-edge); position: relative; }
+.glass::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(160deg, rgba(255,255,255,.35), transparent 38%, transparent 70%, rgba(255,255,255,.12)); mix-blend-mode: soft-light; }
+.navbar { position: absolute; top: 54px; left: 0; right: 0; z-index: 20; display: flex; justify-content: space-between; padding: 6px 16px; }
+.navbtn { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--ink); }
+.navbtn svg { width: 20px; height: 20px; }
+.tabbar { position: absolute; bottom: 26px; left: 16px; width: 220px; height: 62px; border-radius: 99px; z-index: 20;
+  display: grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 0 6px; }
+.tab { display: grid; justify-items: center; gap: 2px; font-size: 10px; font-weight: 600; color: var(--ink-2); padding: 6px 0; border-radius: 99px; }
+.tab svg { width: 22px; height: 22px; }
+.tab.on { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.home { position: absolute; bottom: 8px; left: 50%; translate: -50% 0; width: 134px; height: 5px; border-radius: 3px; background: var(--ink); opacity: .85; z-index: 32; }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill.good { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.pill.neutral { color: var(--ink-2); background: var(--grid); }
+.over { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); font-weight: 600; }
+.lbl { font-size: 12px; color: var(--ink-2); }
+.u { font-size: .55em; font-weight: 600; color: var(--ink-3); margin-left: 2px; font-family: var(--f); letter-spacing: 0; }
+.up { color: var(--good); } .down { color: var(--warn); }
+svg text { font-family: var(--fm); font-size: 10px; fill: var(--ink-3); }
+.chart { position: relative; touch-action: none; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.tip { position: absolute; top: -6px; translate: -50% -100%; background: var(--ink); color: var(--bg); font: 11.5px/1.35 var(--fm);
+  padding: 5px 8px; border-radius: 6px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .12s; z-index: 5; }
+.chart:hover .tip, .chart.touch .tip { opacity: 1; }
+.cross { opacity: 0; } .chart:hover .cross, .chart.touch .cross { opacity: 1; }
+
+/* ——— grammaire éditoriale ——— */
+.kicker { padding: 0 22px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.mega { padding: 10px 22px 0; font: 800 104px/0.86 var(--fr); letter-spacing: -.06em; white-space: nowrap; }
+.mega .u { font-size: 30px; }
+.mega.mid { font-size: 88px; }
+.sub { padding: 12px 22px 0; font-size: 19px; line-height: 1.3; font-weight: 500; color: var(--ink-2); text-wrap: balance; }
+.sub b { color: var(--ink); font-weight: 700; }
+.trace { margin-top: 18px; }
+.trace svg { width: 100%; display: block; }
+.rule { margin: 26px 22px 0; border-top: 1px solid var(--ink); padding-top: 10px; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.rule .lbl { text-align: right; }
+.duo { padding: 0 22px; display: grid; grid-template-columns: 1fr 1fr; }
+.duo > div { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.duo > div:nth-child(odd) { padding-right: 12px; border-right: 1px solid var(--line); }
+.duo > div:nth-child(even) { padding-left: 14px; }
+.duo .v { font: 700 30px/1.05 var(--fr); letter-spacing: -.03em; }
+.duo .wide { grid-column: span 2; border-right: 0 !important; padding-right: 0 !important; }
+.block { padding: 0 22px; margin-top: 14px; display: grid; gap: 10px; }
+.legend { display: flex; gap: 14px; font-size: 11.5px; color: var(--ink-2); flex-wrap: wrap; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin: 0 6px 3px 0; background: var(--c); vertical-align: middle; }
+.legend span.dash::before { background: none; border-top: 2px dashed var(--c); height: 0; }
+.legend span.box::before { height: 8px; width: 10px; }
+.gauge { display: grid; grid-template-columns: 1fr 70px 42px; align-items: center; gap: 4px 10px; font-size: 13.5px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.gauge .bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--grid); position: relative; margin: 4px 0 2px; }
+.gauge .bar i { position: absolute; top: -3px; bottom: -3px; border-radius: 4px; background: var(--band); }
+.gauge .bar b { position: absolute; top: -4px; width: 2px; height: 14px; background: var(--ink-2); border-radius: 1px; }
+.gauge .bar em { position: absolute; top: 50%; width: 12px; height: 12px; translate: -50% -50%; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
+.gauge .bar em.out { background: var(--warn); }
+.gauge .v { text-align: right; } .gauge .d { color: var(--ink-3); font-size: 12px; text-align: right; }
+.stack { display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 2px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: right; font-weight: 600; color: var(--ink-3); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 6px 0; }
+th:first-child, td:first-child { text-align: left; }
+td { text-align: right; padding: 7px 0; border-top: 1px solid var(--grid); }
+td.hi { color: var(--accent); font-weight: 600; }
+td.warn { color: var(--warn); font-weight: 600; }
+tr.rec td { color: var(--ink-3); }
+.source { padding: 0 22px; margin-top: 10px; display: grid; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.source div { display: flex; justify-content: space-between; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (max-width: 420px) { .phone { box-shadow: none; border-radius: 0; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div>
+      <h1>Résumé de séance · piste éditoriale, par type</h1>
+      <p>Même grammaire pour les quatre types : surtitre et verdict, chiffre héros, phrase, tracé coloré par l'allure, puis les blocs propres au type (jauges D-025 et graphes). Le chiffre héros change selon le type : distance pour le footing et la sortie longue, structure pour le sous-seuil, temps pour la course.</p>
+    </div>
+    <div class="seg" role="group" aria-label="Thème">
+      <button data-t="auto" aria-pressed="true">Auto</button><button data-t="light" aria-pressed="false">Clair</button><button data-t="dark" aria-pressed="false">Sombre</button>
+    </div>
+  </header>
+  <div class="phones" id="phones"></div>
+</div>
+
+<script>
+// ——— outils ———
+const mmss = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
+const fr = (x, d = 1) => x.toFixed(d).replace('.', ',').replace('-', '−');
+const sgn = (x, d = 0) => (x > 0 ? '+' : x < 0 ? '−' : '±') + Math.abs(x).toFixed(d).replace('.', ',');
+const smooth = (a, w = 3) => a.map((_, i) => { let s = 0, n = 0; for (let j = i - w; j <= i + w; j++) if (a[j] != null) { s += a[j]; n++; } return s / n; });
+const rnd = (seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647)(7);
+
+// Génère une séance : `paceAt(t)` en s/km (allure ajustée), `hrAt(t, eff)`, relief et boucle paramétrés.
+function seance({ min, km, paceAt, hrAt, relief = 1, loop = [3, 2, 5], seed = 1 }) {
+  const N = Math.round(min * 2), ele = [], gap = [], pace = [], hr = [], dist = [], route = [];
+  for (let i = 0; i < N; i++) { const t = i / (N - 1);
+    ele.push(40 + relief * (22 * Math.sin(t * 6.1 + seed) + 26 * Math.exp(-((t - .72) ** 2) / .006) + 6 * Math.sin(t * 23 + seed))); }
+  for (let i = 0; i < N; i++) { const t = i / (N - 1), sl = (ele[Math.min(N - 1, i + 1)] - ele[Math.max(0, i - 1)]) / 2;
+    const g = paceAt(t) + 3 * Math.sin(t * 40 + seed); gap.push(g); pace.push(g + sl * 2.2);
+    hr.push(hrAt(t, g) + sl * .8 + 1.5 * Math.sin(t * 31)); }
+  pace.forEach((p, i) => dist.push(i ? dist[i - 1] + 30 / pace[i - 1] : 0));
+  const f = km / dist[N - 1]; for (let i = 0; i < N; i++) dist[i] *= f;
+  for (let i = 0; i < N; i++) { const a = i / (N - 1) * Math.PI * 2;
+    route.push([.5 + .32 * Math.cos(a) + .08 * Math.cos(loop[0] * a + seed), .5 + .34 * Math.sin(a) + .07 * Math.sin(loop[1] * a) + .05 * Math.cos(loop[2] * a)]); }
+  const splits = [];
+  for (let k = 0; k < Math.ceil(km); k++) {
+    const idx = []; dist.forEach((d, i) => { if (d >= k && d < k + 1) idx.push(i); });
+    if (!idx.length) continue;
+    const m = a => idx.reduce((s, i) => s + a[i], 0) / idx.length;
+    splits.push({ km: k + 1, pace: m(pace), gap: m(gap), hr: m(hr), up: idx.slice(1).reduce((s, i) => s + Math.max(0, ele[i] - ele[i - 1]), 0) });
+  }
+  const last = km - Math.floor(km); if (last > .05) splits[splits.length - 1].km = fr(last, 1).replace(/^0/, '0');
+  return { N, ele, gap, pace, hr, dist, route, splits, km };
+}
+
+// ——— composants SVG ———
+function lineChart(el, S, key, o = {}) {
+  const H = o.h || 100, W = 346, P = { l: 34, r: 6, t: 8, b: 18 }, inv = key === 'pace' || key === 'gap';
+  const fmt = inv ? mmss : v => Math.round(v), unit = { pace: '/km', gap: '/km', hr: ' bpm', ele: ' m' }[key];
+  const a = smooth(S[key], key === 'ele' ? 1 : 3), N = S.N;
+  const refs = [...(o.band || []), ...(o.lines || []).map(l => l.v)];
+  let lo = Math.min(...a, ...refs), hi = Math.max(...a, ...refs); const pad = (hi - lo) * .08; lo -= pad; hi += pad;
+  const x = i => P.l + (S.dist[i] / S.km) * (W - P.l - P.r);
+  const y = v => { const r = (v - lo) / (hi - lo); return P.t + (inv ? r : 1 - r) * (H - P.t - P.b); };
+  const d = a.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
+  let g = [0, .5, 1].map(r => lo + r * (hi - lo)).map(v => `<line x1="${P.l}" x2="${W - P.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${P.l - 6}" y="${y(v) + 3}" text-anchor="end">${fmt(v)}</text>`).join('');
+  const step = S.km > 12 ? 5 : S.km > 6 ? 2 : 1;
+  for (let k = 0; k < S.km - .5; k += step) g += `<text x="${P.l + k / S.km * (W - P.l - P.r)}" y="${H - 4}">${k}</text>`;
+  g += `<text x="${W - P.r}" y="${H - 4}" text-anchor="end">km</text>`;
+  (o.shade || []).forEach(([a0, a1]) => g += `<rect x="${x(a0)}" width="${x(a1) - x(a0)}" y="${P.t}" height="${H - P.t - P.b}" fill="var(--band)"/>`);
+  if (o.band) g += `<rect x="${P.l}" width="${W - P.l - P.r}" y="${Math.min(y(o.band[0]), y(o.band[1]))}" height="${Math.abs(y(o.band[1]) - y(o.band[0]))}" fill="var(--band)"/>`;
+  (o.lines || []).forEach(l => g += `<line x1="${P.l}" x2="${W - P.r}" y1="${y(l.v)}" y2="${y(l.v)}" stroke="var(${l.c || '--bad'})" stroke-dasharray="4 3" stroke-width="1.2"/><text x="${W - P.r}" y="${y(l.v) - 4}" text-anchor="end" style="fill:var(--ink-2)">${l.t}</text>`);
+  if (key === 'ele') g += `<path d="${d}L${x(N - 1)},${H - P.b}L${x(0)},${H - P.b}Z" fill="color-mix(in srgb, var(--accent) 16%, transparent)"/>`;
+  if (o.second) { const b = smooth(S[o.second], 3); g += `<path d="${b.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('')}" fill="none" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="2 3"/>`; }
+  g += `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  g += `<g class="cross"><line y1="${P.t}" y2="${H - P.b}" stroke="var(--ink-2)"/><circle r="4" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"/></g>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.label || key}">${g}</svg><div class="tip"></div>`;
+  const svg = el.querySelector('svg'), cr = el.querySelector('.cross'), tip = el.querySelector('.tip');
+  const move = ev => { const r = svg.getBoundingClientRect(), km = Math.max(0, Math.min(S.km, ((ev.clientX - r.left) / r.width * W - P.l) / (W - P.l - P.r) * S.km));
+    let i = S.dist.findIndex(v => v >= km); if (i < 0) i = N - 1;
+    cr.querySelector('line').setAttribute('x1', x(i)); cr.querySelector('line').setAttribute('x2', x(i));
+    cr.querySelector('circle').setAttribute('cx', x(i)); cr.querySelector('circle').setAttribute('cy', y(a[i]));
+    tip.style.left = (x(i) / W * 100) + '%';
+    tip.textContent = `km ${fr(S.dist[i])} · ${fmt(a[i])}${unit}` + (key !== 'hr' ? ` · ${Math.round(S.hr[i])} bpm` : ` · ${mmss(S.pace[i])}/km`); };
+  svg.addEventListener('pointermove', move);
+  svg.addEventListener('pointerdown', e => { el.classList.add('touch'); move(e); });
+  ['pointerup', 'pointerleave'].forEach(t => svg.addEventListener(t, () => el.classList.remove('touch')));
+}
+const ramp = ['--z-easy', '--z-mp', '--z-subt', '--z-hard'];
+function trace(S, o = {}) {
+  const W = 390, H = 280, sx = v => (.06 + v * .88) * W, sy = v => (.04 + v * .9) * H, [lo, hi] = o.range;
+  let g = '';
+  for (let i = 1; i < 6; i++) g += `<line x1="22" x2="${W - 22}" y1="${i * H / 6}" y2="${i * H / 6}" stroke="var(--grid)"/>`;
+  for (let i = 1; i < S.N; i++) {
+    const r = Math.max(0, Math.min(.999, (hi - S.pace[i]) / (hi - lo))), c = o.mono ? (o.mono(i) ? '--z-hard' : '--z-easy') : ramp[Math.floor(r * 4)];
+    g += `<line x1="${sx(S.route[i - 1][0])}" y1="${sy(S.route[i - 1][1])}" x2="${sx(S.route[i][0])}" y2="${sy(S.route[i][1])}" stroke="var(${c})" stroke-width="7" stroke-linecap="round"/>`;
+  }
+  (o.marks || []).forEach(([km, t]) => { const i = S.dist.findIndex(d => d >= km), cx = sx(S.route[i][0]), cy = sy(S.route[i][1]);
+    g += `<circle cx="${cx}" cy="${cy}" r="9" fill="var(--bg)" stroke="var(--ink)"/><text x="${cx}" y="${cy + 3.5}" text-anchor="middle" style="fill:var(--ink);font-size:9px;font-weight:600">${t}</text>`; });
+  g += `<circle cx="${sx(S.route[0][0])}" cy="${sy(S.route[0][1])}" r="7" fill="var(--good)" stroke="var(--bg)" stroke-width="2.5"/>`;
+  return `<div class="trace"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tracé GPS">${g}</svg></div>
+    <div class="block" style="margin-top:4px"><div class="legend">${o.mono ? `<span class="box" style="--c:var(--z-hard)">répétitions</span><span class="box" style="--c:var(--z-easy)">récupération</span>`
+      : ramp.map(c => `<span class="box" style="--c:var(${c})"></span>`).join('') + `<span style="margin-left:-8px">${mmss(hi)} → ${mmss(lo)} /km</span>`}</div></div>`;
+}
+const gauge = (n, v, d, band, ref, pt, out) => `<div class="gauge"><span>${n}</span><span class="v num">${v}</span><span class="d num">${d}</span>
+  <div class="bar"><i style="left:${band[0]}%;width:${band[1] - band[0]}%"></i><b style="left:${ref}%"></b><em class="${out ? 'out' : ''}" style="left:${pt}%"></em></div></div>`;
+const duo = items => `<div class="duo">${items.map(([l, v, d, cls]) => `<div><div class="lbl">${l}</div><div class="v num">${v}</div>${d ? `<div class="lbl num ${cls || ''}">${d}</div>` : ''}</div>`).join('')}</div>`;
+const rule = (t, s) => `<div class="rule"><span class="over">${t}</span><span class="lbl">${s || ''}</span></div>`;
+const stack = (parts) => `<div class="stack">${parts.map(([c, p]) => `<div style="flex:${p};background:var(${c})"></div>`).join('')}</div>
+  <div class="legend">${parts.map(([c, p, n]) => `<span class="box" style="--c:var(${c})">${n} <b class="num">${p} %</b></span>`).join('')}</div>`;
+const splitTable = (rows, cols) => `<table><thead><tr>${cols.map(c => `<th>${c[0]}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr class="num ${r.cls || ''}">${cols.map(c => c[1](r)).join('')}</tr>`).join('')}</tbody></table>`;
+const source = fc => `${rule('Source')}<div class="source"><div><span>Lue dans Santé</span><span>il y a 1 jour</span></div><div><span>Calculée avec</span><span>FC max ${fc}</span></div></div>`;
+
+// ================= les quatre séances =================
+const T = [];
+
+// --- Footing ---
+(() => {
+  const S = seance({ min: 47.5, km: 8.2, paceAt: t => 350 - 4 * t, hrAt: t => 124 + 12 * (1 - Math.exp(-t * 8)) + 3 * t, relief: .4, seed: 2, loop: [2, 3, 4] });
+  const fast = Math.min(...S.splits.map(s => s.pace));
+  T.push({ id: 'footing', h: 'Footing', pitch: '<b>La question : était-ce vraiment facile ?</b> Le plafond de FC facile structure tout : verdict, ligne pointillée sur la courbe, part du temps sous le plafond. Jauges FC moyenne et EF.',
+    html: `
+    <div class="kicker"><span class="over">Footing · mar. 4 nov.</span><span class="pill good">Bien facile</span></div>
+    <div class="mega num">8,2<span class="u">km</span></div>
+    <p class="sub">En <b>47 min</b> à <b>5:48/km</b>, <b>136 bpm</b> de moyenne : <b>6 bpm sous ton plafond</b> facile.</p>
+    ${trace(S, { range: [335, 365], marks: [[2, 2], [4, 4], [6, 6]] })}
+    ${rule('Jauges', 'face à tes footings des 8 dernières semaines')}
+    <div class="block" style="gap:0;margin-top:0">
+      ${gauge('FC moyenne', '136 bpm', '−3', [30, 62], 46, 38)}
+      ${gauge('Efficacité (EF)', '1,32', '+0,04', [28, 60], 44, 58)}
+    </div>
+    ${rule('Plafond facile', 'FC au fil de la distance')}
+    <div class="block"><div class="chart" data-c="footing:hr" data-o='{"h":110,"lines":[{"v":142,"t":"plafond 142"}]}'></div>
+      ${stack([['--z-easy', 96, 'Sous le plafond'], ['--z-mp', 4, 'Au-dessus']])}</div>
+    ${rule('Les chiffres')}
+    ${duo([['Allure', '5:48', 'ajustée 5:45'], ['Cadence', '172', 'pas/min'], ['D+', '38<span class="u">m</span>'], ['Charge', '41', 'faible']])}
+    ${rule('Allure', 'stable si la ligne est plate')}
+    <div class="block"><div class="chart" data-c="footing:pace" data-o='{"h":90}'></div></div>
+    ${rule('Les tours')}
+    <div class="block">${splitTable(S.splits, [['km', r => `<td>${r.km}</td>`], ['Allure', r => `<td>${mmss(r.pace)}</td>`], ['FC', r => `<td class="${r.hr > 142 ? 'warn' : ''}">${Math.round(r.hr)}</td>`], ['D+', r => `<td>${Math.round(r.up)}</td>`]])}</div>
+    ${source(186)}`, S });
+})();
+
+// --- Sous-seuil 5×8′ ---
+(() => {
+  // 12′ échauffement, 5 × (8′ + 2′), 10′ retour : 72′
+  const segs = [[0, 12, 'e']]; let m = 12; for (let r = 0; r < 5; r++) { segs.push([m, m + 8, 'r', r]); segs.push([m + 8, m + 10, 'c']); m += 10; } segs.push([m, m + 10, 'e']);
+  const tot = m + 10, at = t => segs.find(s => t * tot >= s[0] && t * tot <= s[1]) || segs[segs.length - 1];
+  const repEnd = [158, 160, 161, 163, 166];
+  const S = seance({ min: tot, km: 14.1, relief: .25, seed: 4, loop: [2, 4, 3],
+    paceAt: t => { const s = at(t); return s[2] === 'r' ? 262 + s[3] * .6 : s[2] === 'c' ? 360 : 340; },
+    hrAt: t => { const s = at(t), u = (t * tot - s[0]) / (s[1] - s[0]); return s[2] === 'r' ? 140 + (repEnd[s[3]] - 140) * (1 - Math.exp(-u * 4)) : s[2] === 'c' ? 150 - 14 * u : 128 + 6 * u; } });
+  const idxOf = min => Math.round(min / tot * (S.N - 1));
+  const reps = segs.filter(s => s[2] === 'r').map(s => ({ a: idxOf(s[0]), b: idxOf(s[1]), r: s[3] }));
+  const inRep = i => reps.some(r => i >= r.a && i <= r.b);
+  const rows = reps.map((r, k) => { const pts = Array.from({ length: r.b - r.a }, (_, j) => r.a + j); const mean = a => pts.reduce((s, i) => s + a[i], 0) / pts.length;
+    return { n: k + 1, pace: mean(S.pace), gap: mean(S.gap), end: repEnd[k], dist: S.dist[r.b] - S.dist[r.a] }; });
+  // sucettes : FC de fin par répétition, bande de sous-seuil 155–163, seuil 165
+  const W = 346, H = 150, y = v => 10 + (172 - v) / (172 - 148) * (H - 30), xs = k => 50 + k * 66;
+  let lol = `<rect x="30" width="${W - 30}" y="${y(163)}" height="${y(155) - y(163)}" fill="var(--band)"/>`;
+  [150, 160, 170].forEach(v => lol += `<line x1="30" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="24" y="${y(v) + 3}" text-anchor="end">${v}</text>`);
+  lol += `<line x1="30" x2="${W}" y1="${y(165)}" y2="${y(165)}" stroke="var(--bad)" stroke-dasharray="4 3" stroke-width="1.2"/><text x="${W}" y="${y(165) - 4}" text-anchor="end" style="fill:var(--ink-2)">seuil 165</text>`;
+  rows.forEach((r, k) => { const out = r.end > 163; lol += `<line x1="${xs(k)}" x2="${xs(k)}" y1="${H - 20}" y2="${y(r.end)}" stroke="var(--line)" stroke-width="2"/>
+    <circle cx="${xs(k)}" cy="${y(r.end)}" r="6" fill="var(${out ? '--warn' : '--accent'})" stroke="var(--bg)" stroke-width="2"><title>Rép. ${r.n} · FC de fin ${r.end} bpm · ${mmss(r.pace)}/km</title></circle>
+    <text x="${xs(k)}" y="${y(r.end) - 10}" text-anchor="middle" style="fill:var(--ink)">${r.end}</text><text x="${xs(k)}" y="${H - 6}" text-anchor="middle">R${r.n}</text>`; });
+  T.push({ id: 'seuil', h: 'Sous-seuil', pitch: '<b>La question : chaque répétition est-elle restée sous le seuil ?</b> Le héros devient la structure (5×8′). Graphe en sucettes de FC de fin par répétition, allure normalisée, tracé bicolore répétitions / récupération.',
+    html: `
+    <div class="kicker"><span class="over">Sous-seuil · jeu. 30 oct.</span><span class="pill warn">Un peu haut</span></div>
+    <div class="mega num">5×8<span class="u">′</span></div>
+    <p class="sub">Répétitions à <b>4:23/km</b>. <b>4 sur 5</b> dans la bande ; la dernière finit à <b>166 bpm</b>, au-dessus du seuil.</p>
+    ${trace(S, { range: [255, 365], mono: inRep, marks: [] })}
+    ${rule('FC de fin de répétition', 'bande de sous-seuil 155–163')}
+    <div class="block"><div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="FC de fin de chaque répétition">${lol}</svg></div>
+      <div class="legend"><span class="box" style="--c:var(--band)">bande sous-seuil</span><span class="dash" style="--c:var(--bad)">seuil</span></div></div>
+    ${rule('Jauges', 'face à tes 6 dernières séances sous-seuil')}
+    <div class="block" style="gap:0;margin-top:0">
+      ${gauge('FC de fin moyenne', '162 bpm', '+3', [30, 58], 44, 66, true)}
+      ${gauge('Allure normalisée', '4:21/km', '−4 s', [32, 60], 46, 56)}
+    </div>
+    ${rule('Les répétitions')}
+    <div class="block">${splitTable(rows, [['Rép.', r => `<td>R${r.n}</td>`], ['Allure', r => `<td>${mmss(r.pace)}</td>`], ['Ajustée', r => `<td>${mmss(r.gap)}</td>`], ['Dist.', r => `<td>${fr(r.dist, 2)}</td>`], ['FC fin', r => `<td class="${r.end > 163 ? 'warn' : ''}">${r.end}</td>`]])}</div>
+    ${rule('Allure', 'répétitions en bande')}
+    <div class="block"><div class="chart" data-c="seuil:pace" data-o='${JSON.stringify({ h: 100, shade: reps.map(r => [r.a, r.b]) })}'></div>
+      <div class="chart" data-c="seuil:hr" data-o='${JSON.stringify({ h: 100, shade: reps.map(r => [r.a, r.b]), lines: [{ v: 165, t: 'seuil 165' }] })}'></div></div>
+    ${rule('Les chiffres')}
+    ${duo([['Total', '14,1<span class="u">km</span>', '1:12:00'], ['Sous-seuil', '40′', '9,1 km'], ['Charge', '96', '+12 face à la norme'], ['Part de la semaine', '22 %', 'du temps en sous-seuil']])}
+    ${source(186)}`, S });
+})();
+
+// --- Course 10 km ---
+(() => {
+  const S = seance({ min: 41.87, km: 10, relief: .3, seed: 6, loop: [3, 2, 6], paceAt: t => 254 - 6 * Math.max(0, t - .8) * 5 + (t < .05 ? 4 : 0), hrAt: t => 150 + 22 * (1 - Math.exp(-t * 10)) + 6 * t ** 3 });
+  const target = 251.2;
+  const W = 346, H = 150, lo = 238, hi = 262, y = v => 10 + (hi - v) / (hi - lo) * (H - 30), bw = (W - 34) / S.splits.length;
+  let bars = [245, 255].map(v => `<line x1="30" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="24" y="${y(v) + 3}" text-anchor="end">${mmss(v)}</text>`).join('');
+  S.splits.forEach((s, k) => bars += `<rect x="${34 + k * bw}" y="${y(s.pace)}" width="${bw - 3}" height="${H - 20 - y(s.pace)}" rx="2.5" fill="var(${s.pace < target ? '--accent' : '--z-easy'})"><title>km ${s.km} · ${mmss(s.pace)}/km</title></rect><text x="${34 + k * bw + bw / 2}" y="${H - 6}" text-anchor="middle">${s.km}</text>`);
+  bars += `<line x1="30" x2="${W}" y1="${y(target)}" y2="${y(target)}" stroke="var(--ink-2)" stroke-dasharray="4 3"/><text x="${W}" y="${y(target) - 4}" text-anchor="end" style="fill:var(--ink-2)">moyenne 4:11</text>`;
+  const half = a => [S.splits.slice(0, 5), S.splits.slice(5)].map(h => h.reduce((s, x) => s + x.pace, 0) / h.length);
+  const [h1, h2] = half();
+  T.push({ id: 'course', h: 'Course', pitch: '<b>La question : où en est mon niveau ?</b> Le héros est le temps. VDOT de la course face au niveau de la veille, gestion de course (moitiés, km plus rapides que la moyenne), FC face aux courses de même distance.',
+    html: `
+    <div class="kicker"><span class="over">Course · 10 km · dim. 26 oct.</span><span class="pill good">Au-dessus du niveau</span></div>
+    <div class="mega num">41:52</div>
+    <p class="sub">Soit <b>4:11/km</b> et un VDOT de <b>49,8</b>, <b>+0,7</b> au-dessus de ton niveau. Seconde moitié <b>${mmss(h1 - h2)}</b> plus rapide.</p>
+    ${trace(S, { range: [240, 262], marks: [[2.5, '2,5'], [5, 5], [7.5, '7,5']] })}
+    ${rule('Niveau', 'VDOT de la course face à ton niveau la veille')}
+    <div class="block" style="gap:0;margin-top:0">
+      ${gauge('VDOT', '49,8', '+0,7', [40, 56], 48, 70)}
+      ${gauge('FC moyenne', '171 bpm', '+2', [34, 62], 48, 54)}
+      ${gauge('Charge', '88', '−8', [30, 60], 45, 38)}
+    </div>
+    ${rule('Gestion de course', 'allure par km')}
+    <div class="block"><div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Allure par kilomètre">${bars}</svg></div>
+      <div class="legend"><span class="box" style="--c:var(--accent)">plus rapide que la moyenne</span><span class="box" style="--c:var(--z-easy)">plus lent</span></div></div>
+    ${duo([['1re moitié', mmss(h1 * 5), mmss(h1) + '/km'], ['2de moitié', mmss(h2 * 5), mmss(h2) + '/km · négatif', 'up']])}
+    ${rule('Équivalences', 'au VDOT 49,8')}
+    ${duo([['5 km', '20:12'], ['Semi', '1:32:40'], ['Marathon', '3:13:10'], ['Record 10 km', '41:52', '−38 s · nouveau', 'up']])}
+    ${rule('FC', 'au fil de la course')}
+    <div class="block"><div class="chart" data-c="course:hr" data-o='{"h":100}'></div></div>
+    ${source(186)}`, S });
+})();
+
+// --- Sortie longue ---
+(() => {
+  const S = seance({ min: 98.2, km: 18.4, relief: 1, seed: .4, loop: [3, 2, 5], paceAt: t => 314 - 4 * t + (t < .03 ? 14 : 0), hrAt: t => 128 + 20 * (1 - Math.exp(-t * 9)) + 6 * t });
+  const mid = Math.floor(S.N / 2), m = (a, i0, i1) => a.slice(i0, i1).reduce((s, v) => s + v, 0) / (i1 - i0);
+  const W0 = 20; // 10 min d'échauffement exclues
+  const hmid = Math.floor((W0 + S.N) / 2);
+  const ef1 = m(S.gap, W0, hmid), ef2 = m(S.gap, hmid, S.N), hr1 = m(S.hr, W0, hmid), hr2 = m(S.hr, hmid, S.N);
+  const raw = S.gap.map((g, i) => (60000 / g) / S.hr[i]), efS = smooth(raw, 5);
+  // découplage affiché 3,8 % : on cale la dérive synthétique de la 2de moitié dessus
+  const baseA = m(efS, W0, hmid); S.ef = efS.map((v, i) => i < W0 ? null : i < hmid ? v : v - (m(efS, hmid, S.N) - baseA * (1 - .038)));
+  const efA = m(S.ef, W0, hmid), efB = m(S.ef, hmid, S.N); S.efMeta = { W0, hmid, efA, efB };
+  T.push({ id: 'sl', h: 'Sortie longue', pitch: '<b>La question : as-tu tenu jusqu\'au bout ?</b> Le découplage et le D+ structurent l\'écran : FC des deux moitiés face à l\'allure ajustée, profil en altitude, allure brute et ajustée par km.',
+    html: `
+    <div class="kicker"><span class="over">Sortie longue · dim. 2 nov.</span><span class="pill good">A tenu</span></div>
+    <div class="mega num">18,4<span class="u">km</span></div>
+    <p class="sub">En <b>1 h 38</b> à <b>5:20/km</b>. Ta FC n'a dérivé que de <b>3,8 %</b> sur la seconde moitié, malgré <b>212 m</b> de montée.</p>
+    ${trace(S, { range: [300, 345], marks: [[5, 5], [10, 10], [15, 15]] })}
+    ${rule('Jauges', 'face à tes sorties longues des 8 dernières semaines')}
+    <div class="block" style="gap:0;margin-top:0">
+      ${gauge('Découplage', '3,8 %', '−1,1', [0, 50], 49, 38)}
+      ${gauge('D+', '212 m', '+48', [20, 60], 40, 58)}
+    </div>
+    ${rule('Découplage', 'efficacité lissée sur 5 min, allure ajustée')}
+    <div class="block"><div class="chart" data-ef="sl"></div>
+      <div class="legend"><span style="--c:var(--accent)">EF (m/min par bpm)</span><span class="dash" style="--c:var(--ink-2)">moyenne par moitié</span><span class="box" style="--c:var(--grid)">échauffement exclu</span></div></div>
+    ${duo([['1re moitié', fr(efA, 2), Math.round(hr1) + ' bpm · ' + mmss(ef1) + '/km'], ['2de moitié', fr(efB, 2), Math.round(hr2) + ' bpm · ' + mmss(ef2) + '/km']])}
+    ${rule('Profil', 'altitude, puis allure brute et ajustée')}
+    <div class="block"><div class="chart" data-c="sl:ele" data-o='{"h":80}'></div>
+      <div class="chart" data-c="sl:pace" data-o='{"h":100,"second":"gap"}'></div>
+      <div class="legend"><span style="--c:var(--accent)">allure brute</span><span class="dash" style="--c:var(--ink-3)">allure ajustée à la pente</span></div></div>
+    ${rule('Intensité')}
+    <div class="block">${stack([['--z-easy', 64, 'Facile'], ['--z-mp', 27, 'Marathon'], ['--z-subt', 7, 'Sous-seuil'], ['--z-hard', 2, 'Au-dessus']])}</div>
+    ${rule('Les tours', 'allure ajustée la plus rapide en bleu')}
+    <div class="block">${(() => { const best = Math.min(...S.splits.map(s => s.gap)); return splitTable(S.splits, [['km', r => `<td>${r.km}</td>`], ['Allure', r => `<td>${mmss(r.pace)}</td>`], ['Ajustée', r => `<td class="${r.gap === best ? 'hi' : ''}">${mmss(r.gap)}</td>`], ['FC', r => `<td>${Math.round(r.hr)}</td>`], ['D+', r => `<td>${Math.round(r.up)}</td>`]]); })()}</div>
+    ${rule('Les chiffres')}
+    ${duo([['Efficacité (EF)', fr((efA + efB) / 2, 2), 'moyenne hors échauffement'], ['Charge', '142', '+9']])}
+    ${source(186)}`, S });
+})();
+
+// Courbe d'efficacité (SL) : EF lissée, échauffement grisé, palier moyen de chaque moitié, écart libellé.
+function efChart(el, S) {
+  const { W0, hmid, efA, efB } = S.efMeta, W = 346, H = 140, P = { l: 34, r: 6, t: 14, b: 18 }, N = S.N;
+  const vals = S.ef.filter(v => v != null); let lo = Math.min(...vals), hi = Math.max(...vals); const pd = (hi - lo) * .12; lo -= pd; hi += pd;
+  const x = i => P.l + (S.dist[i] / S.km) * (W - P.l - P.r), y = v => P.t + (1 - (v - lo) / (hi - lo)) * (H - P.t - P.b);
+  let g = [lo + pd, (lo + hi) / 2, hi - pd].map(v => `<line x1="${P.l}" x2="${W - P.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${P.l - 6}" y="${y(v) + 3}" text-anchor="end">${fr(v, 2)}</text>`).join('');
+  g += `<rect x="${P.l}" width="${x(W0) - P.l}" y="${P.t}" height="${H - P.t - P.b}" fill="var(--grid)" opacity=".7"/>`;
+  [0, 5, 10, 15].forEach(k => g += `<text x="${P.l + k / S.km * (W - P.l - P.r)}" y="${H - 4}">${k}</text>`); g += `<text x="${W - P.r}" y="${H - 4}" text-anchor="end">km</text>`;
+  g += `<line x1="${x(hmid)}" x2="${x(hmid)}" y1="${P.t}" y2="${H - P.b}" stroke="var(--line)"/>`;
+  g += `<path d="${S.ef.map((v, i) => v == null ? '' : `${i === W0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('')}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>`;
+  [[W0, hmid, efA], [hmid, N - 1, efB]].forEach(([a, b, v]) => g += `<line x1="${x(a)}" x2="${x(b)}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="5 3"/>`);
+  const xm = x(Math.round((hmid + N) / 2)); g += `<path d="M${xm},${y(efA)}V${y(efB)}" stroke="var(--ink)" stroke-width="1"/><text x="${xm + 5}" y="${(y(efA) + y(efB)) / 2 + 3}" style="fill:var(--ink);font-weight:600">−3,8 %</text>`;
+  g += `<g class="cross"><line y1="${P.t}" y2="${H - P.b}" stroke="var(--ink-2)"/><circle r="4" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"/></g>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Efficacité de course au fil de la sortie, découplage de 3,8 % entre les deux moitiés">${g}</svg><div class="tip"></div>`;
+  const svg = el.querySelector('svg'), cr = el.querySelector('.cross'), tip = el.querySelector('.tip');
+  const move = ev => { const r = svg.getBoundingClientRect(), km = ((ev.clientX - r.left) / r.width * W - P.l) / (W - P.l - P.r) * S.km;
+    let i = S.dist.findIndex(v => v >= km); if (i < 0) i = N - 1; i = Math.max(W0, i);
+    cr.querySelector('line').setAttribute('x1', x(i)); cr.querySelector('line').setAttribute('x2', x(i));
+    cr.querySelector('circle').setAttribute('cx', x(i)); cr.querySelector('circle').setAttribute('cy', y(S.ef[i]));
+    tip.style.left = (x(i) / W * 100) + '%'; tip.textContent = `km ${fr(S.dist[i])} · EF ${fr(S.ef[i], 2)} · ${Math.round(S.hr[i])} bpm`; };
+  svg.addEventListener('pointermove', move);
+  svg.addEventListener('pointerdown', e => { el.classList.add('touch'); move(e); });
+  ['pointerup', 'pointerleave'].forEach(t => svg.addEventListener(t, () => el.classList.remove('touch')));
+}
+
+// ——— montage ———
+const back = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>';
+const more = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';
+const tabs = `<span class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 17a8 8 0 1116 0"/><path d="M12 17l-3-5"/></svg>Aujourd’hui</span><span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l5-6 4 3 7-9"/></svg>Progrès</span>`;
+document.getElementById('phones').innerHTML = T.map(t => `<section class="col"><h2>${t.h}</h2><p class="pitch">${t.pitch}</p>
+  <div class="phone"><div class="island"></div><div class="status"><span>9:41</span><span>●●● ▮</span></div>
+  <div class="navbar"><span class="navbtn glass">${back}</span><span class="navbtn glass">${more}</span></div>
+  <div class="screen">${t.html}</div><nav class="tabbar glass">${tabs}</nav><div class="home"></div></div></section>`).join('');
+const byId = Object.fromEntries(T.map(t => [t.id, t.S]));
+document.querySelectorAll('[data-ef]').forEach(el => efChart(el, byId[el.dataset.ef]));
+document.querySelectorAll('[data-c]').forEach(el => { const [id, k] = el.dataset.c.split(':'); lineChart(el, byId[id], k, JSON.parse(el.dataset.o || '{}')); });
+document.querySelector('.seg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  if (b.dataset.t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = b.dataset.t; });
+</script>
+</body>
+</html>

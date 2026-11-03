@@ -211,6 +211,34 @@ sinon : portions retenues mises bout à bout, coupées en deux moitiés de même
 
 Sans segment à allure marathon, la durée retenue est la séance entière. Repères : < 5 % base solide ; 5–8 % à surveiller ; > 8 % alerte.
 
+### Courbe d'efficacité (sortie longue)
+
+Règle de [D-034](decisions.md#d-034--résumé-de-séance-éditorial-par-type). Forme visuelle du découplage, sur l'écran Séance d'une sortie longue uniquement.
+
+```
+EF(t)     = vitesse ajustée à la pente (m/min, D-029) ÷ FC (bpm), échantillon par échantillon
+courbe    = moyenne glissante centrée de 5 min de EF(t), sur les portions retenues du découplage
+paliers   = EF1 sur la 1re moitié, EF2 sur la 2e moitié (mêmes moitiés que le découplage)
+cote      = découplage, libellé « −3,8 % » entre les deux paliers
+```
+
+- Les 10 premières minutes sont grisées et sans courbe : la FC n'y est pas stabilisée. Elles restent dans le calcul du découplage, qui ne change pas.
+- Un filet vertical marque la limite des moitiés. Les portions exclues (segments mp et 5 min qui suivent) sont grisées.
+- Séance non utilisable pour le découplage : pas de courbe, le bloc affiche « Découplage non mesurable ».
+- Pas de courbe d'EF pour les autres types : bruitée et redondante en footing, illisible en sous-seuil (retard de la FC), trompeuse en course (dérive de FC attendue).
+
+### Temps sous le plafond (footing)
+
+```
+part sous le plafond = durée des échantillons avec FC ≤ [easyCap] ÷ durée de la séance
+```
+
+Affichée en barre à deux segments (`ZFacile` sous le plafond, `ZMarathon` au-dessus) sur l'écran Séance d'un footing.
+
+### Cadence
+
+Moyenne des pas par minute de la séance, lue dans Santé. Sans donnée de cadence, la case disparaît.
+
 ## Récupération
 
 Règle de [D-023](decisions.md#d-023--récupération-nocturne). `A` = aujourd'hui (J−1, D-022). Une nuit est datée du jour de son réveil.
@@ -255,6 +283,15 @@ La source est le **dernier test 5 km** (contre-la-montre ou course de 5 km). On 
 ### Records
 
 C'est le meilleur temps réalisé par distance (5 km, 10 km, semi, marathon), depuis les courses et les tests.
+
+### Moitiés de course
+
+```
+moitié 1 = temps des premiers 50 % de la distance, moitié 2 = temps du reste
+écart    = moitié 1 − moitié 2   (positif = seconde moitié plus rapide, « négatif » au sens coureur)
+```
+
+Sur l'écran Séance d'une course ou d'un test. Les équivalences de ce même écran se calculent depuis la course affichée (Riegel), libellées « Équivalences de cette course » ; celles de l'accueil restent fondées sur le dernier test 5 km.
 
 ### VDOT et niveau
 

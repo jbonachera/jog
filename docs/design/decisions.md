@@ -480,3 +480,14 @@ Décisions prises sur les questions ouvertes de la spécification. Chaque entré
 - **Décision** : le bouton « Marquage » de l'écran Séance (S3) devient un **menu ⋯** : marquage actuel, Course, Test, puis « Recharger depuis Santé ». Le rechargement relit la séance dans Santé et recalcule distance, GAP, zones, charge, puis les indicateurs cumulés ; il passe par l'accessoire (D-030). Une section **Source** en bas de S3 dit quand la séance a été lue et avec quelle FC max elle a été calculée.
 - **Options écartées** : bouton de rechargement seul dans la barre (deux boutons pour des actions rares) ; feuille d'étapes dédiée (redondante avec l'accessoire).
 - **Fichiers modifiés** : [03-composants.md](03-composants.md), [07-donnees.md](07-donnees.md).
+
+## D-034 · Résumé de séance éditorial, par type
+
+- **Date** : 2026-11-03
+- **Question** : Comment présenter le résumé complet d'une séance (graphiques, carte si GPS, métriques du type) sur l'écran Séance (S3) ?
+- **Décision** : une mise en page **éditoriale** à lire de haut en bas : surtitre et verdict, chiffre héros, phrase, tracé coloré par l'allure, puis des blocs ouverts par un filet. Le héros et les blocs dépendent du type : distance et plafond facile pour le footing ; structure (« 5×8′ ») et FC de fin par répétition pour le sous-seuil ; temps, VDOT et gestion de course pour la course ; distance, découplage et profil pour la sortie longue. Pour la sortie longue, le découplage est montré par une **courbe d'efficacité** lissée sur 5 min, avec les paliers EF1 et EF2. Pas de synthèse rédigée, pas de commande flottante entre résumé, carte et tours.
+- **Options écartées** : carte plein écran sous une feuille de verre (la carte prend la place des métriques du type) ; mosaïque de tuiles avec anneaux (chaque chiffre isolé, pas de lecture par type) ; courbe d'EF pour les autres types (bruit, retard de la FC, dérive attendue en course).
+- **Ajouts** : temps sous le plafond (footing), cadence, moitiés de course, équivalences calculées depuis la course affichée.
+- **Maquettes** : [`maquette/seance.html`](maquette/seance.html) (retenue, les 4 types) ; pistes explorées dans `maquettes/resume-seance.html`.
+- **Fichiers modifiés** : [03-composants.md](03-composants.md), [04-metriques.md](04-metriques.md), [README.md](README.md).
+

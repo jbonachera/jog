@@ -85,7 +85,28 @@ Ouvert depuis N1. Titre « Courses », à droite « {n} courses et tests ».
 
 ### S3 · Séance
 
-Ancienne P4, élargie à tous les types. Carte S2 en tête, puis le détail : pour une séance sous-seuil, le graphique en sucettes de P4 ; pour les autres, les courbes d'allure et de FC, et les segments (allure marathon, lignes droites).
+Ancienne P4, élargie à tous les types. Mise en page **éditoriale** ([D-034](decisions.md#d-034--résumé-de-séance-éditorial-par-type)) : un récit qui se lit de haut en bas, sans cartes encadrées. Maquette : [`maquette/seance.html`](maquette/seance.html).
+
+**Tronc commun** (tous les types, dans cet ordre) :
+1. **Surtitre** « {Type} · {jour} {date} » (capitales, `ink-2`) ; à droite, le verdict de la carte S2 dans une pastille d'état.
+2. **Chiffre héros**, police arrondie 800, 104 pt (88 pt si plus de 5 caractères), interlettrage −0,06em, sans retour à la ligne. Il dépend du type (tableau ci-dessous).
+3. **Phrase** de 1 à 2 lignes, 19 pt, `ink-2`, les valeurs en gras `ink`. Elle dit le chiffre clé du type et sa comparaison.
+4. **Tracé** GPS dessiné comme une ligne, sans fond de carte, sur une grille `--grid`, coloré par l'allure sur la rampe d'intensité (4 classes, plus rapide = plus intense), avec un point de départ `good` et des bornes kilométriques. Légende sous le tracé. Sans GPS, le bloc disparaît.
+5. **Blocs du type**, chacun ouvert par un **filet** : trait `ink` de 1 px, titre en capitales à gauche, contexte (« face à tes footings des 8 dernières semaines ») à droite.
+6. **Source** (D-033) en dernier.
+
+Blocs réutilisés : **jauges** (lignes de jauge de S2, sans cadre, séparées par `--line`) ; **duo** (grille 2 colonnes de chiffres 30 pt avec libellé et écart, filets `--line`) ; **courbe** (allure, FC, altitude au fil de la distance, réticule et infobulle) ; **barre empilée** d'intensité ; **tableau** des tours (km, allure, ajustée, FC, D+).
+
+| Type | Héros | Phrase | Blocs, dans l'ordre |
+|---|---|---|---|
+| Footing | distance (« 8,2 km ») | durée, allure, FC moyenne et écart au plafond (« 6 bpm sous ton plafond facile ») | Jauges (FC moyenne, EF) · **Plafond facile** : courbe de FC avec le plafond [easyCap] en pointillé rouge libellé, puis barre « sous le plafond / au-dessus » (`04`, « Temps sous le plafond ») · Les chiffres (allure et allure ajustée, cadence, D+, charge) · Allure (courbe) · Les tours (FC en `Attention` au-dessus du plafond) |
+| Sous-seuil | structure (« 5×8′ ») | allure moyenne des répétitions, nombre dans la bande, répétition hors bande nommée | Tracé **bicolore** : répétitions en `ZAuDessus`, le reste en `ZFacile` · **FC de fin de répétition** : sucettes (une par répétition, valeur au-dessus), bande de sous-seuil, seuil en pointillé rouge ; point hors bande en `Attention` · Jauges (FC de fin moyenne, allure normalisée) · Les répétitions (tableau : allure, ajustée, distance, FC de fin) · Allure et FC (courbes, répétitions surlignées en `--band`, seuil sur la FC) · Les chiffres (total, minutes de sous-seuil, charge, part de sous-seuil de la semaine) |
+| Course, test | temps (« 41:52 ») | allure, VDOT et écart au niveau, écart entre les moitiés | Jauges (VDOT, FC moyenne, charge) · **Gestion de course** : barres d'allure par km, plus rapide que la moyenne en accent, moyenne en pointillé ; duo 1re et 2de moitié (`04`, « Moitiés de course ») · Équivalences de cette course (5 km, semi, marathon) et record de la distance, avec « nouveau » s'il tombe · FC (courbe) |
+| Sortie longue | distance (« 18,4 km ») | durée, allure, découplage, D+ | Jauges (découplage, D+) · **Découplage** : courbe d'efficacité (`04`, « Courbe d'efficacité ») puis duo EF de chaque moitié, avec FC et allure ajustée · Profil : altitude (aire), puis allure brute (accent) et ajustée (pointillé `ink-3`) · Intensité (barre empilée) · Les tours (meilleure allure ajustée en accent) · Les chiffres (EF, charge) |
+
+**Pas de** bloc de synthèse rédigée (« ce qu'il faut retenir »), **pas de** commande flottante entre résumé, carte et tours : l'écran est un seul défilement. Le verre se limite à la barre (retour, menu ⋯) et à la barre d'onglets.
+
+**Critères** : à 320 pt, le héros tient sur une ligne (réduire à 88 pt puis 72 pt) ; chaque graphique a son `aria-label` et sa vue tableau (D-011) ; le tracé n'est jamais la seule source d'une information (les allures sont aussi dans les tours).
 
 **Barre** : un menu ⋯ remplace le bouton « Marquage » ([D-033](decisions.md#d-033--recharger-une-séance)). En tête, le marquage actuel (« Marquage : automatique (Endurance) ») ; puis Course, Test ; puis « Recharger depuis Santé ». Pendant un travail long, les actions sont grisées et une dernière ligne dit « Disponible à la fin du recalcul de l'historique. ».
 
